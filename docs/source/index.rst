@@ -1,7 +1,7 @@
 Nado Protocol Python SDK
 ==========================
 
-This is the Python SDK for the `Nado Protocol API <https://nado-protocol.gitbook.io/docs/developer-resources/api>`_.
+This is the Python SDK for the `Nado Protocol API <TODO>`_.
 
 The latest version of the SDK can be found on `PyPI <https://pypi.org/project/nado-protocol/>`_, and the source code is on `GitHub <https://github.com/nado-protocol/nado-python-sdk>`_.
 
@@ -10,7 +10,7 @@ The latest version of the SDK can be found on `PyPI <https://pypi.org/project/na
    👋 Brand new to Nado?
 
    0. Join the Nado community via `Discord <https://discord.gg/nadoprotocol>`_, `Twitter <https://twitter.com/nado_protocol>`_.
-   1. Read our `docs <https://nado-protocol.gitbook.io/docs/getting-started/overview>`_ to learn the basic concepts.
+   1. Read our `docs <TODO>`_ to learn the basic concepts.
    2. Visit us at `Nado Protocol <https://nadoprotocol.com/>`_.
    3. The :ref:`getting-started` section will give you a quick idea of the core things you can do via the SDK!
 

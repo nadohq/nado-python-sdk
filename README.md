@@ -1,8 +1,8 @@
 # Nado Protocol Python SDK
 
-This is the Python SDK for the [Nado Protocol API](https://nado-protocol.gitbook.io/docs/developer-resources/api).
+This is the Python SDK for the [Nado Protocol API](TODO).
 
-See [SDK docs](https://nado-protocol.github.io/nado-python-sdk/index.html) to get started.
+See [SDK docs](https://nadohq.github.io/nado-python-sdk/index.html) to get started.
 
 ## Requirements
 
@@ -79,11 +79,11 @@ res = client.market.place_order({"product_id": product_id, "order": order})
 print("order result:", res.json(indent=2))
 ```
 
-See [Getting Started](https://nado-protocol.github.io/nado-python-sdk/getting-started.html) for more.
+See [Getting Started](https://nadohq.github.io/nado-python-sdk/getting-started.html) for more.
 
 ## Running locally
 
-1. Clone [github repo](https://github.com/nado-protocol/nado-python-sdk)
+1. Clone [github repo](https://github.com/nadohq/nado-python-sdk)
 
 2. Install poetry
 

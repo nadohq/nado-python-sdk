@@ -9,7 +9,7 @@ you can construct the requisite signatures for each execute using a set utils pr
 
 .. note::
 
-    Check out our docs to learn more about `signing requests <https://nado-protocol.gitbook.io/docs/developer-resources/api/websocket-rest-api/signing>`_ in Nado.
+    Check out our docs to learn more about `signing requests <TODO>`_ in Nado.
 
 EIP-712
 ^^^^^^^

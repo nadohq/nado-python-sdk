@@ -62,7 +62,7 @@ See  :doc:`api-reference` for more details.
 Placing an order
 ----------------
 
-Places an order via `execute:place_order <https://nado-protocol.gitbook.io/docs/developer-resources/api/websocket-rest-api/executes/place-order>`_.
+Places an order via `execute:place_order <TODO>`_.
 
 .. code-block:: python
 
@@ -85,7 +85,7 @@ Places an order via `execute:place_order <https://nado-protocol.gitbook.io/docs/
 Viewing open orders
 -------------------
 
-Queries your open orders via `query:subaccount_orders <https://nado-protocol.gitbook.io/docs/developer-resources/api/websocket-rest-api/queries/subaccount-orders>`_.
+Queries your open orders via `query:subaccount_orders <TODO>`_.
 
 .. code-block:: python
 
@@ -110,7 +110,7 @@ Retrieving an order digest
 Cancelling an order
 -------------------
 
-Cancels open orders via `execute:cancel_orders <https://nado-protocol.gitbook.io/docs/developer-resources/api/websocket-rest-api/executes/cancel-orders>`_.
+Cancels open orders via `execute:cancel_orders <TODO>`_.
 
 .. code-block:: python
 
@@ -123,7 +123,7 @@ Cancels open orders via `execute:cancel_orders <https://nado-protocol.gitbook.io
 Withdrawing collateral
 ----------------------
 
-Withdraw spot collaterals from Nado via `execute:withdraw_collateral <https://nado-protocol.gitbook.io/docs/developer-resources/api/websocket-rest-api/executes/withdraw-collateral>`_.
+Withdraw spot collaterals from Nado via `execute:withdraw_collateral <TODO>`_.
 
 .. code-block:: python
 

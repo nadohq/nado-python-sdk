@@ -5,7 +5,7 @@ description = "Nado Protocol SDK"
 authors = ["Jeury Mejia <jeury@inkfnd.com>"]
 homepage = "https://nadoprotocol.com/"
 maintainers = ["Frank Jia <frank@inkfnd.com>"]
-documentation = "https://nado-protocol.github.io/nado-python-sdk/"
+documentation = "https://nadohq.github.io/nado-python-sdk/"
 readme = "README.md"
 packages = [{include = "nado_protocol"}]
 include = ["nado_protocol/*.json"]
@@ -43,7 +43,7 @@ isolated-sanity = "sanity.isolated:run"
 
 [[tool.poetry.source]]
 name = "private"
-url = "https://github.com/nado-protocol/nado-python-sdk"
+url = "https://github.com/nadohq/nado-python-sdk"
 priority = "primary"
 
 [[tool.poetry.source]]

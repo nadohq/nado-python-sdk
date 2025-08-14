@@ -30,7 +30,7 @@ Market API
 ----------
 The Market API allows you to manage and execute orders on the Nado Protocol. Here, you can explore:
 
-- `Placing an order <https://nado-protocol.gitbook.io/docs/developer-resources/api/websocket-rest-api/executes/place-order>`_:
+- `Placing an order <TODO>`_:
 
 .. code-block:: python
 
@@ -38,58 +38,58 @@ The Market API allows you to manage and execute orders on the Nado Protocol. Her
     >>> order = OrderParams(...)
     >>> client.market.place_order(PlaceOrderParams(order=order, ...))
 
-- `Canceling an order <https://nado-protocol.gitbook.io/docs/developer-resources/api/websocket-rest-api/executes/cancel-orders>`_:
+- `Canceling an order <TODO>`_:
 
 .. code-block:: python
 
     >>> from nado-protocol.engine_client.types import CancelOrdersParams
     >>> client.market.cancel_orders(CancelOrdersParams(...))
 
-- `Cancelling all orders <https://nado-protocol.gitbook.io/docs/developer-resources/api/websocket-rest-api/executes/cancel-product-orders>`_:
+- `Cancelling all orders <TODO>`_:
 
 .. code-block:: Python
 
     >>> from nado-protocol.engine_client.types import CancelProductOrdersParams
     >>> client.market.cancel_product_orders(CancelProductOrdersParams(...))
 
-- `Minting LP <https://nado-protocol.gitbook.io/docs/developer-resources/api/websocket-rest-api/executes/mint-lp>`_:
+- `Minting LP <TODO>`_:
 
     >>> from nado-protocol.engine_client.types import MintLpParams
     >>> client.market.mint_lp(MintLpParams(...))
 
-- `Burning LP <https://nado-protocol.gitbook.io/docs/developer-resources/api/websocket-rest-api/executes/burn-lp>`_:
+- `Burning LP <TODO>`_:
 
     >>> from nado-protocol.engine_client.types import BurnLpParams
     >>> client.market.burn_lp(BurnLpParams(...))
 
 You also have available the following queries:
 
-- `Retrieves all market states from the off-chain engine <https://nado-protocol.gitbook.io/docs/developer-resources/api/websocket-rest-api/queries/all-products>`_:
+- `Retrieves all market states from the off-chain engine <TODO>`_:
 
 .. code-block:: python
 
     >>> client.market.get_all_engine_markets()
 
-- `Retrieves liquidity per price tick from the engine <https://nado-protocol.gitbook.io/docs/developer-resources/api/websocket-rest-api/queries/market-liquidity>`_:
+- `Retrieves liquidity per price tick from the engine <TODO>`_:
 
 .. code-block:: python
 
     >>> client.market.get_market_liquidity()
 
-- `Retrieves the latest off-chain orderbook price for a specific product <https://nado-protocol.gitbook.io/docs/developer-resources/api/websocket-rest-api/queries/market-price>`_:
+- `Retrieves the latest off-chain orderbook price for a specific product <TODO>`_:
 
 .. code-block:: python
 
     >>> client.market.get_latest_market_price(1)
 
-- `Retrieves subaccount open orders <https://nado-protocol.gitbook.io/docs/developer-resources/api/websocket-rest-api/queries/subaccount-orders>`_:
+- `Retrieves subaccount open orders <TODO>`_:
 
 .. code-block:: python
 
     >>> sender = "0xe526299d13c956ed6b9b3e03086a152c6396947364656661756c740000000000"
     >>> client.market.get_subaccount_open_orders(1, sender)
 
--  `Retrieves subaccount historical orders <https://nado-protocol.gitbook.io/docs/developer-resources/api/indexer-api/orders>`_:
+-  `Retrieves subaccount historical orders <TODO>`_:
 
 .. code-block:: python
 
@@ -98,21 +98,21 @@ You also have available the following queries:
     >>> params = IndexerSubaccountHistoricalOrdersParams(subaccount=sender)
     >>> client.market.get_subaccount_historical_orders(params)
 
-- `Retrieves historical orders by digest <https://nado-protocol.gitbook.io/docs/developer-resources/api/indexer-api/orders>`_:
+- `Retrieves historical orders by digest <TODO>`_:
 
 .. code-block:: python
 
     >>> digests = ["0xf4f7a8767faf0c7f72251a1f9e5da590f708fd9842bf8fcdeacbaa0237958fff"]
     >>> client.market.get_historical_orders_by_digest(digests)
 
-- `Retrieves the max amount of LP mintable possible for a subaccount <https://nado-protocol.gitbook.io/docs/developer-resources/api/websocket-rest-api/queries/max-lp-mintable>`_:
+- `Retrieves the max amount of LP mintable possible for a subaccount <TODO>`_:
 
 .. code-block:: python
 
     >>> sender = "0xe526299d13c956ed6b9b3e03086a152c6396947364656661756c740000000000"
     >>> client.market.get_max_lp_mintable(1, sender)
 
-- `Retrieves candlesticks for a product <https://nado-protocol.gitbook.io/docs/developer-resources/api/indexer-api/candlesticks>`_:
+- `Retrieves candlesticks for a product <TODO>`_:
 
 .. code-block:: python
 
@@ -120,19 +120,19 @@ You also have available the following queries:
     >>> params = IndexerCandlesticksParams(product_id=1, granularity=IndexerCandlesticksGranularity.FIVE_MINUTES)
     >>> client.market.get_candlesticks(params)
 
-- `Retrieves the latest funding rate for a specific perp product <https://nado-protocol.gitbook.io/docs/developer-resources/api/indexer-api/funding-rate>`_:
+- `Retrieves the latest funding rate for a specific perp product <TODO>`_:
 
 .. code-block:: python
 
     >>> client.market.get_perp_funding_rate(2)
 
-- `Retrieves the latest oracle prices for provided products <https://nado-protocol.gitbook.io/docs/developer-resources/api/indexer-api/oracle-price>`_:
+- `Retrieves the latest oracle prices for provided products <TODO>`_:
 
 .. code-block:: python
 
     >>> client.market.get_oracle_prices([1, 2, 3, 4])
 
-- `Retrieves $VRTX token rewards for a wallet <https://nado-protocol.gitbook.io/docs/developer-resources/api/indexer-api/rewards>`_:
+- `Retrieves $VRTX token rewards for a wallet <TODO>`_:
 
 .. code-block:: python
 
@@ -147,7 +147,7 @@ Spot API
 --------
 The Spot API allows you to manage your spot collaterals. Here, you can explore:
 
-- `Making a deposit <https://nado-protocol.gitbook.io/docs/developer-resources/api/depositing>`_:
+- `Making a deposit <TODO>`_:
 
 .. code-block:: python
 
@@ -161,7 +161,7 @@ The Spot API allows you to manage your spot collaterals. Here, you can explore:
 
 See :mod:`nado_protocol.client.apis.SpotExecuteAPI.deposit()` for details.
 
-- `Withdrawing collateral <https://nado-protocol.gitbook.io/docs/developer-resources/api/websocket-rest-api/executes/withdraw-collateral>`_:
+- `Withdrawing collateral <TODO>`_:
 
 .. code-block:: python
 
@@ -180,7 +180,7 @@ Perp API
 --------
 The Perp API for actions and queries specific to Perps. Here, you can explore:
 
-- `Retrieves the latest index and mark price for a specific perp product <https://nado-protocol.gitbook.io/docs/developer-resources/api/indexer-api/perp-prices>`_:
+- `Retrieves the latest index and mark price for a specific perp product <TODO>`_:
 
 .. code-block:: python
 
@@ -194,7 +194,7 @@ Subaccount API
 --------------
 The Subaccount API allows you to manage your subaccounts. Here, you can explore:
 
-- `Link a signer to a subaccount <https://nado-protocol.gitbook.io/docs/developer-resources/api/websocket-rest-api/executes/link-signer>`_:
+- `Link a signer to a subaccount <TODO>`_:
 
 .. code-block:: python
 
@@ -202,7 +202,7 @@ The Subaccount API allows you to manage your subaccounts. Here, you can explore:
     >>> params = LinkSignerParams(signer="0xeae27ae6412147ed6d5692fd91709dad6dbfc34264656661756c740000000000")
     >>> client.subaccount.link_signer(params)
 
-- `Retrieves the sate of a subaccount in the off-chain engine <https://nado-protocol.gitbook.io/docs/developer-resources/api/websocket-rest-api/queries/subaccount-info>`_:
+- `Retrieves the sate of a subaccount in the off-chain engine <TODO>`_:
 
 .. code-block:: python
 
@@ -210,7 +210,7 @@ The Subaccount API allows you to manage your subaccounts. Here, you can explore:
     >>> client.subaccount.get_engine_subaccount_summary(sender)
 
 
-- `Retrieves subaccount fee rates <https://nado-protocol.gitbook.io/docs/developer-resources/api/websocket-rest-api/queries/fee-rates>`_:
+- `Retrieves subaccount fee rates <TODO>`_:
 
 .. code-block:: python
 
