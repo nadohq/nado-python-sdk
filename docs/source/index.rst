@@ -9,9 +9,9 @@ The latest version of the SDK can be found on `PyPI <https://pypi.org/project/na
 
    👋 Brand new to Nado?
 
-   0. Join the Nado community via `Discord <https://discord.gg/nadoprotocol>`_, `Twitter <https://twitter.com/nado_protocol>`_.
+   0. Join the Nado community via `Discord <TODO>`_, `Twitter <TODO>`_.
    1. Read our `docs <TODO>`_ to learn the basic concepts.
-   2. Visit us at `Nado Protocol <https://nadoprotocol.com/>`_.
+   2. Visit us at `Nado Protocol <https://nado.xyz>`_.
    3. The :ref:`getting-started` section will give you a quick idea of the core things you can do via the SDK!
 
 Requirements
