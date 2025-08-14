@@ -1,10 +1,10 @@
 import os
 from dotenv import load_dotenv
-from vertex_protocol.client import VertexClientMode, client_mode_to_setup
+from nado_protocol.client import NadoClientMode, client_mode_to_setup
 
 load_dotenv()
 
-CLIENT_MODE: VertexClientMode = os.getenv("CLIENT_MODE")
+CLIENT_MODE: NadoClientMode = os.getenv("CLIENT_MODE")
 SIGNER_PRIVATE_KEY = os.getenv("SIGNER_PRIVATE_KEY")
 LINKED_SIGNER_PRIVATE_KEY = os.getenv("LINKED_SIGNER_PRIVATE_KEY")
 

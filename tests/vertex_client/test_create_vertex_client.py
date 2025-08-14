@@ -1,19 +1,19 @@
 from unittest.mock import MagicMock
 
 from eth_account import Account
-from vertex_protocol.client import VertexClientMode, create_vertex_client
+from nado_protocol.client import NadoClientMode, create_nado_client
 
-from vertex_protocol.client.context import (
-    VertexClientContextOpts,
-    create_vertex_client_context,
+from nado_protocol.client.context import (
+    NadoClientContextOpts,
+    create_nado_client_context,
 )
 import pytest
-from vertex_protocol.contracts import VertexContractsContext
+from nado_protocol.contracts import NadoContractsContext
 
-from vertex_protocol.utils.backend import VertexBackendURL
+from nado_protocol.utils.backend import NadoBackendURL
 
 
-def test_create_vertex_client_context(
+def test_create_nado_client_context(
     mock_post: MagicMock,
     mock_web3: MagicMock,
     mock_load_abi: MagicMock,
@@ -35,12 +35,12 @@ def test_create_vertex_client_context(
     }
     mock_post.return_value = mock_response
 
-    full_engine_client_setup = create_vertex_client_context(
-        VertexClientContextOpts(
+    full_engine_client_setup = create_nado_client_context(
+        NadoClientContextOpts(
             engine_endpoint_url=url,
             indexer_endpoint_url=url,
             rpc_node_url=url,
-            contracts_context=VertexContractsContext(
+            contracts_context=NadoContractsContext(
                 endpoint_addr=endpoint_addr, querier_addr=endpoint_addr
             ),
         ),
@@ -67,12 +67,12 @@ def test_create_vertex_client_context(
     }
     mock_post.return_value = mock_response
 
-    partial_engine_client_setup = create_vertex_client_context(
-        VertexClientContextOpts(
+    partial_engine_client_setup = create_nado_client_context(
+        NadoClientContextOpts(
             engine_endpoint_url=url,
             indexer_endpoint_url=url,
             rpc_node_url=url,
-            contracts_context=VertexContractsContext(
+            contracts_context=NadoContractsContext(
                 endpoint_addr=endpoint_addr, querier_addr=endpoint_addr
             ),
         ),
@@ -99,7 +99,7 @@ def test_create_vertex_client_context(
     )
 
 
-def test_create_vertex_client(
+def test_create_nado_client(
     mock_post: MagicMock,
     mock_web3: MagicMock,
     mock_load_abi: MagicMock,
@@ -108,7 +108,7 @@ def test_create_vertex_client(
     endpoint_addr: str,
     book_addrs: list[str],
     chain_id: int,
-    contracts_context: VertexContractsContext,
+    contracts_context: NadoContractsContext,
 ):
     mock_response = MagicMock()
     mock_response.status_code = 200
@@ -123,63 +123,25 @@ def test_create_vertex_client(
     mock_post.return_value = mock_response
 
     signer = Account.from_key(private_keys[0])
-    mainnet_vertex_client = create_vertex_client(VertexClientMode.MAINNET, signer)
 
-    assert mainnet_vertex_client.context.engine_client.chain_id == chain_id
-    assert mainnet_vertex_client.context.engine_client.endpoint_addr == endpoint_addr
-    assert mainnet_vertex_client.context.engine_client.book_addrs == book_addrs
-    assert (
-        mainnet_vertex_client.context.engine_client.url
-        == VertexBackendURL.MAINNET_GATEWAY
-    )
-    assert (
-        mainnet_vertex_client.context.indexer_client.url
-        == VertexBackendURL.MAINNET_INDEXER
-    )
-    assert mainnet_vertex_client.context.engine_client.signer == signer
+    devnet_nado_client = create_nado_client(NadoClientMode.TESTING, signer)
 
-    sepolia_testnet_vertex_client = create_vertex_client(
-        VertexClientMode.SEPOLIA_TESTNET, signer
-    )
-
-    assert sepolia_testnet_vertex_client.context.engine_client.chain_id == chain_id
+    assert devnet_nado_client.context.engine_client.chain_id == chain_id
+    assert devnet_nado_client.context.engine_client.endpoint_addr == endpoint_addr
+    assert devnet_nado_client.context.engine_client.book_addrs == book_addrs
+    assert devnet_nado_client.context.engine_client.url == NadoBackendURL.DEVNET_GATEWAY
     assert (
-        sepolia_testnet_vertex_client.context.engine_client.endpoint_addr
-        == endpoint_addr
+        devnet_nado_client.context.indexer_client.url == NadoBackendURL.DEVNET_INDEXER
     )
-    assert sepolia_testnet_vertex_client.context.engine_client.book_addrs == book_addrs
-    assert (
-        sepolia_testnet_vertex_client.context.engine_client.url
-        == VertexBackendURL.SEPOLIA_TESTNET_GATEWAY
-    )
-    assert (
-        sepolia_testnet_vertex_client.context.indexer_client.url
-        == VertexBackendURL.SEPOLIA_TESTNET_INDEXER
-    )
-    assert sepolia_testnet_vertex_client.context.engine_client.signer == signer
-
-    devnet_vertex_client = create_vertex_client(VertexClientMode.TESTING, signer)
-
-    assert devnet_vertex_client.context.engine_client.chain_id == chain_id
-    assert devnet_vertex_client.context.engine_client.endpoint_addr == endpoint_addr
-    assert devnet_vertex_client.context.engine_client.book_addrs == book_addrs
-    assert (
-        devnet_vertex_client.context.engine_client.url
-        == VertexBackendURL.DEVNET_GATEWAY
-    )
-    assert (
-        devnet_vertex_client.context.indexer_client.url
-        == VertexBackendURL.DEVNET_INDEXER
-    )
-    assert devnet_vertex_client.context.engine_client.signer == signer
+    assert devnet_nado_client.context.engine_client.signer == signer
 
     with pytest.raises(Exception, match="Mode provided `custom` not supported!"):
-        create_vertex_client("custom", signer)
+        create_nado_client("custom", signer)
 
-    custom_vertex_client = create_vertex_client(
-        VertexClientMode.TESTING,
+    custom_nado_client = create_nado_client(
+        NadoClientMode.TESTING,
         signer,
-        VertexClientContextOpts(
+        NadoClientContextOpts(
             engine_endpoint_url=url,
             indexer_endpoint_url=url,
             rpc_node_url=url,
@@ -187,5 +149,5 @@ def test_create_vertex_client(
         ),
     )
 
-    assert custom_vertex_client.context.engine_client.url == url
-    assert custom_vertex_client.context.indexer_client.url == url
+    assert custom_nado_client.context.engine_client.url == url
+    assert custom_nado_client.context.indexer_client.url == url

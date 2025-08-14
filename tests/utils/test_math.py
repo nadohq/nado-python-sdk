@@ -1,4 +1,4 @@
-from vertex_protocol.utils.math import to_x18
+from nado_protocol.utils.math import to_x18
 
 
 def test_to_x18():

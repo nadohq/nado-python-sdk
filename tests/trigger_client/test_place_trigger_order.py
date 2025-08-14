@@ -2,31 +2,31 @@ from unittest.mock import MagicMock
 import json
 from eth_account import Account
 import pytest
-from vertex_protocol.contracts.eip712.sign import (
+from nado_protocol.contracts.eip712.sign import (
     build_eip712_typed_data,
     sign_eip712_typed_data,
 )
 from eth_account.signers.local import LocalAccount
-from vertex_protocol.contracts.types import VertexExecuteType
-from vertex_protocol.engine_client.types.execute import OrderParams
-from vertex_protocol.trigger_client import TriggerClient
-from vertex_protocol.trigger_client.types.execute import (
+from nado_protocol.contracts.types import NadoExecuteType
+from nado_protocol.engine_client.types.execute import OrderParams
+from nado_protocol.trigger_client import TriggerClient
+from nado_protocol.trigger_client.types.execute import (
     PlaceTriggerOrderParams,
     PlaceTriggerOrderRequest,
     to_trigger_execute_request,
 )
-from vertex_protocol.trigger_client.types.models import (
+from nado_protocol.trigger_client.types.models import (
     PriceAboveTrigger,
     PriceBelowTrigger,
 )
-from vertex_protocol.utils.bytes32 import (
+from nado_protocol.utils.bytes32 import (
     bytes32_to_hex,
     hex_to_bytes32,
     subaccount_to_bytes32,
 )
-from vertex_protocol.utils.exceptions import ExecuteFailedException
-from vertex_protocol.utils.nonce import gen_order_nonce
-from vertex_protocol.utils.subaccount import SubaccountParams
+from nado_protocol.utils.exceptions import ExecuteFailedException
+from nado_protocol.utils.nonce import gen_order_nonce
+from nado_protocol.utils.subaccount import SubaccountParams
 
 
 def test_place_trigger_order_params(
@@ -205,16 +205,16 @@ def test_place_order_execute_success(
         ValueError,
         match="Missing `product_id` to sign place_order or place_isolated_order execute",
     ):
-        trigger_client._sign(VertexExecuteType.PLACE_ORDER, order.dict())
+        trigger_client._sign(NadoExecuteType.PLACE_ORDER, order.dict())
 
     expected_signature = trigger_client._sign(
-        VertexExecuteType.PLACE_ORDER,
+        NadoExecuteType.PLACE_ORDER,
         order.dict(),
         product_id=place_trigger_order_params.product_id,
     )
     computed_signature = sign_eip712_typed_data(
         typed_data=build_eip712_typed_data(
-            VertexExecuteType.PLACE_ORDER,
+            NadoExecuteType.PLACE_ORDER,
             order.dict(),
             trigger_client._opts.book_addrs[1],
             trigger_client.chain_id,
@@ -265,7 +265,7 @@ def test_place_order_execute_success(
 
     expected_signature = sign_eip712_typed_data(
         typed_data=build_eip712_typed_data(
-            VertexExecuteType.PLACE_ORDER,
+            NadoExecuteType.PLACE_ORDER,
             order.dict(),
             trigger_client._opts.book_addrs[1],
             trigger_client.chain_id,
@@ -314,7 +314,7 @@ def test_place_order_execute_provide_full_params(
         "expiration": 10000,
     }
     signature = trigger_client.sign(
-        VertexExecuteType.PLACE_ORDER, order_params, book_addrs[1], chain_id, signer
+        NadoExecuteType.PLACE_ORDER, order_params, book_addrs[1], chain_id, signer
     )
     order_params["sender"] = bytes32_to_hex(order_params["sender"])
     res = trigger_client.place_trigger_order(

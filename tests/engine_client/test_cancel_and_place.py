@@ -1,18 +1,18 @@
-from vertex_protocol.engine_client.types.execute import (
+from nado_protocol.engine_client.types.execute import (
     CancelOrdersParams,
     CancelOrdersRequest,
     CancelAndPlaceParams,
     CancelAndPlaceRequest,
 )
-from vertex_protocol.utils.bytes32 import hex_to_bytes32
-from vertex_protocol.engine_client.types.execute import (
+from nado_protocol.utils.bytes32 import hex_to_bytes32
+from nado_protocol.engine_client.types.execute import (
     OrderParams,
     PlaceOrderParams,
     PlaceOrderRequest,
     to_execute_request,
 )
-from vertex_protocol.utils.nonce import gen_order_nonce
-from vertex_protocol.utils.subaccount import SubaccountParams
+from nado_protocol.utils.nonce import gen_order_nonce
+from nado_protocol.utils.subaccount import SubaccountParams
 
 
 def test_cancel_and_place_params(

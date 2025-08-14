@@ -1,5 +1,5 @@
 from eth_account import Account
-from vertex_protocol.trigger_client import TriggerClient
+from nado_protocol.trigger_client import TriggerClient
 import pytest
 
 

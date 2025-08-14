@@ -17,9 +17,9 @@
 
 # -- Project information -----------------------------------------------------
 
-project = "Vertex Protocol SDK"
-copyright = "2023, Vertex Protocol Team"
-author = "Vertex Protocol Team"
+project = "Nado Protocol SDK"
+copyright = "2023, Nado Protocol Team"
+author = "Nado Protocol Team"
 
 # The full version, including alpha/beta/rc tags
 release = "0.1.0"
@@ -64,6 +64,6 @@ autodoc_member_order = "bysource"
 
 autosummary_generate = True
 
-html_favicon = "vertex.ico"
+html_favicon = "nado.ico"
 
 pygments_style = "sphinx"

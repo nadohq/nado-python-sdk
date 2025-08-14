@@ -1,8 +1,8 @@
-# Vertex Protocol Python SDK
+# Nado Protocol Python SDK
 
-This is the Python SDK for the [Vertex Protocol API](https://vertex-protocol.gitbook.io/docs/developer-resources/api).
+This is the Python SDK for the [Nado Protocol API](https://nado-protocol.gitbook.io/docs/developer-resources/api).
 
-See [SDK docs](https://vertex-protocol.github.io/vertex-python-sdk/index.html) to get started.
+See [SDK docs](https://nado-protocol.github.io/nado-python-sdk/index.html) to get started.
 
 ## Requirements
 
@@ -13,7 +13,7 @@ See [SDK docs](https://vertex-protocol.github.io/vertex-python-sdk/index.html) t
 You can install the SDK via pip:
 
 ```bash
-pip install vertex-protocol
+pip install nado-protocol
 ```
 
 ## Basic usage
@@ -21,24 +21,24 @@ pip install vertex-protocol
 ### Import the necessary utilities:
 
 ```python
-from vertex_protocol.client import create_vertex_client, VertexClientMode
-from vertex_protocol.contracts.types import DepositCollateralParams
-from vertex_protocol.engine_client.types.execute import (
+from nado_protocol.client import create_nado_client, NadoClientMode
+from nado_protocol.contracts.types import DepositCollateralParams
+from nado_protocol.engine_client.types.execute import (
     OrderParams,
     PlaceOrderParams,
     SubaccountParams
 )
-from vertex_protocol.utils.expiration import OrderType, get_expiration_timestamp
-from vertex_protocol.utils.math import to_pow_10, to_x18
-from vertex_protocol.utils.nonce import gen_order_nonce
+from nado_protocol.utils.expiration import OrderType, get_expiration_timestamp
+from nado_protocol.utils.math import to_pow_10, to_x18
+from nado_protocol.utils.nonce import gen_order_nonce
 ```
 
-### Create the VertexClient providing your private key:
+### Create the NadoClient providing your private key:
 
 ```python
-print("setting up vertex client...")
+print("setting up nado client...")
 private_key = "xxx"
-client = create_vertex_client(VertexClientMode.MAINNET, private_key)
+client = create_nado_client(NadoClientMode.DEVNET, private_key)
 ```
 
 ### Perform basic operations:
@@ -79,11 +79,11 @@ res = client.market.place_order({"product_id": product_id, "order": order})
 print("order result:", res.json(indent=2))
 ```
 
-See [Getting Started](https://vertex-protocol.github.io/vertex-python-sdk/getting-started.html) for more.
+See [Getting Started](https://nado-protocol.github.io/nado-python-sdk/getting-started.html) for more.
 
 ## Running locally
 
-1. Clone [github repo](https://github.com/vertex-protocol/vertex-python-sdk)
+1. Clone [github repo](https://github.com/nado-protocol/nado-python-sdk)
 
 2. Install poetry
 
@@ -106,7 +106,7 @@ $ source ./venv/bin/activate
 5. Setup an `.env` file and set the following envvars
 
 ```shell
-CLIENT_MODE='mainnet|sepolia-testnet|devnet'
+CLIENT_MODE='devnet'
 SIGNER_PRIVATE_KEY="0x..."
 LINKED_SIGNER_PRIVATE_KEY="0x..." # not required
 ```

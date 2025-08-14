@@ -1,65 +1,65 @@
 API Reference
 =============
 
-Detailed API Reference for Vertex Protocol SDK.
+Detailed API Reference for Nado Protocol SDK.
 
-vertex_protocol.client
+nado_protocol.client
 ----------------------
-.. automodule:: vertex_protocol.client
+.. automodule:: nado_protocol.client
     :members: 
     :undoc-members:
     :special-members: __init__
     :show-inheritance:
 
 
-vertex_protocol.client.apis
+nado_protocol.client.apis
 ---------------------------
-.. automodule:: vertex_protocol.client.apis
+.. automodule:: nado_protocol.client.apis
     :members: 
     :undoc-members:
     :special-members: __init__
     :show-inheritance:
 
 
-vertex-protocol.engine_client
+nado-protocol.engine_client
 -----------------------------
-.. automodule:: vertex_protocol.engine_client
+.. automodule:: nado_protocol.engine_client
     :members:
     :undoc-members:
     :special-members: __init__
     :show-inheritance:
 
 
-vertex-protocol.engine_client.types
+nado-protocol.engine_client.types
 -----------------------------------
-.. automodule:: vertex_protocol.engine_client.types
+.. automodule:: nado_protocol.engine_client.types
     :members:
     :undoc-members:
     :special-members: __init__
     :show-inheritance:
 
 
-vertex-protocol.indexer_client
+nado-protocol.indexer_client
 ------------------------------
-.. automodule:: vertex_protocol.indexer_client
+.. automodule:: nado_protocol.indexer_client
     :members:
     :undoc-members:
     :special-members: __init__
     :show-inheritance:
 
 
-vertex-protocol.indexer_client.types
+nado-protocol.indexer_client.types
 ------------------------------------
-.. automodule:: vertex_protocol.indexer_client.types
+.. automodule:: nado_protocol.indexer_client.types
     :members:
     :undoc-members:
     :special-members: __init__
     :show-inheritance:
 
 
-vertex-protocol.contracts
+nado-protocol.contracts
 -------------------------
-.. automodule:: vertex_protocol.contracts
+.. automodule:: nado_protocol.contracts
     :members:
     :undoc-members:
     :special-members: __init__
@@ -67,18 +67,18 @@ vertex-protocol.contracts
 
 .. _eip-712:
 
-vertex-protocol.contracts.eip712
+nado-protocol.contracts.eip712
 --------------------------------
-.. automodule:: vertex_protocol.contracts.eip712
+.. automodule:: nado_protocol.contracts.eip712
     :members:
     :undoc-members:
     :special-members: __init__
     :show-inheritance:
 
 
-vertex-protocol.utils
+nado-protocol.utils
 ---------------------
-.. automodule:: vertex_protocol.utils
+.. automodule:: nado_protocol.utils
     :members:
     :undoc-members:
     :special-members: __init__

@@ -31,11 +31,11 @@ jobs:
         run: poetry install
       - name: Pytest
         run: |
-          poetry run coverage run -m --source=vertex_protocol pytest tests
+          poetry run coverage run -m --source=nado_protocol pytest tests
           poetry run coverage report
       - name: MyPy
         run: |
-          poetry run mypy vertex_protocol
+          poetry run mypy nado_protocol
 
   publish:
     # Our publish job will only run on release creation events,

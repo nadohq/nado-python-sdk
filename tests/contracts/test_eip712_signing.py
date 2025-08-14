@@ -1,27 +1,27 @@
 from eth_account import Account
-from vertex_protocol.contracts.eip712.domain import (
+from nado_protocol.contracts.eip712.domain import (
     get_eip712_domain_type,
-    get_vertex_eip712_domain,
+    get_nado_eip712_domain,
 )
-from vertex_protocol.contracts.eip712.sign import (
+from nado_protocol.contracts.eip712.sign import (
     build_eip712_typed_data,
     get_eip712_typed_data_digest,
     sign_eip712_typed_data,
 )
-from vertex_protocol.contracts.eip712.types import get_vertex_eip712_type
-from vertex_protocol.contracts.types import VertexTxType
+from nado_protocol.contracts.eip712.types import get_nado_eip712_type
+from nado_protocol.contracts.types import NadoTxType
 import pytest
 
 
 def test_build_eip712_domain(endpoint_addr: str, book_addrs: list[str], chain_id: int):
-    eip712_domain_endpoint_addr = get_vertex_eip712_domain(
+    eip712_domain_endpoint_addr = get_nado_eip712_domain(
         verifying_contract=endpoint_addr, chain_id=chain_id
     )
-    eip712_domain_book_addr = get_vertex_eip712_domain(
+    eip712_domain_book_addr = get_nado_eip712_domain(
         verifying_contract=book_addrs[1], chain_id=chain_id
     )
 
-    assert eip712_domain_endpoint_addr.name == eip712_domain_book_addr.name == "Vertex"
+    assert eip712_domain_endpoint_addr.name == eip712_domain_book_addr.name == "Nado"
     assert (
         eip712_domain_endpoint_addr.version
         == eip712_domain_book_addr.version
@@ -36,13 +36,13 @@ def test_build_eip712_domain(endpoint_addr: str, book_addrs: list[str], chain_id
     assert eip712_domain_book_addr.verifyingContract == book_addrs[1]
 
     assert eip712_domain_endpoint_addr.dict() == {
-        "name": "Vertex",
+        "name": "Nado",
         "version": "0.0.1",
         "chainId": chain_id,
         "verifyingContract": endpoint_addr,
     }
     assert eip712_domain_book_addr.dict() == {
-        "name": "Vertex",
+        "name": "Nado",
         "version": "0.0.1",
         "chainId": chain_id,
         "verifyingContract": book_addrs[1],
@@ -53,7 +53,7 @@ def test_build_eip712_domain(endpoint_addr: str, book_addrs: list[str], chain_id
     "tx, primary_type, eip712_type",
     [
         (
-            VertexTxType.PLACE_ORDER,
+            NadoTxType.PLACE_ORDER,
             "Order",
             [
                 {"name": "sender", "type": "bytes32"},
@@ -64,7 +64,7 @@ def test_build_eip712_domain(endpoint_addr: str, book_addrs: list[str], chain_id
             ],
         ),
         (
-            VertexTxType.CANCEL_ORDERS,
+            NadoTxType.CANCEL_ORDERS,
             "Cancellation",
             [
                 {"name": "sender", "type": "bytes32"},
@@ -74,7 +74,7 @@ def test_build_eip712_domain(endpoint_addr: str, book_addrs: list[str], chain_id
             ],
         ),
         (
-            VertexTxType.CANCEL_PRODUCT_ORDERS,
+            NadoTxType.CANCEL_PRODUCT_ORDERS,
             "CancellationProducts",
             [
                 {"name": "sender", "type": "bytes32"},
@@ -83,7 +83,7 @@ def test_build_eip712_domain(endpoint_addr: str, book_addrs: list[str], chain_id
             ],
         ),
         (
-            VertexTxType.WITHDRAW_COLLATERAL,
+            NadoTxType.WITHDRAW_COLLATERAL,
             "WithdrawCollateral",
             [
                 {"name": "sender", "type": "bytes32"},
@@ -93,7 +93,7 @@ def test_build_eip712_domain(endpoint_addr: str, book_addrs: list[str], chain_id
             ],
         ),
         (
-            VertexTxType.LIQUIDATE_SUBACCOUNT,
+            NadoTxType.LIQUIDATE_SUBACCOUNT,
             "LiquidateSubaccount",
             [
                 {"name": "sender", "type": "bytes32"},
@@ -105,7 +105,7 @@ def test_build_eip712_domain(endpoint_addr: str, book_addrs: list[str], chain_id
             ],
         ),
         (
-            VertexTxType.MINT_LP,
+            NadoTxType.MINT_LP,
             "MintLp",
             [
                 {"name": "sender", "type": "bytes32"},
@@ -117,7 +117,7 @@ def test_build_eip712_domain(endpoint_addr: str, book_addrs: list[str], chain_id
             ],
         ),
         (
-            VertexTxType.BURN_LP,
+            NadoTxType.BURN_LP,
             "BurnLp",
             [
                 {"name": "sender", "type": "bytes32"},
@@ -127,7 +127,7 @@ def test_build_eip712_domain(endpoint_addr: str, book_addrs: list[str], chain_id
             ],
         ),
         (
-            VertexTxType.LINK_SIGNER,
+            NadoTxType.LINK_SIGNER,
             "LinkSigner",
             [
                 {"name": "sender", "type": "bytes32"},
@@ -136,7 +136,7 @@ def test_build_eip712_domain(endpoint_addr: str, book_addrs: list[str], chain_id
             ],
         ),
         (
-            VertexTxType.AUTHENTICATE_STREAM,
+            NadoTxType.AUTHENTICATE_STREAM,
             "StreamAuthentication",
             [
                 {"name": "sender", "type": "bytes32"},
@@ -144,7 +144,7 @@ def test_build_eip712_domain(endpoint_addr: str, book_addrs: list[str], chain_id
             ],
         ),
         (
-            VertexTxType.LIST_TRIGGER_ORDERS,
+            NadoTxType.LIST_TRIGGER_ORDERS,
             "ListTriggerOrders",
             [
                 {"name": "sender", "type": "bytes32"},
@@ -154,9 +154,9 @@ def test_build_eip712_domain(endpoint_addr: str, book_addrs: list[str], chain_id
     ],
 )
 def test_build_eip712_types(
-    tx: VertexTxType, primary_type: str, eip712_type: list[dict]  # type: ignore
+    tx: NadoTxType, primary_type: str, eip712_type: list[dict]  # type: ignore
 ):
-    computed_eip712_type = get_vertex_eip712_type(tx)
+    computed_eip712_type = get_nado_eip712_type(tx)
     eip712_primary_type = list(computed_eip712_type.keys())[0]
 
     assert eip712_primary_type == primary_type
@@ -176,7 +176,7 @@ def test_build_eip712_domain_type():
     "tx, primary_type, msg",
     [
         (
-            VertexTxType.PLACE_ORDER,
+            NadoTxType.PLACE_ORDER,
             "Order",
             {
                 "sender": "0x841fe4876763357975d60da128d8a54bb045d76a64656661756c740000000000",
@@ -187,7 +187,7 @@ def test_build_eip712_domain_type():
             },
         ),
         (
-            VertexTxType.CANCEL_ORDERS,
+            NadoTxType.CANCEL_ORDERS,
             "Cancellation",
             {
                 "sender": "0x841fe4876763357975d60da128d8a54bb045d76a64656661756c740000000000",
@@ -199,7 +199,7 @@ def test_build_eip712_domain_type():
             },
         ),
         (
-            VertexTxType.CANCEL_PRODUCT_ORDERS,
+            NadoTxType.CANCEL_PRODUCT_ORDERS,
             "CancellationProducts",
             {
                 "sender": "0x841fe4876763357975d60da128d8a54bb045d76a64656661756c740000000000",
@@ -208,7 +208,7 @@ def test_build_eip712_domain_type():
             },
         ),
         (
-            VertexTxType.WITHDRAW_COLLATERAL,
+            NadoTxType.WITHDRAW_COLLATERAL,
             "WithdrawCollateral",
             {
                 "sender": "0x841fe4876763357975d60da128d8a54bb045d76a64656661756c740000000000",
@@ -218,7 +218,7 @@ def test_build_eip712_domain_type():
             },
         ),
         (
-            VertexTxType.LIQUIDATE_SUBACCOUNT,
+            NadoTxType.LIQUIDATE_SUBACCOUNT,
             "LiquidateSubaccount",
             {
                 "sender": "0x841fe4876763357975d60da128d8a54bb045d76a64656661756c740000000000",
@@ -230,7 +230,7 @@ def test_build_eip712_domain_type():
             },
         ),
         (
-            VertexTxType.MINT_LP,
+            NadoTxType.MINT_LP,
             "MintLp",
             {
                 "sender": "0x841fe4876763357975d60da128d8a54bb045d76a64656661756c740000000000",
@@ -242,7 +242,7 @@ def test_build_eip712_domain_type():
             },
         ),
         (
-            VertexTxType.BURN_LP,
+            NadoTxType.BURN_LP,
             "BurnLp",
             {
                 "sender": "0x841fe4876763357975d60da128d8a54bb045d76a64656661756c740000000000",
@@ -252,7 +252,7 @@ def test_build_eip712_domain_type():
             },
         ),
         (
-            VertexTxType.LINK_SIGNER,
+            NadoTxType.LINK_SIGNER,
             "LinkSigner",
             {
                 "sender": "0x841fe4876763357975d60da128d8a54bb045d76a64656661756c740000000000",
@@ -261,7 +261,7 @@ def test_build_eip712_domain_type():
             },
         ),
         (
-            VertexTxType.AUTHENTICATE_STREAM,
+            NadoTxType.AUTHENTICATE_STREAM,
             "StreamAuthentication",
             {
                 "sender": "0x841fe4876763357975d60da128d8a54bb045d76a64656661756c740000000000",
@@ -269,7 +269,7 @@ def test_build_eip712_domain_type():
             },
         ),
         (
-            VertexTxType.LIST_TRIGGER_ORDERS,
+            NadoTxType.LIST_TRIGGER_ORDERS,
             "ListTriggerOrders",
             {
                 "sender": "0x841fe4876763357975d60da128d8a54bb045d76a64656661756c740000000000",
@@ -279,7 +279,7 @@ def test_build_eip712_domain_type():
     ],
 )
 def test_build_eip712_typed_data(
-    tx: VertexTxType,  # type: ignore
+    tx: NadoTxType,  # type: ignore
     primary_type: str,
     msg: dict,
     endpoint_addr: str,
@@ -296,11 +296,11 @@ def test_build_eip712_typed_data(
                 {"name": "chainId", "type": "uint256"},
                 {"name": "verifyingContract", "type": "address"},
             ],
-            primary_type: list(get_vertex_eip712_type(tx).values())[0],
+            primary_type: list(get_nado_eip712_type(tx).values())[0],
         },
         "primaryType": primary_type,
         "domain": {
-            "name": "Vertex",
+            "name": "Nado",
             "version": "0.0.1",
             "chainId": chain_id,
             "verifyingContract": endpoint_addr,
@@ -326,28 +326,28 @@ def test_sign_eip712_typed_data(
     list_trigger_orders_params: dict,
 ):
     to_sign = [
-        (VertexTxType.PLACE_ORDER, book_addrs[1], order_params),
-        (VertexTxType.CANCEL_ORDERS, endpoint_addr, cancellation_params),
+        (NadoTxType.PLACE_ORDER, book_addrs[1], order_params),
+        (NadoTxType.CANCEL_ORDERS, endpoint_addr, cancellation_params),
         (
-            VertexTxType.CANCEL_PRODUCT_ORDERS,
+            NadoTxType.CANCEL_PRODUCT_ORDERS,
             endpoint_addr,
             cancellation_products_params,
         ),
         (
-            VertexTxType.WITHDRAW_COLLATERAL,
+            NadoTxType.WITHDRAW_COLLATERAL,
             endpoint_addr,
             withdraw_collateral_params,
         ),
         (
-            VertexTxType.LIQUIDATE_SUBACCOUNT,
+            NadoTxType.LIQUIDATE_SUBACCOUNT,
             endpoint_addr,
             liquidate_subaccount_params,
         ),
-        (VertexTxType.MINT_LP, endpoint_addr, mint_lp_params),
-        (VertexTxType.BURN_LP, endpoint_addr, burn_lp_params),
-        (VertexTxType.LINK_SIGNER, endpoint_addr, link_signer_params),
-        (VertexTxType.AUTHENTICATE_STREAM, endpoint_addr, authenticate_stream_params),
-        (VertexTxType.LIST_TRIGGER_ORDERS, endpoint_addr, list_trigger_orders_params),
+        (NadoTxType.MINT_LP, endpoint_addr, mint_lp_params),
+        (NadoTxType.BURN_LP, endpoint_addr, burn_lp_params),
+        (NadoTxType.LINK_SIGNER, endpoint_addr, link_signer_params),
+        (NadoTxType.AUTHENTICATE_STREAM, endpoint_addr, authenticate_stream_params),
+        (NadoTxType.LIST_TRIGGER_ORDERS, endpoint_addr, list_trigger_orders_params),
     ]
 
     signer = Account.from_key(private_keys[0])

@@ -3,12 +3,12 @@ from pprint import pprint
 
 from eth_account import Account
 from sanity import INDEXER_BACKEND_URL, SIGNER_PRIVATE_KEY
-from vertex_protocol.indexer_client import IndexerClient
-from vertex_protocol.indexer_client.types.models import (
+from nado_protocol.indexer_client import IndexerClient
+from nado_protocol.indexer_client.types.models import (
     IndexerCandlesticksGranularity,
     IndexerEventType,
 )
-from vertex_protocol.indexer_client.types.query import (
+from nado_protocol.indexer_client.types.query import (
     IndexerCandlesticksParams,
     IndexerEventsParams,
     IndexerEventsRawLimit,
@@ -16,8 +16,8 @@ from vertex_protocol.indexer_client.types.query import (
     IndexerSubaccountHistoricalOrdersParams,
     IndexerSubaccountsParams,
 )
-from vertex_protocol.utils.bytes32 import subaccount_to_hex
-from vertex_protocol.utils.subaccount import SubaccountParams
+from nado_protocol.utils.bytes32 import subaccount_to_hex
+from nado_protocol.utils.subaccount import SubaccountParams
 
 
 def run():

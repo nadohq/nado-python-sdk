@@ -2,14 +2,14 @@ from unittest.mock import MagicMock, patch
 from eth_account import Account
 import pytest
 import requests
-from vertex_protocol.client import VertexClient, create_vertex_client
-from vertex_protocol.contracts import VertexContractsContext
-from vertex_protocol.engine_client import EngineClient
-from vertex_protocol.engine_client.types import EngineClientOpts
+from nado_protocol.client import NadoClient, create_nado_client
+from nado_protocol.contracts import NadoContractsContext
+from nado_protocol.engine_client import EngineClient
+from nado_protocol.engine_client.types import EngineClientOpts
 
-from vertex_protocol.trigger_client import TriggerClient
-from vertex_protocol.trigger_client.types import TriggerClientOpts
-from vertex_protocol.utils.bytes32 import hex_to_bytes32
+from nado_protocol.trigger_client import TriggerClient
+from nado_protocol.trigger_client.types import TriggerClientOpts
+from nado_protocol.utils.bytes32 import hex_to_bytes32
 
 
 @pytest.fixture
@@ -103,13 +103,13 @@ def trigger_client(
 
 
 @pytest.fixture
-def vertex_client(
+def nado_client(
     mock_post: MagicMock,
     chain_id: int,
     endpoint_addr: str,
     book_addrs: list[str],
     private_keys: list[str],
-) -> VertexClient:
+) -> NadoClient:
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {
@@ -121,7 +121,7 @@ def vertex_client(
         },
     }
     mock_post.return_value = mock_response
-    return create_vertex_client("testing", private_keys[0])
+    return create_nado_client("testing", private_keys[0])
 
 
 @pytest.fixture
@@ -253,13 +253,13 @@ def mock_get() -> MagicMock:
 
 @pytest.fixture
 def mock_web3() -> MagicMock:
-    with patch("vertex_protocol.contracts.Web3") as mock_web3:
+    with patch("nado_protocol.contracts.Web3") as mock_web3:
         yield mock_web3
 
 
 @pytest.fixture
 def mock_load_abi() -> MagicMock:
-    with patch("vertex_protocol.contracts.load_abi") as mock_load_abi:
+    with patch("nado_protocol.contracts.load_abi") as mock_load_abi:
         yield mock_load_abi
 
 
@@ -330,13 +330,11 @@ def mock_nonces(mock_post: MagicMock) -> MagicMock:
 @pytest.fixture
 def mock_tx_nonce():
     with patch(
-        "vertex_protocol.engine_client.EngineExecuteClient.tx_nonce", return_value=1
+        "nado_protocol.engine_client.EngineExecuteClient.tx_nonce", return_value=1
     ) as mock:
         yield mock
 
 
 @pytest.fixture
-def contracts_context(endpoint_addr: str, book_addrs: str) -> VertexContractsContext:
-    return VertexContractsContext(
-        endpoint_addr=endpoint_addr, querier_addr=book_addrs[1]
-    )
+def contracts_context(endpoint_addr: str, book_addrs: str) -> NadoContractsContext:
+    return NadoContractsContext(endpoint_addr=endpoint_addr, querier_addr=book_addrs[1])

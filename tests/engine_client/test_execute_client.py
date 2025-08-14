@@ -1,5 +1,5 @@
 from eth_account import Account
-from vertex_protocol.engine_client import EngineClient
+from nado_protocol.engine_client import EngineClient
 import pytest
 
 

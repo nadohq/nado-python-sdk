@@ -5,8 +5,8 @@ from eth_account import Account
 from eth_account.signers.local import LocalAccount
 
 from sanity import ENGINE_BACKEND_URL, LINKED_SIGNER_PRIVATE_KEY, SIGNER_PRIVATE_KEY
-from vertex_protocol.engine_client import EngineClient, EngineClientOpts
-from vertex_protocol.engine_client.types.execute import (
+from nado_protocol.engine_client import EngineClient, EngineClientOpts
+from nado_protocol.engine_client.types.execute import (
     BurnLpParams,
     CancelOrdersParams,
     LinkSignerParams,
@@ -16,20 +16,20 @@ from vertex_protocol.engine_client.types.execute import (
     OrderParams,
     WithdrawCollateralParams,
 )
-from vertex_protocol.engine_client.types.query import (
+from nado_protocol.engine_client.types.query import (
     QueryMaxOrderSizeParams,
 )
-from vertex_protocol.utils.bytes32 import (
+from nado_protocol.utils.bytes32 import (
     bytes32_to_hex,
     str_to_hex,
     subaccount_to_bytes32,
     zero_subaccount,
     subaccount_to_hex,
 )
-from vertex_protocol.utils.expiration import OrderType, get_expiration_timestamp
-from vertex_protocol.utils.math import to_pow_10, to_x18
-from vertex_protocol.utils.nonce import gen_order_nonce
-from vertex_protocol.utils.subaccount import SubaccountParams
+from nado_protocol.utils.expiration import OrderType, get_expiration_timestamp
+from nado_protocol.utils.math import to_pow_10, to_x18
+from nado_protocol.utils.nonce import gen_order_nonce
+from nado_protocol.utils.subaccount import SubaccountParams
 
 
 def run():

@@ -1,27 +1,27 @@
 from sanity import NETWORK
-from vertex_protocol.contracts import VertexContracts, VertexContractsContext
-from vertex_protocol.contracts.loader import load_deployment
+from nado_protocol.contracts import NadoContracts, NadoContractsContext
+from nado_protocol.contracts.loader import load_deployment
 
 
 def run():
-    print("setting up vertex contracts")
+    print("setting up nado contracts")
     deployment = load_deployment(NETWORK)
-    vertex_contracts = VertexContracts(
+    nado_contracts = NadoContracts(
         node_url=deployment.node_url,
-        contracts_context=VertexContractsContext(**deployment.dict()),
+        contracts_context=NadoContractsContext(**deployment.dict()),
     )
 
     print("node url:", deployment.node_url)
-    print("endpoint:", vertex_contracts.endpoint.address)
-    print("querier:", vertex_contracts.querier.address)
-    print("clearinghouse:", vertex_contracts.clearinghouse.address)
-    print("spot_engine:", vertex_contracts.spot_engine.address)
-    print("perp_engine:", vertex_contracts.perp_engine.address)
-    print("n-submissions", vertex_contracts.endpoint.functions.nSubmissions().call())
+    print("endpoint:", nado_contracts.endpoint.address)
+    print("querier:", nado_contracts.querier.address)
+    print("clearinghouse:", nado_contracts.clearinghouse.address)
+    print("spot_engine:", nado_contracts.spot_engine.address)
+    print("perp_engine:", nado_contracts.perp_engine.address)
+    print("n-submissions", nado_contracts.endpoint.functions.nSubmissions().call())
 
-    # wallet = vertex_contracts.w3.to_checksum_address(
+    # wallet = nado_contracts.w3.to_checksum_address(
     #     "0xcb60ca32b25b4e11cd1959514d77356d58d3e138"
     # )
     # print(
-    #     "getClaimed", vertex_contracts.vrtx_airdrop.functions.getClaimed(wallet).call()
+    #     "getClaimed", nado_contracts.vrtx_airdrop.functions.getClaimed(wallet).call()
     # )

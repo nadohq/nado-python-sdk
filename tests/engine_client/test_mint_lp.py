@@ -1,9 +1,9 @@
-from vertex_protocol.engine_client.types.execute import (
+from nado_protocol.engine_client.types.execute import (
     MintLpParams,
     MintLpRequest,
     to_execute_request,
 )
-from vertex_protocol.utils.bytes32 import hex_to_bytes32
+from nado_protocol.utils.bytes32 import hex_to_bytes32
 
 
 def test_mint_lp_params(senders: list[str], owners: list[str], mint_lp_params: dict):

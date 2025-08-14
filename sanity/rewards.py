@@ -1,12 +1,12 @@
 from sanity import CLIENT_MODE, SIGNER_PRIVATE_KEY
-from vertex_protocol.client import VertexClient, create_vertex_client
-from vertex_protocol.utils.math import to_x18
-from vertex_protocol.contracts.types import ClaimVrtxParams
+from nado_protocol.client import NadoClient, create_nado_client
+from nado_protocol.utils.math import to_x18
+from nado_protocol.contracts.types import ClaimVrtxParams
 
 
 def run():
-    print("setting up vertex client...")
-    client: VertexClient = create_vertex_client(CLIENT_MODE, SIGNER_PRIVATE_KEY)
+    print("setting up nado client...")
+    client: NadoClient = create_nado_client(CLIENT_MODE, SIGNER_PRIVATE_KEY)
     signer = client.context.signer
 
     print("network:", client.context.contracts.network)

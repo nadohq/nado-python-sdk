@@ -1,29 +1,29 @@
 from sanity import CLIENT_MODE, SIGNER_PRIVATE_KEY
-from vertex_protocol.contracts.types import VertexTxType
-from vertex_protocol.utils.bytes32 import subaccount_to_hex, subaccount_to_bytes32
-from vertex_protocol.contracts.eip712.sign import (
+from nado_protocol.contracts.types import NadoTxType
+from nado_protocol.utils.bytes32 import subaccount_to_hex, subaccount_to_bytes32
+from nado_protocol.contracts.eip712.sign import (
     build_eip712_typed_data,
     sign_eip712_typed_data,
 )
-from vertex_protocol.client import VertexClient, create_vertex_client
+from nado_protocol.client import NadoClient, create_nado_client
 
 
 import time
 
-from vertex_protocol.engine_client.types.execute import (
+from nado_protocol.engine_client.types.execute import (
     OrderParams,
 )
 
-from vertex_protocol.utils.expiration import OrderType, get_expiration_timestamp
-from vertex_protocol.utils.math import to_pow_10, to_x18
-from vertex_protocol.utils.nonce import gen_order_nonce
-from vertex_protocol.utils.subaccount import SubaccountParams
-from vertex_protocol.utils.time import now_in_millis
+from nado_protocol.utils.expiration import OrderType, get_expiration_timestamp
+from nado_protocol.utils.math import to_pow_10, to_x18
+from nado_protocol.utils.nonce import gen_order_nonce
+from nado_protocol.utils.subaccount import SubaccountParams
+from nado_protocol.utils.time import now_in_millis
 
 
 def run():
-    print("setting up vertex client...")
-    client: VertexClient = create_vertex_client(CLIENT_MODE, SIGNER_PRIVATE_KEY)
+    print("setting up nado client...")
+    client: NadoClient = create_nado_client(CLIENT_MODE, SIGNER_PRIVATE_KEY)
 
     print("chain_id:", client.context.engine_client.get_contracts().chain_id)
 
@@ -33,7 +33,7 @@ def run():
 
     print("building StreamAuthentication signature...")
     authenticate_stream_typed_data = build_eip712_typed_data(
-        tx=VertexTxType.AUTHENTICATE_STREAM,
+        tx=NadoTxType.AUTHENTICATE_STREAM,
         msg={
             "sender": subaccount_to_bytes32(subaccount),
             "expiration": now_in_millis(90),

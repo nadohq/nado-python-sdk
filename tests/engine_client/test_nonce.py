@@ -1,5 +1,5 @@
 import time
-from vertex_protocol.utils.nonce import gen_order_nonce
+from nado_protocol.utils.nonce import gen_order_nonce
 
 
 def test_nonce():

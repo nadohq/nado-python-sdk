@@ -1,4 +1,4 @@
-from vertex_protocol.utils.expiration import (
+from nado_protocol.utils.expiration import (
     OrderType,
     decode_expiration,
     get_expiration_timestamp,

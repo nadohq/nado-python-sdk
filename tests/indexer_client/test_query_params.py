@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock
 
-from vertex_protocol.indexer_client import IndexerClient
-from vertex_protocol.indexer_client.types.query import (
+from nado_protocol.indexer_client import IndexerClient
+from nado_protocol.indexer_client.types.query import (
     IndexerCandlesticksParams,
     IndexerCandlesticksRequest,
     IndexerEventsParams,
@@ -111,7 +111,7 @@ def test_indexer_obj_query_params(
     mock_post.return_value = mock_response
     indexer_client.get_linked_signer_rate_limits("xxx")
 
-    mock_response.json.return_value = {"referral_code": "vertex"}
+    mock_response.json.return_value = {"referral_code": "nado"}
     mock_post.return_value = mock_response
     indexer_client.get_referral_code("xxx")
 

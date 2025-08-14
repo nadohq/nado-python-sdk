@@ -1,9 +1,9 @@
-from vertex_protocol.trigger_client.types.execute import (
+from nado_protocol.trigger_client.types.execute import (
     CancelProductTriggerOrdersParams,
     CancelProductTriggerOrdersRequest,
     to_trigger_execute_request,
 )
-from vertex_protocol.utils.bytes32 import hex_to_bytes32
+from nado_protocol.utils.bytes32 import hex_to_bytes32
 
 
 def test_cancel_product_trigger_orders_params(senders: list[str]):

@@ -1,17 +1,17 @@
 from unittest.mock import MagicMock
 
-from vertex_protocol.client import VertexClient
-from vertex_protocol.contracts.types import VertexExecuteType
+from nado_protocol.client import NadoClient
+from nado_protocol.contracts.types import NadoExecuteType
 
-from vertex_protocol.engine_client.types.execute import (
+from nado_protocol.engine_client.types.execute import (
     LinkSignerParams,
     LiquidateSubaccountParams,
 )
-from vertex_protocol.utils.bytes32 import subaccount_to_bytes32
+from nado_protocol.utils.bytes32 import subaccount_to_bytes32
 
 
 def test_liquidate_subaccount(
-    vertex_client: VertexClient,
+    nado_client: NadoClient,
     senders: list[str],
     mock_execute_response: MagicMock,
     mock_tx_nonce: MagicMock,
@@ -24,14 +24,14 @@ def test_liquidate_subaccount(
         amount=10,
         nonce=2,
     )
-    res = vertex_client.subaccount.liquidate_subaccount(params)
+    res = nado_client.subaccount.liquidate_subaccount(params)
     params.sender = subaccount_to_bytes32(senders[0])
-    signature = vertex_client.context.engine_client.sign(
-        VertexExecuteType.LIQUIDATE_SUBACCOUNT,
+    signature = nado_client.context.engine_client.sign(
+        NadoExecuteType.LIQUIDATE_SUBACCOUNT,
         params.dict(),
-        vertex_client.context.engine_client.endpoint_addr,
-        vertex_client.context.engine_client.chain_id,
-        vertex_client.context.engine_client.signer,
+        nado_client.context.engine_client.endpoint_addr,
+        nado_client.context.engine_client.chain_id,
+        nado_client.context.engine_client.signer,
     )
     assert res.req == {
         "liquidate_subaccount": {
@@ -49,7 +49,7 @@ def test_liquidate_subaccount(
 
 
 def test_link_signer(
-    vertex_client: VertexClient,
+    nado_client: NadoClient,
     senders: list[str],
     mock_execute_response: MagicMock,
     mock_tx_nonce: MagicMock,
@@ -59,14 +59,14 @@ def test_link_signer(
         signer=senders[1],
         nonce=2,
     )
-    res = vertex_client.subaccount.link_signer(params)
+    res = nado_client.subaccount.link_signer(params)
     params.sender = subaccount_to_bytes32(senders[0])
-    signature = vertex_client.context.engine_client.sign(
-        VertexExecuteType.LINK_SIGNER,
+    signature = nado_client.context.engine_client.sign(
+        NadoExecuteType.LINK_SIGNER,
         params.dict(),
-        vertex_client.context.engine_client.endpoint_addr,
-        vertex_client.context.engine_client.chain_id,
-        vertex_client.context.engine_client.signer,
+        nado_client.context.engine_client.endpoint_addr,
+        nado_client.context.engine_client.chain_id,
+        nado_client.context.engine_client.signer,
     )
     assert res.req == {
         "link_signer": {

@@ -1,20 +1,20 @@
 import time
 from sanity import CLIENT_MODE, SIGNER_PRIVATE_KEY
 
-from vertex_protocol.client import VertexClient, create_vertex_client
-from vertex_protocol.contracts.types import DepositCollateralParams
-from vertex_protocol.engine_client.types.models import SpotProductBalance
-from vertex_protocol.utils.bytes32 import subaccount_to_hex
-from vertex_protocol.utils.execute import IsolatedOrderParams
-from vertex_protocol.utils.expiration import OrderType, get_expiration_timestamp
-from vertex_protocol.utils.math import to_pow_10, to_x18
-from vertex_protocol.utils.nonce import gen_order_nonce
-from vertex_protocol.utils.subaccount import SubaccountParams
+from nado_protocol.client import NadoClient, create_nado_client
+from nado_protocol.contracts.types import DepositCollateralParams
+from nado_protocol.engine_client.types.models import SpotProductBalance
+from nado_protocol.utils.bytes32 import subaccount_to_hex
+from nado_protocol.utils.execute import IsolatedOrderParams
+from nado_protocol.utils.expiration import OrderType, get_expiration_timestamp
+from nado_protocol.utils.math import to_pow_10, to_x18
+from nado_protocol.utils.nonce import gen_order_nonce
+from nado_protocol.utils.subaccount import SubaccountParams
 
 
 def run():
-    print("setting up vertex client...")
-    client: VertexClient = create_vertex_client(CLIENT_MODE, SIGNER_PRIVATE_KEY)
+    print("setting up nado client...")
+    client: NadoClient = create_nado_client(CLIENT_MODE, SIGNER_PRIVATE_KEY)
 
     print("chain_id:", client.context.engine_client.get_contracts().chain_id)
 

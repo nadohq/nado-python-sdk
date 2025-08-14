@@ -1,15 +1,15 @@
 from unittest.mock import MagicMock
 
-from vertex_protocol.contracts import VertexContracts, VertexContractsContext
+from nado_protocol.contracts import NadoContracts, NadoContractsContext
 
 
-def test_vertex_contracts(
+def test_nado_contracts(
     url: str,
     mock_web3: MagicMock,
     mock_load_abi: MagicMock,
-    contracts_context: VertexContractsContext,
+    contracts_context: NadoContractsContext,
 ):
-    contracts = VertexContracts(node_url=url, contracts_context=contracts_context)
+    contracts = NadoContracts(node_url=url, contracts_context=contracts_context)
 
     assert contracts.endpoint
     assert contracts.querier
