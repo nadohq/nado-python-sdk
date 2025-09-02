@@ -27,7 +27,6 @@ class NadoAbiName(StrEnum):
     FQUERIER = "FQuerier"
     ICLEARINGHOUSE = "IClearinghouse"
     IENDPOINT = "IEndpoint"
-    IOFFCHAIN_BOOK = "IOffchainBook"
     IPERP_ENGINE = "IPerpEngine"
     ISPOT_ENGINE = "ISpotEngine"
     MOCK_ERC20 = "MockERC20"
