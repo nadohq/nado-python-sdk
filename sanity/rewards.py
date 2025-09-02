@@ -13,11 +13,10 @@ def run():
     print("signer:", signer.address)
 
     claim_token_contract_params = client.rewards._get_claim_token_contract_params(
-        ClaimVrtxParams(epoch=10, amount=to_x18(100)), signer
+        ClaimTokensParams(epoch=10, amount=to_x18(100)), signer
     )
 
     print("claim params:", claim_token_contract_params)
-
     token = client.context.contracts.get_token_contract_for_product(41)
     token_balance = token.functions.balanceOf(signer.address).call()
 
@@ -26,7 +25,6 @@ def run():
     print("claiming...")
     tx = client.rewards.claim(ClaimTokensParams(epoch=10, amount=to_x18(100)))
     print("tx:", tx)
-
     token_balance = token.functions.balanceOf(signer.address).call()
     print("balance (post-claim):", token_balance)
 
@@ -51,6 +49,7 @@ def run():
 
     print("staking...")
     tx = client.rewards.stake(to_x18(100))
+
     print("tx:", tx)
 
     token_balance = token.functions.balanceOf(signer.address).call()
