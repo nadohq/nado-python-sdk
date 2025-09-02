@@ -71,7 +71,7 @@ def test_cancel_and_place_params(
             priceX18=order_params["priceX18"],
             amount=order_params["amount"],
             expiration=order_params["expiration"],
-            appendix=order_params["appendix"]
+            appendix=order_params["appendix"],
         ),
     )
     place_subaccount_params_sender = PlaceOrderParams(

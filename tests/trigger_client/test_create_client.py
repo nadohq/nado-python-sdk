@@ -57,10 +57,7 @@ def test_create_client_signer_validation(url: str, private_keys: list[str]):
 
 
 def test_create_client_all_opts(
-    url: str,
-    private_keys: list[str],
-    chain_id: int,
-    endpoint_addr: str
+    url: str, private_keys: list[str], chain_id: int, endpoint_addr: str
 ):
     client_from_dict = TriggerClient(
         {
@@ -68,7 +65,7 @@ def test_create_client_all_opts(
             "signer": private_keys[0],
             "linked_signer": private_keys[1],
             "chain_id": chain_id,
-            "endpoint_addr": endpoint_addr
+            "endpoint_addr": endpoint_addr,
         }
     )
     client_from_opts = TriggerClient(
@@ -77,7 +74,7 @@ def test_create_client_all_opts(
             signer=private_keys[0],
             linked_signer=private_keys[1],
             chain_id=chain_id,
-            endpoint_addr=endpoint_addr
+            endpoint_addr=endpoint_addr,
         )
     )
 

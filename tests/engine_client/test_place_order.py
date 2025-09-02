@@ -183,7 +183,7 @@ def test_place_order_execute_success(
             amount=1000,
             expiration=1000,
             nonce=1000,
-            appendix=0
+            appendix=0,
         ),
     )
 
@@ -272,10 +272,7 @@ def test_place_order_execute_success(
 
 
 def test_place_order_execute_provide_full_params(
-    mock_post: MagicMock,
-    url: str,
-    chain_id: int,
-    private_keys: list[str]
+    mock_post: MagicMock, url: str, chain_id: int, private_keys: list[str]
 ):
     mock_response = MagicMock()
     mock_response.status_code = 200
@@ -298,7 +295,11 @@ def test_place_order_execute_provide_full_params(
         "expiration": 10000,
     }
     signature = engine_client.sign(
-        NadoExecuteType.PLACE_ORDER, order_params, gen_order_verifying_contract(product_id), chain_id, signer
+        NadoExecuteType.PLACE_ORDER,
+        order_params,
+        gen_order_verifying_contract(product_id),
+        chain_id,
+        signer,
     )
     order_params["sender"] = bytes32_to_hex(order_params["sender"])
     res = engine_client.place_order(

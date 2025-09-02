@@ -46,7 +46,9 @@ class PlaceTriggerOrderRequest(NadoBaseModel):
             raise ValueError("Missing `signature")
         if isinstance(v.order.sender, bytes):
             v.order.serialize_dict(["sender"], bytes32_to_hex)
-        v.order.serialize_dict(["nonce", "priceX18", "amount", "expiration", "appendix"], str)
+        v.order.serialize_dict(
+            ["nonce", "priceX18", "amount", "expiration", "appendix"], str
+        )
         return v
 
 

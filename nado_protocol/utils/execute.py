@@ -280,13 +280,9 @@ class NadoBaseExecute:
                 - For 'PLACE_ORDER', it's derived from the book address associated with the product_id.
                 - For other operations, it's the endpoint address.
         """
-        is_place_order = (
-            execute == NadoExecuteType.PLACE_ORDER
-        )
+        is_place_order = execute == NadoExecuteType.PLACE_ORDER
         if is_place_order and product_id is None:
-            raise ValueError(
-                "Missing `product_id` to sign place_order execute"
-            )
+            raise ValueError("Missing `product_id` to sign place_order execute")
         verifying_contract = (
             self.order_verifying_contract(product_id)
             if is_place_order and product_id

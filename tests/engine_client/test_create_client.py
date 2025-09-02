@@ -68,7 +68,7 @@ def test_create_client_all_opts(
             "signer": private_keys[0],
             "linked_signer": private_keys[1],
             "chain_id": chain_id,
-            "endpoint_addr": endpoint_addr
+            "endpoint_addr": endpoint_addr,
         }
     )
     client_from_opts = EngineClient(
@@ -77,7 +77,7 @@ def test_create_client_all_opts(
             signer=private_keys[0],
             linked_signer=private_keys[1],
             chain_id=chain_id,
-            endpoint_addr=endpoint_addr
+            endpoint_addr=endpoint_addr,
         )
     )
 
