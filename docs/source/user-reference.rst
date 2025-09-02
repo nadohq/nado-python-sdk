@@ -132,7 +132,7 @@ You also have available the following queries:
 
     >>> client.market.get_oracle_prices([1, 2, 3, 4])
 
-- `Retrieves $VRTX token rewards for a wallet <TODO>`_:
+- `Retrieves token rewards for a wallet <TODO>`_:
 
 .. code-block:: python
 

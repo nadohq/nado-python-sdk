@@ -2,7 +2,7 @@ from typing import Optional, Union
 import requests
 from functools import singledispatchmethod
 from nado_protocol.indexer_client.types import IndexerClientOpts
-from nado_protocol.indexer_client.types.models import MarketType, VrtxTokenQueryType
+from nado_protocol.indexer_client.types.models import MarketType
 from nado_protocol.indexer_client.types.query import (
     IndexerCandlesticksParams,
     IndexerCandlesticksData,
@@ -44,7 +44,7 @@ from nado_protocol.indexer_client.types.query import (
     IndexerTokenRewardsParams,
     IndexerUsdcPriceParams,
     IndexerUsdcPriceData,
-    IndexerVrtxMerkleProofsParams,
+    IndexerTokenMerkleProofsParams,
     IndexerFoundationRewardsMerkleProofsParams,
     IndexerMerkleProofsData,
     IndexerInterestAndFundingParams,
@@ -413,9 +413,9 @@ class IndexerQueryClient:
             IndexerUsdcPriceData,
         )
 
-    def get_vrtx_merkle_proofs(self, address: str) -> IndexerMerkleProofsData:
+    def get_token_merkle_proofs(self, address: str) -> IndexerMerkleProofsData:
         return ensure_data_type(
-            self.query(IndexerVrtxMerkleProofsParams(address=address)).data,
+            self.query(IndexerTokenMerkleProofsParams(address=address)).data,
             IndexerMerkleProofsData,
         )
 
@@ -459,8 +459,3 @@ class IndexerQueryClient:
         if max_trade_id is not None:
             url += f"&max_trade_id={max_trade_id}"
         return ensure_data_type(self._query_v2(url), list)
-
-    def get_vrtx_token_info(self, query_type: VrtxTokenQueryType) -> float:
-        return ensure_data_type(
-            self._query_v2(f"{self.url_v2}/vrtx?q={str(query_type)}"), float
-        )

@@ -33,11 +33,11 @@ class NadoContractsContext(BaseModel):
 
         clearinghouse_addr (Optional[str]): The clearinghouse address. This may be None.
 
-        vrtx_airdrop_addr (Optional[str]): The VRTX airdrop address. This may be None.
+        airdrop_addr (Optional[str]): The airdrop address. This may be None.
 
-        vrtx_staking_addr (Optional[str]): The VRTX staking address. This may be None.
+        staking_addr (Optional[str]): The staking address. This may be None.
 
-        foundation_rewards_airdrop_addr (Optional[str]): The Foundation Rewards airdrop address of the corresponding chain (e.g: Arb airdrop for Arbitrum). This may be None.
+        foundation_rewards_airdrop_addr (Optional[str]): The Foundation Rewards airdrop address of the corresponding chain (e.g: Ink airdrop for Ink). This may be None.
     """
 
     network: Optional[NadoNetwork]
@@ -46,8 +46,8 @@ class NadoContractsContext(BaseModel):
     spot_engine_addr: Optional[str]
     perp_engine_addr: Optional[str]
     clearinghouse_addr: Optional[str]
-    vrtx_airdrop_addr: Optional[str]
-    vrtx_staking_addr: Optional[str]
+    airdrop_addr: Optional[str]
+    staking_addr: Optional[str]
     foundation_rewards_airdrop_addr: Optional[str]
 
 
@@ -64,8 +64,8 @@ class NadoContracts:
     clearinghouse: Optional[Contract]
     spot_engine: Optional[Contract]
     perp_engine: Optional[Contract]
-    vrtx_airdrop: Optional[Contract]
-    vrtx_staking: Optional[Contract]
+    airdrop: Optional[Contract]
+    staking: Optional[Contract]
     foundation_rewards_airdrop: Optional[Contract]
 
     def __init__(self, node_url: str, contracts_context: NadoContractsContext):
@@ -113,16 +113,16 @@ class NadoContracts:
                 abi=load_abi(NadoAbiName.IPERP_ENGINE),  # type: ignore
             )
 
-        if self.contracts_context.vrtx_staking_addr:
-            self.vrtx_staking: Contract = self.w3.eth.contract(
-                address=self.contracts_context.vrtx_staking_addr,
+        if self.contracts_context.staking_addr:
+            self.staking: Contract = self.w3.eth.contract(
+                address=self.contracts_context.staking_addr,
                 abi=load_abi(NadoAbiName.ISTAKING),  # type: ignore
             )
 
-        if self.contracts_context.vrtx_airdrop_addr:
-            self.vrtx_airdrop: Contract = self.w3.eth.contract(
-                address=self.contracts_context.vrtx_airdrop_addr,
-                abi=load_abi(NadoAbiName.IVRTX_AIRDROP),  # type: ignore
+        if self.contracts_context.airdrop_addr:
+            self.airdrop: Contract = self.w3.eth.contract(
+                address=self.contracts_context.airdrop_addr,
+                abi=load_abi(NadoAbiName.IAIRDROP),  # type: ignore
             )
 
         if self.contracts_context.foundation_rewards_airdrop_addr:
@@ -191,7 +191,8 @@ class NadoContracts:
         to = to or self.endpoint.address
         return self.execute(erc20.functions.approve(to, amount), signer)
 
-    def claim_vrtx(
+    # TODO: revise once airdrop contract is deployed
+    def claim(
         self,
         epoch: int,
         amount_to_claim: int,
@@ -199,15 +200,16 @@ class NadoContracts:
         merkle_proof: list[str],
         signer: LocalAccount,
     ) -> str:
-        assert self.vrtx_airdrop is not None
+        assert self.airdrop is not None
         return self.execute(
-            self.vrtx_airdrop.functions.claim(
+            self.airdrop.functions.claim(
                 epoch, amount_to_claim, total_claimable_amount, merkle_proof
             ),
             signer,
         )
 
-    def claim_and_stake_vrtx(
+    # TODO: revise once airdrop contract is deployed
+    def claim_and_stake(
         self,
         epoch: int,
         amount_to_claim: int,
@@ -215,66 +217,72 @@ class NadoContracts:
         merkle_proof: list[str],
         signer: LocalAccount,
     ) -> str:
-        assert self.vrtx_airdrop is not None
+        assert self.airdrop is not None
         return self.execute(
-            self.vrtx_airdrop.functions.claimAndStake(
+            self.airdrop.functions.claimAndStake(
                 epoch, amount_to_claim, total_claimable_amount, merkle_proof
             ),
             signer,
         )
 
-    def stake_vrtx(
+    # TODO: revise once staking contract is deployed
+    def stake(
         self,
         amount: int,
         signer: LocalAccount,
     ) -> str:
-        assert self.vrtx_staking is not None
+        assert self.staking is not None
         return self.execute(
-            self.vrtx_staking.functions.stake(amount),
+            self.staking.functions.stake(amount),
             signer,
         )
 
-    def unstake_vrtx(
+    # TODO: revise once staking contract is deployed
+    def unstake(
         self,
         amount: int,
         signer: LocalAccount,
     ) -> str:
-        assert self.vrtx_staking is not None
+        assert self.staking is not None
         return self.execute(
-            self.vrtx_staking.functions.withdraw(amount),
+            self.staking.functions.withdraw(amount),
             signer,
         )
 
-    def withdraw_unstaked_vrtx(
+    # TODO: revise once staking contract is deployed
+    def withdraw_unstaked(
         self,
         signer: LocalAccount,
     ) -> str:
-        assert self.vrtx_staking is not None
+        assert self.staking is not None
         return self.execute(
-            self.vrtx_staking.functions.claimVrtx(),
+            self.staking.functions.claim(),
             signer,
         )
 
+    # TODO: revise once staking contract is deployed
     def claim_usdc_rewards(
         self,
         signer: LocalAccount,
     ) -> str:
-        assert self.vrtx_staking is not None
+        assert self.staking is not None
         return self.execute(
-            self.vrtx_staking.functions.claimUsdc(),
+            self.staking.functions.claimUsdc(),
             signer,
         )
 
+    # TODO: revise once staking contract is deployed
     def claim_and_stake_usdc_rewards(
         self,
         signer: LocalAccount,
     ) -> str:
-        assert self.vrtx_staking is not None
+        assert self.staking is not None
         return self.execute(
-            self.vrtx_staking.functions.claimUsdcAndStake(),
+            self.staking.functions.claimUsdcAndStake(),
             signer,
         )
 
+    # TODO: revise once foundation rewards contract is deployed
     def claim_foundation_rewards(
         self,
         claim_proofs: list[ClaimFoundationRewardsProofStruct],

@@ -59,7 +59,7 @@ class SubaccountQueryAPI(NadoBaseAPI):
 
     def get_subaccount_token_rewards(self, address: str) -> IndexerTokenRewardsData:
         """
-        Query the $VRTX token rewards accumulated per epoch for a specified wallet from the indexer.
+        Query the token rewards accumulated per epoch for a specified wallet from the indexer.
 
         Args:
             address (str): Wallet address to be queried.

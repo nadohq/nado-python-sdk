@@ -128,8 +128,8 @@ def create_nado_client(
             perp_engine_addr=deployment.perp_engine_addr,
             spot_engine_addr=deployment.spot_engine_addr,
             clearinghouse_addr=deployment.clearinghouse_addr,
-            vrtx_airdrop_addr=deployment.vrtx_airdrop_addr,
-            vrtx_staking_addr=deployment.vrtx_staking_addr,
+            airdrop_addr=deployment.airdrop_addr,
+            staking_addr=deployment.staking_addr,
             foundation_rewards_airdrop_addr=deployment.foundation_rewards_airdrop_addr,
         )
     except Exception as e:

@@ -31,7 +31,7 @@ class NadoAbiName(StrEnum):
     ISPOT_ENGINE = "ISpotEngine"
     MOCK_ERC20 = "MockERC20"
     ISTAKING = "IStaking"
-    IVRTX_AIRDROP = "IVrtxAirdrop"
+    IAIRDROP = "IAirdrop"
     IFOUNDATION_REWARDS_AIRDROP = "IFoundationRewardsAirdrop"
 
 
@@ -54,9 +54,9 @@ class NadoDeployment(NadoBaseModel):
 
         perp_engine_addr (str): The address of the perpetual engine contract.
 
-        vrtx_airdrop_addr (str): The address of the VRTX airdrop contract.
+        airdrop_addr (str): The address of the airdrop contract.
 
-        vrtx_staking_addr (str): The address of the VRTX staking contract.
+        staking_addr (str): The address of the staking contract.
 
         foundation_rewards_airdrop_addr (str): The address of Foundation Rewards airdrop contract for the corresponding chain (e.g: Arb airdrop for Arbitrum).
     """
@@ -68,8 +68,8 @@ class NadoDeployment(NadoBaseModel):
     endpoint_addr: str = Field(alias="endpoint")
     spot_engine_addr: str = Field(alias="spotEngine")
     perp_engine_addr: str = Field(alias="perpEngine")
-    vrtx_airdrop_addr: str = Field(alias="vrtxAirdrop")
-    vrtx_staking_addr: str = Field(alias="vrtxStaking")
+    airdrop_addr: str = Field(alias="airdrop")
+    staking_addr: str = Field(alias="staking")
     foundation_rewards_airdrop_addr: str = Field(alias="foundationRewardsAirdrop")
 
 
@@ -93,13 +93,13 @@ class DepositCollateralParams(NadoBaseModel):
     referral_code: Optional[str]
 
 
-class ClaimVrtxParams(NadoBaseModel):
+class ClaimTokensParams(NadoBaseModel):
     epoch: int
     amount: Optional[int]
     claim_all: Optional[bool]
 
 
-class ClaimVrtxContractParams(NadoBaseModel):
+class ClaimTokensContractParams(NadoBaseModel):
     epoch: int
     amount_to_claim: int
     total_claimable_amount: int

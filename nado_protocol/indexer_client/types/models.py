@@ -357,8 +357,3 @@ class IndexerTradeInfo(NadoBaseModel):
 class MarketType(StrEnum):
     SPOT = "spot"
     PERP = "perp"
-
-
-class VrtxTokenQueryType(StrEnum):
-    TOTAL_SUPPLY = "total_supply"
-    CIRCULATING_SUPPLY = "circulating_supply"
