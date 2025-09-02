@@ -33,6 +33,9 @@ class NadoClientMode(StrEnum):
     DEVNET = "devnet"
     TESTING = "testing"
 
+    # testnet
+    TESTNET = "testnet"  # Ink Sepolia
+
 
 class NadoClient:
     """
@@ -184,6 +187,12 @@ def client_mode_to_setup(
                 NadoBackendURL.DEVNET_INDEXER.value,
                 NadoBackendURL.DEVNET_TRIGGER.value,
                 NadoNetwork.TESTING.value,
+            ),
+            NadoClientMode.TESTNET: (
+                NadoBackendURL.TESTNET_GATEWAY.value,
+                NadoBackendURL.TESTNET_INDEXER.value,
+                NadoBackendURL.TESTNET_TRIGGER.value,
+                NadoNetwork.TESTNET.value,
             ),
         }[client_mode]
     except KeyError:

@@ -13,6 +13,10 @@ class NadoBackendURL(StrEnum):
     DEVNET_INDEXER = "http://localhost:8000"
     DEVNET_TRIGGER = "http://localhost:8080"
 
+    # testnets
+    TESTNET_GATEWAY = "https://gateway.test.nado-backend.xyz"
+    TESTNET_INDEXER = "https://archive.test.nado-backend.xyz"
+    TESTNET_TRIGGER = "https://trigger.test.nado-backend.xyz"
 
 PrivateKey = str
 Signer = Union[LocalAccount, PrivateKey]

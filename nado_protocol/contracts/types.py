@@ -11,8 +11,11 @@ class NadoNetwork(StrEnum):
     """
 
     # dev
-    HARDHAT = "localhost"
-    TESTING = "test"
+    HARDHAT = "localhost"  # local hardhat node
+    TESTING = "testing"  # for running local tests
+
+    # testnet
+    TESTNET = "testnet"  # Ink Sepolia
 
 
 class NadoAbiName(StrEnum):
