@@ -13,7 +13,7 @@ def order_type_appendix_bit(order_type: OrderType) -> int:
     Returns:
         int: The appendix bits for the order type.
     """
-    return int(order_type) << 9
+    return int(order_type) << AppendixBitFields.ORDER_TYPE_SHIFT
 
 
 class OrderAppendixTriggerType(IntEnum):
@@ -24,6 +24,27 @@ class OrderAppendixTriggerType(IntEnum):
     PRICE = 1
     TWAP = 2
     TWAP_CUSTOM_AMOUNTS = 3
+
+
+# TWAP appendix value bit layout constants
+class TWAPBitFields:
+    """Bit field definitions for TWAP value packing within the 96-bit value field."""
+    # Bit layout (MSB → LSB): | times (32 bits) | slippage_x6 (32 bits) | reserved (32 bits) |
+    TIMES_BITS = 32
+    SLIPPAGE_BITS = 32
+    TWAP_RESERVED_BITS = 32
+    
+    # Bit masks
+    TIMES_MASK = (1 << TIMES_BITS) - 1
+    SLIPPAGE_MASK = (1 << SLIPPAGE_BITS) - 1
+    
+    # Bit shift positions (within the 96-bit value field)
+    TWAP_RESERVED_SHIFT = 0
+    SLIPPAGE_SHIFT = 32
+    TIMES_SHIFT = 64
+    
+    # Slippage scaling factor (6 decimal places)
+    SLIPPAGE_SCALE = 1_000_000
 
 
 def pack_twap_appendix_value(num_orders: int, slippage_frac: float) -> int:
@@ -43,9 +64,10 @@ def pack_twap_appendix_value(num_orders: int, slippage_frac: float) -> int:
     Returns:
         int: The packed 96-bit value.
     """
-    slippage_x6 = int(slippage_frac * 1_000_000)  # Convert to 6 decimal places
+    slippage_x6 = int(slippage_frac * TWAPBitFields.SLIPPAGE_SCALE)
     
-    return ((num_orders & 0xFFFFFFFF) << 64) | ((slippage_x6 & 0xFFFFFFFF) << 32) | 0
+    return ((num_orders & TWAPBitFields.TIMES_MASK) << TWAPBitFields.TIMES_SHIFT) | \
+           ((slippage_x6 & TWAPBitFields.SLIPPAGE_MASK) << TWAPBitFields.SLIPPAGE_SHIFT) | 0
 
 
 def unpack_twap_appendix_value(value: int) -> tuple[int, float]:
@@ -58,9 +80,9 @@ def unpack_twap_appendix_value(value: int) -> tuple[int, float]:
     Returns:
         tuple[int, float]: Number of orders and slippage fraction.
     """
-    num_orders = (value >> 64) & 0xFFFFFFFF
-    slippage_x6 = (value >> 32) & 0xFFFFFFFF
-    slippage_frac = slippage_x6 / 1_000_000
+    num_orders = (value >> TWAPBitFields.TIMES_SHIFT) & TWAPBitFields.TIMES_MASK
+    slippage_x6 = (value >> TWAPBitFields.SLIPPAGE_SHIFT) & TWAPBitFields.SLIPPAGE_MASK
+    slippage_frac = slippage_x6 / TWAPBitFields.SLIPPAGE_SCALE
     
     return int(num_orders), slippage_frac
 

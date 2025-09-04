@@ -6,15 +6,23 @@ The Order Appendix is a powerful feature in the Nado Protocol that allows you to
 Overview
 --------
 
-The appendix is a 128-bit integer that encodes the following information:
+The appendix is a 128-bit integer with the following bit layout (from MSB to LSB):
 
-- **Version** (8 bits): Protocol version for future compatibility
-- **Isolated Position** (1 bit): Whether the order is for an isolated position
-- **Order Type** (2 bits): Execution type (DEFAULT, IOC, FOK, POST_ONLY)
-- **Reduce Only** (1 bit): Whether the order can only reduce existing positions
-- **Trigger Type** (2 bits): Type of trigger order (NONE, PRICE, TWAP, TWAP_CUSTOM_AMOUNTS)
-- **Reserved** (18 bits): Reserved for future use
-- **Value** (96 bits): Additional data (isolated margin or TWAP parameters)
+.. code-block::
+
+    | value   | reserved | trigger | reduce only | order type| isolated | version |
+    | 96 bits | 18 bits  | 2 bits  | 1 bit       | 2 bits    | 1 bit    | 8 bits  |
+    | 127..32 | 31..14   | 13..12  | 11          | 10..9     | 8        | 7..0    |
+
+Fields (from LSB to MSB):
+
+- **Version** (bits 0-7): Protocol version for future compatibility
+- **Isolated** (bit 8): Whether the order is for an isolated position
+- **Order Type** (bits 9-10): Execution type (DEFAULT, IOC, FOK, POST_ONLY)
+- **Reduce Only** (bit 11): Whether the order can only reduce existing positions
+- **Trigger Type** (bits 12-13): Type of trigger order (NONE, PRICE, TWAP, TWAP_CUSTOM_AMOUNTS)
+- **Reserved** (bits 14-31): Reserved for future use
+- **Value** (bits 32-127): Additional data (isolated margin or TWAP parameters)
 
 Building an Appendix
 --------------------

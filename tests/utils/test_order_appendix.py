@@ -15,6 +15,7 @@ from nado_protocol.utils.order import (
     APPENDIX_VERSION,
     AppendixBitFields,
     OrderAppendixTriggerType,
+    TWAPBitFields,
     build_appendix,
     order_execution_type,
     order_is_isolated,
@@ -101,7 +102,7 @@ def test_twap_edge_values():
     assert slippage == 0.000001
 
     # Test maximum 32-bit values
-    max_orders = 4294967295  # 2^32 - 1
+    max_orders = (1 << 32) - 1  # 2^32 - 1
     max_slippage = 4.294967295
     
     packed = pack_twap_appendix_value(max_orders, max_slippage)
@@ -117,11 +118,11 @@ def test_twap_bit_layout():
     packed = pack_twap_appendix_value(num_orders, slippage_frac)
     
     # Check bit positions
-    extracted_orders = (packed >> 64) & 0xFFFFFFFF
+    extracted_orders = (packed >> TWAPBitFields.TIMES_SHIFT) & TWAPBitFields.TIMES_MASK
     assert extracted_orders == num_orders
     
-    extracted_slippage_x6 = (packed >> 32) & 0xFFFFFFFF
-    assert extracted_slippage_x6 == 5000  # 0.005 * 1,000,000
+    extracted_slippage_x6 = (packed >> TWAPBitFields.SLIPPAGE_SHIFT) & TWAPBitFields.SLIPPAGE_MASK
+    assert extracted_slippage_x6 == int(slippage_frac * TWAPBitFields.SLIPPAGE_SCALE)
 
 
 def test_basic_appendix_construction():
