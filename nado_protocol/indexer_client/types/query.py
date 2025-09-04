@@ -309,7 +309,7 @@ IndexerParams = Union[
     IndexerSubaccountsParams,
     IndexerUsdcPriceParams,
     IndexerMarketSnapshotsParams,
-    IndexerVrtxMerkleProofsParams,
+    IndexerTokenMerkleProofsParams,
     IndexerFoundationRewardsMerkleProofsParams,
     IndexerInterestAndFundingParams,
 ]
@@ -503,7 +503,7 @@ IndexerRequest = Union[
     IndexerSubaccountsRequest,
     IndexerUsdcPriceRequest,
     IndexerMarketSnapshotsRequest,
-    IndexerVrtxMerkleProofsRequest,
+    IndexerTokenMerkleProofsRequest,
     IndexerFoundationRewardsMerkleProofsRequest,
     IndexerInterestAndFundingRequest,
 ]
