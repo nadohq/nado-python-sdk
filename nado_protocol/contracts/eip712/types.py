@@ -69,16 +69,7 @@ def get_nado_eip712_type(tx: NadoTxType) -> dict:
                 {"name": "amount", "type": "int128"},
                 {"name": "expiration", "type": "uint64"},
                 {"name": "nonce", "type": "uint64"},
-            ]
-        },
-        NadoTxType.PLACE_ISOLATED_ORDER: {
-            "IsolatedOrder": [
-                {"name": "sender", "type": "bytes32"},
-                {"name": "priceX18", "type": "int128"},
-                {"name": "amount", "type": "int128"},
-                {"name": "expiration", "type": "uint64"},
-                {"name": "nonce", "type": "uint64"},
-                {"name": "margin", "type": "int128"},
+                {"name": "appendix", "type": "int128"},
             ]
         },
         NadoTxType.CANCEL_ORDERS: {
@@ -114,21 +105,17 @@ def get_nado_eip712_type(tx: NadoTxType) -> dict:
                 {"name": "nonce", "type": "uint64"},
             ],
         },
-        NadoTxType.MINT_LP: {
-            "MintLp": [
+        NadoTxType.MINT_NLP: {
+            "MintNlp": [
                 {"name": "sender", "type": "bytes32"},
-                {"name": "productId", "type": "uint32"},
-                {"name": "amountBase", "type": "uint128"},
-                {"name": "quoteAmountLow", "type": "uint128"},
-                {"name": "quoteAmountHigh", "type": "uint128"},
+                {"name": "quoteAmount", "type": "uint128"},
                 {"name": "nonce", "type": "uint64"},
             ]
         },
-        NadoTxType.BURN_LP: {
+        NadoTxType.BURN_NLP: {
             "BurnLp": [
                 {"name": "sender", "type": "bytes32"},
-                {"name": "productId", "type": "uint32"},
-                {"name": "amount", "type": "uint128"},
+                {"name": "nlpAmount", "type": "uint128"},
                 {"name": "nonce", "type": "uint64"},
             ]
         },
@@ -136,6 +123,14 @@ def get_nado_eip712_type(tx: NadoTxType) -> dict:
             "LinkSigner": [
                 {"name": "sender", "type": "bytes32"},
                 {"name": "signer", "type": "bytes32"},
+                {"name": "nonce", "type": "uint64"},
+            ]
+        },
+        NadoTxType.TRANSFER_QUOTE: {
+            "TransferQuote": [
+                {"name": "sender", "type": "bytes32"},
+                {"name": "recipient", "type": "bytes32"},
+                {"name": "amount", "type": "uint128"},
                 {"name": "nonce", "type": "uint64"},
             ]
         },

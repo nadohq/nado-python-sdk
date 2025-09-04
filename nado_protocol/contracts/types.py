@@ -122,15 +122,15 @@ class NadoExecuteType(StrEnum):
     """
 
     PLACE_ORDER = "place_order"
-    PLACE_ISOLATED_ORDER = "place_isolated_order"
     CANCEL_ORDERS = "cancel_orders"
     CANCEL_PRODUCT_ORDERS = "cancel_product_orders"
     CANCEL_AND_PLACE = "cancel_and_place"
     WITHDRAW_COLLATERAL = "withdraw_collateral"
     LIQUIDATE_SUBACCOUNT = "liquidate_subaccount"
-    MINT_LP = "mint_lp"
-    BURN_LP = "burn_lp"
+    MINT_NLP = "mint_lp"
+    BURN_NLP = "burn_lp"
     LINK_SIGNER = "link_signer"
+    TRANSFER_QUOTE = "transfer_quote"
 
 
 NadoTxType = StrEnum(
