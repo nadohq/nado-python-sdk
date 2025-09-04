@@ -203,7 +203,7 @@ def test_place_order_execute_success(
 
     with pytest.raises(
         ValueError,
-        match="Missing `product_id` to sign place_order or place_isolated_order execute",
+        match="Missing `product_id` to sign place_order execute",
     ):
         trigger_client._sign(NadoExecuteType.PLACE_ORDER, order.dict())
 

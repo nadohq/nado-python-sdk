@@ -136,18 +136,6 @@ def order_params(senders: list[str]) -> dict:
 
 
 @pytest.fixture
-def isolated_order_params(senders: list[str]) -> dict:
-    return {
-        "sender": hex_to_bytes32(senders[0]),
-        "priceX18": 28898000000000000000000,
-        "amount": -10000000000000000,
-        "expiration": 4611687701117784255,
-        "nonce": 1764428860167815857,
-        "margin": 10000000000000000,
-    }
-
-
-@pytest.fixture
 def cancellation_params(senders: str) -> dict:
     return {
         "sender": hex_to_bytes32(senders[0]),
@@ -193,23 +181,19 @@ def liquidate_subaccount_params(senders: list[str]) -> dict:
 
 
 @pytest.fixture
-def mint_lp_params(senders: list[str]) -> dict:
+def mint_nlp_params(senders: list[str]) -> dict:
     return {
         "sender": hex_to_bytes32(senders[0]),
-        "productId": 1,
-        "amountBase": 1000000000000000000,
-        "quoteAmountLow": 20000000000000000000000,
-        "quoteAmountHigh": 40000000000000000000000,
+        "quoteAmount": 20000000000000000000000,
         "nonce": 1,
     }
 
 
 @pytest.fixture
-def burn_lp_params(senders: list[str]) -> dict:
+def burn_nlp_params(senders: list[str]) -> dict:
     return {
         "sender": hex_to_bytes32(senders[0]),
-        "productId": 1,
-        "amount": 1000000000000000000,
+        "nlpAmount": 1000000000000000000,
         "nonce": 1,
     }
 

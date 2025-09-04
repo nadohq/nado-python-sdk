@@ -4,7 +4,6 @@ from nado_protocol.contracts.types import NadoExecuteType
 from nado_protocol.engine_client.types.models import ResponseStatus
 from nado_protocol.utils.execute import (
     BaseParamsSigned,
-    IsolatedOrderParams,
     MarketOrderParams,
     OrderParams,
     SignatureParams,
@@ -43,29 +42,6 @@ class PlaceOrderParams(SignatureParams):
     order: OrderParams
     digest: Optional[str]
     spot_leverage: Optional[bool]
-
-
-class PlaceIsolatedOrderParams(SignatureParams):
-    """
-    Class for defining the parameters needed to place an isolated order.
-
-    Attributes:
-        id (Optional[int]): An optional custom order id that is echoed back in subscription events e.g: fill orders, etc.
-
-        product_id (int): The id of the product for which the order is being placed.
-
-        isolated_order (IsolatedOrderParams): The parameters of the isolated order.
-
-        digest (Optional[str]): An optional hash of the order data.
-
-        borrow_margin (Optional[bool]): Whether the cross subaccount can borrow quote for the margin transfer into the isolated subaccount. If not provided, it defaults to true.
-    """
-
-    id: Optional[int]
-    product_id: int
-    isolated_order: IsolatedOrderParams
-    digest: Optional[str]
-    borrow_margin: Optional[bool]
 
 
 class PlaceMarketOrderParams(SignatureParams):
@@ -190,43 +166,33 @@ class LiquidateSubaccountParams(BaseParamsSigned):
         return subaccount_to_bytes32(v)
 
 
-class MintLpParams(BaseParamsSigned):
+class MintNlpParams(BaseParamsSigned):
     """
-    Parameters required for minting a liquidity provider token for a specific product in a subaccount.
+    Parameters required for minting Nado Liquidity Provider (NLP) tokens for a specific product in a subaccount.
 
     Attributes:
-        productId (int): The ID of the product.
-
-        amountBase (int): The amount of base to be consumed by minting LPs multiplied by 1e18.
-
-        quoteAmountLow (int): The minimum amount of quote to be consumed by minting LPs multiplied by 1e18.
-
-        quoteAmountHigh (int): The maximum amount of quote to be consumed by minting LPs multiplied by 1e18.
+        quoteAmount (int): The amount of quote to be consumed by minting NLP multiplied by 1e18.
 
         spot_leverage (Optional[bool]): Indicates whether leverage is to be used. Defaults to True.
         If set to False, the transaction fails if it causes a borrow on the subaccount.
     """
 
-    productId: int
-    amountBase: int
-    quoteAmountLow: int
-    quoteAmountHigh: int
+    quoteAmount: int
     spot_leverage: Optional[bool]
 
 
-class BurnLpParams(BaseParamsSigned):
+class BurnNlpParams(BaseParamsSigned):
     """
-    This class represents the parameters required to burn a liquidity provider
-    token for a specific product in a subaccount.
+    This class represents the parameters required to burn Nado Liquidity Provider (NLP)
+    tokens for a specific subaccount.
 
     Attributes:
         productId (int): The ID of the product.
 
-        amount (int): Combined amount of base + quote to burn multiplied by 1e18.
+        nlpAmount (int): Amount of NLP tokens to burn multiplied by 1e18.
     """
 
-    productId: int
-    amount: int
+    nlpAmount: int
 
 
 class LinkSignerParams(BaseParamsSigned):
@@ -249,13 +215,12 @@ class LinkSignerParams(BaseParamsSigned):
 
 ExecuteParams = Union[
     PlaceOrderParams,
-    PlaceIsolatedOrderParams,
     CancelOrdersParams,
     CancelProductOrdersParams,
     WithdrawCollateralParams,
     LiquidateSubaccountParams,
-    MintLpParams,
-    BurnLpParams,
+    MintNlpParams,
+    BurnNlpParams,
     LinkSignerParams,
     CancelAndPlaceParams,
 ]
@@ -283,33 +248,6 @@ class PlaceOrderRequest(NadoBaseModel):
         if isinstance(v.order.sender, bytes):
             v.order.serialize_dict(["sender"], bytes32_to_hex)
         v.order.serialize_dict(["nonce", "priceX18", "amount", "expiration"], str)
-        return v
-
-
-class PlaceIsolatedOrderRequest(NadoBaseModel):
-    """
-    Parameters for a request to place an isolated order.
-
-    Attributes:
-        place_isolated_order (PlaceIsolatedOrderParams): The parameters for the isolated order to be placed.
-
-    Methods:
-        serialize: Validates and serializes the order parameters.
-    """
-
-    place_isolated_order: PlaceIsolatedOrderParams
-
-    @validator("place_isolated_order")
-    def serialize(cls, v: PlaceIsolatedOrderParams) -> PlaceIsolatedOrderParams:
-        if v.isolated_order.nonce is None:
-            raise ValueError("Missing order `nonce`")
-        if v.signature is None:
-            raise ValueError("Missing `signature")
-        if isinstance(v.isolated_order.sender, bytes):
-            v.isolated_order.serialize_dict(["sender"], bytes32_to_hex)
-        v.isolated_order.serialize_dict(
-            ["nonce", "priceX18", "amount", "expiration", "margin"], str
-        )
         return v
 
 
@@ -500,51 +438,50 @@ class LiquidateSubaccountRequest(NadoBaseModel):
     _validator = validator("liquidate_subaccount", allow_reuse=True)(to_tx_request)
 
 
-class MintLpRequest(NadoBaseModel):
+class MintNlpRequest(NadoBaseModel):
     """
-    Parameters for a mint LP request.
+    Parameters for a mint NLP request.
 
     Attributes:
-        mint_lp (MintLpParams): The parameters for minting liquidity.
+        mint_nlp (MintNlpParams): The parameters for minting liquidity.
 
     Methods:
-        serialize: Validates and converts the 'amountBase', 'quoteAmountLow', and 'quoteAmountHigh'
-        attributes of 'mint_lp' to their proper serialized forms.
+        serialize: Validates and converts the 'quoteAmount' attribute of 'mint_nlp' to their proper serialized forms.
 
-        to_tx_request: Validates and converts 'mint_lp' into a transaction request.
+        to_tx_request: Validates and converts 'mint_nlp' into a transaction request.
     """
 
-    mint_lp: MintLpParams
+    mint_nlp: MintNlpParams
 
-    @validator("mint_lp")
-    def serialize(cls, v: MintLpParams) -> MintLpParams:
-        v.serialize_dict(["amountBase", "quoteAmountLow", "quoteAmountHigh"], str)
+    @validator("mint_nlp")
+    def serialize(cls, v: MintNlpParams) -> MintNlpParams:
+        v.serialize_dict(["quoteAmount"], str)
         return v
 
-    _validator = validator("mint_lp", allow_reuse=True)(to_tx_request)
+    _validator = validator("mint_nlp", allow_reuse=True)(to_tx_request)
 
 
-class BurnLpRequest(NadoBaseModel):
+class BurnNlpRequest(NadoBaseModel):
     """
-    Parameters for a burn LP request.
+    Parameters for a burn NLP request.
 
     Attributes:
-        burn_lp (BurnLpParams): The parameters for burning liquidity.
+        burn_nlp (BurnNlpParams): The parameters for burning liquidity.
 
     Methods:
-        serialize: Validates and converts the 'amount' attribute of 'burn_lp' to its proper serialized form.
+        serialize: Validates and converts the 'nlpAmount' attribute of 'burn_nlp' to its proper serialized form.
 
-        to_tx_request: Validates and converts 'burn_lp' into a transaction request.
+        to_tx_request: Validates and converts 'burn_nlp' into a transaction request.
     """
 
-    burn_lp: BurnLpParams
+    burn_nlp: BurnNlpParams
 
-    @validator("burn_lp")
-    def serialize(cls, v: BurnLpParams) -> BurnLpParams:
+    @validator("burn_nlp")
+    def serialize(cls, v: BurnNlpParams) -> BurnNlpParams:
         v.serialize_dict(["amount"], str)
         return v
 
-    _validator = validator("burn_lp", allow_reuse=True)(to_tx_request)
+    _validator = validator("burn_nlp", allow_reuse=True)(to_tx_request)
 
 
 class LinkSignerRequest(NadoBaseModel):
@@ -572,14 +509,13 @@ class LinkSignerRequest(NadoBaseModel):
 
 ExecuteRequest = Union[
     PlaceOrderRequest,
-    PlaceIsolatedOrderRequest,
     CancelOrdersRequest,
     CancelProductOrdersRequest,
     CancelAndPlaceRequest,
     WithdrawCollateralRequest,
     LiquidateSubaccountRequest,
-    MintLpRequest,
-    BurnLpRequest,
+    MintNlpRequest,
+    BurnNlpRequest,
     LinkSignerRequest,
 ]
 
@@ -647,10 +583,6 @@ def to_execute_request(params: ExecuteParams) -> ExecuteRequest:
     """
     execute_request_mapping = {
         PlaceOrderParams: (PlaceOrderRequest, NadoExecuteType.PLACE_ORDER.value),
-        PlaceIsolatedOrderParams: (
-            PlaceIsolatedOrderRequest,
-            NadoExecuteType.PLACE_ISOLATED_ORDER.value,
-        ),
         CancelOrdersParams: (
             CancelOrdersRequest,
             NadoExecuteType.CANCEL_ORDERS.value,
@@ -667,8 +599,8 @@ def to_execute_request(params: ExecuteParams) -> ExecuteRequest:
             LiquidateSubaccountRequest,
             NadoExecuteType.LIQUIDATE_SUBACCOUNT.value,
         ),
-        MintLpParams: (MintLpRequest, NadoExecuteType.MINT_LP.value),
-        BurnLpParams: (BurnLpRequest, NadoExecuteType.BURN_LP.value),
+        MintNlpParams: (MintNlpRequest, NadoExecuteType.MINT_NLP.value),
+        BurnNlpParams: (BurnNlpRequest, NadoExecuteType.BURN_NLP.value),
         LinkSignerParams: (LinkSignerRequest, NadoExecuteType.LINK_SIGNER.value),
         CancelAndPlaceParams: (
             CancelAndPlaceRequest,

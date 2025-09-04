@@ -30,18 +30,14 @@ def run():
     token_balance = token.functions.balanceOf(signer.address).call()
     print("balance (post-claim):", token_balance)
 
-    claim_and_stake_contract_params = (
-        client.rewards._get_claim_tokens_contract_params(
-            ClaimTokensParams(epoch=10, amount=to_x18(100)), signer
-        )
+    claim_and_stake_contract_params = client.rewards._get_claim_tokens_contract_params(
+        ClaimTokensParams(epoch=10, amount=to_x18(100)), signer
     )
 
     print("claim and stake params:", claim_and_stake_contract_params)
 
     print("claiming and staking vrtx...")
-    tx = client.rewards.claim_and_stake(
-        ClaimTokensParams(epoch=10, amount=to_x18(100))
-    )
+    tx = client.rewards.claim_and_stake(ClaimTokensParams(epoch=10, amount=to_x18(100)))
     print("tx:", tx)
 
     token_balance = token.functions.balanceOf(signer.address).call()

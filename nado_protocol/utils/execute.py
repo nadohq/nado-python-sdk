@@ -105,25 +105,6 @@ class OrderParams(MarketOrderParams):
     expiration: int
 
 
-class IsolatedOrderParams(OrderParams):
-    """
-    Class for defining the parameters of an isolated order.
-
-    Attributes:
-        priceX18 (int): The price of the order with a precision of 18 decimal places.
-
-        expiration (int): The unix timestamp at which the order will expire.
-
-        amount (int): The amount of the asset to be bought or sold in the order. Positive for a `long` position and negative for a `short`.
-
-        nonce (Optional[int]): A unique number used to prevent replay attacks.
-
-        margin (int): The margin amount for the isolated order.
-    """
-
-    margin: int
-
-
 class NadoBaseExecute:
     def __init__(self, opts: NadoClientOpts):
         self._opts = opts
@@ -308,11 +289,10 @@ class NadoBaseExecute:
         """
         is_place_order = (
             execute == NadoExecuteType.PLACE_ORDER
-            or execute == NadoExecuteType.PLACE_ISOLATED_ORDER
         )
         if is_place_order and product_id is None:
             raise ValueError(
-                "Missing `product_id` to sign place_order or place_isolated_order execute"
+                "Missing `product_id` to sign place_order execute"
             )
         verifying_contract = (
             self.book_addr(product_id)

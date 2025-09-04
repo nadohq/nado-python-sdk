@@ -127,8 +127,8 @@ class NadoExecuteType(StrEnum):
     CANCEL_AND_PLACE = "cancel_and_place"
     WITHDRAW_COLLATERAL = "withdraw_collateral"
     LIQUIDATE_SUBACCOUNT = "liquidate_subaccount"
-    MINT_NLP = "mint_lp"
-    BURN_NLP = "burn_lp"
+    MINT_NLP = "mint_nlp"
+    BURN_NLP = "burn_nlp"
     LINK_SIGNER = "link_signer"
     TRANSFER_QUOTE = "transfer_quote"
 

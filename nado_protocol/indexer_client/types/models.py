@@ -20,8 +20,8 @@ class IndexerEventType(StrEnum):
     MATCH_ORDERS = "match_orders"
     MATCH_ORDER_A_M_M = "match_order_a_m_m"
     SWAP_AMM = "swap_a_m_m"
-    MINT_LP = "mint_lp"
-    BURN_LP = "burn_lp"
+    MINT_NLP = "mint_nlp"
+    BURN_NLP = "burn_nlp"
     MANUAL_ASSERT = "manual_assert"
     LINK_SIGNER = "link_signer"
     TRANSFER_QUOTE = "transfer_quote"
@@ -118,36 +118,32 @@ class IndexerLiquidateSubaccountTx(NadoBaseModel):
     liquidate_subaccount: IndexerLiquidateSubaccountTxData
 
 
-class IndexerMintLpTxData(NadoBaseModel):
+class IndexerMintNlpTxData(NadoBaseModel):
     sender: str
-    product_id: int
-    amount_base: str
-    quote_amount_low: str
-    quote_amount_high: str
+    quote_amount: str
     nonce: int
 
 
-class IndexerMintLpTx(NadoBaseModel):
-    mint_lp: IndexerMintLpTxData
+class IndexerMintNlpTx(NadoBaseModel):
+    mint_nlp: IndexerMintNlpTxData
 
 
-class IndexerBurnLpTxData(NadoBaseModel):
+class IndexerBurnNlpTxData(NadoBaseModel):
     sender: str
-    product_id: int
-    amount: str
+    nlp_amount: str
     nonce: int
 
 
-class IndexerBurnLpTx(NadoBaseModel):
-    burn_lp: IndexerBurnLpTxData
+class IndexerBurnNlpTx(NadoBaseModel):
+    burn_nlp: IndexerBurnNlpTxData
 
 
 IndexerTxData = Union[
     IndexerMatchOrdersTx,
     IndexerWithdrawCollateralTx,
     IndexerLiquidateSubaccountTx,
-    IndexerMintLpTx,
-    IndexerBurnLpTx,
+    IndexerMintNlpTx,
+    IndexerBurnNlpTx,
 ]
 
 

@@ -113,7 +113,7 @@ def get_nado_eip712_type(tx: NadoTxType) -> dict:
             ]
         },
         NadoTxType.BURN_NLP: {
-            "BurnLp": [
+            "BurnNlp": [
                 {"name": "sender", "type": "bytes32"},
                 {"name": "nlpAmount", "type": "uint128"},
                 {"name": "nonce", "type": "uint64"},

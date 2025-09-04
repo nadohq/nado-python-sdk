@@ -18,6 +18,7 @@ class NadoBackendURL(StrEnum):
     TESTNET_INDEXER = "https://archive.test.nado-backend.xyz"
     TESTNET_TRIGGER = "https://trigger.test.nado-backend.xyz"
 
+
 PrivateKey = str
 Signer = Union[LocalAccount, PrivateKey]
 
