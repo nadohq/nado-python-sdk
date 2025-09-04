@@ -10,7 +10,8 @@ from nado_protocol.contracts.eip712.sign import (
 )
 from nado_protocol.contracts.eip712.types import get_nado_eip712_type
 from nado_protocol.contracts.types import NadoTxType
-from nado_protocol.utils.order import gen_order_verifying_contract
+from nado_protocol.utils.order import gen_order_verifying_contract, build_appendix
+from nado_protocol.utils.expiration import OrderType
 import pytest
 
 
@@ -184,7 +185,7 @@ def test_build_eip712_domain_type():
                 "amount": -10000000000000000,
                 "expiration": 4611687701117784255,
                 "nonce": 1764428860167815857,
-                "appendix": 0,
+                "appendix": build_appendix(order_type=OrderType.DEFAULT)
             },
         ),
         (

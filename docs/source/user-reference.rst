@@ -34,8 +34,11 @@ The Market API allows you to manage and execute orders on the Nado Protocol. Her
 
 .. code-block:: python
 
-    >>> from nado-protocol.engine_client.types import OrderParams, PlaceOrderParams
-    >>> order = OrderParams(...)
+    >>> from nado_protocol.engine_client.types import OrderParams, PlaceOrderParams
+    >>> from nado_protocol.utils.order import build_appendix
+    >>> from nado_protocol.utils.expiration import OrderType
+    >>> appendix = build_appendix(order_type=OrderType.IOC, reduce_only=True)
+    >>> order = OrderParams(..., appendix=appendix)
     >>> client.market.place_order(PlaceOrderParams(order=order, ...))
 
 - `Canceling an order <TODO>`_:
@@ -282,5 +285,7 @@ Nado utils
 ----------------
 
 A set of utility helpers. See :mod:`nado_protocol.utils`.
+
+The utils module includes powerful order appendix functionality for advanced trading features like isolated positions, TWAP orders, and custom execution types. See :doc:`order-appendix` for comprehensive documentation.
 
 See  :doc:`api-reference` for detailed information about each module. 

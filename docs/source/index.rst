@@ -37,4 +37,5 @@ You might want to use a virtual environment to isolate your packages.
    getting-started
    user-reference
    user-guides
+   order-appendix
    api-reference

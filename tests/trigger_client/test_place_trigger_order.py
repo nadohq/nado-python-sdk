@@ -26,8 +26,9 @@ from nado_protocol.utils.bytes32 import (
 )
 from nado_protocol.utils.exceptions import ExecuteFailedException
 from nado_protocol.utils.nonce import gen_order_nonce
-from nado_protocol.utils.order import gen_order_verifying_contract
+from nado_protocol.utils.order import gen_order_verifying_contract, build_appendix, OrderAppendixTriggerType
 from nado_protocol.utils.subaccount import SubaccountParams
+from nado_protocol.utils.expiration import OrderType
 
 
 def test_place_trigger_order_params(
@@ -339,3 +340,222 @@ def test_place_order_execute_provide_full_params(
     assert req.place_order.order.expiration == str(order_params["expiration"])
     assert req.place_order.order.appendix == str(order_params["appendix"])
     assert req.place_order.trigger.price_above == "100"
+
+
+def test_place_trigger_order_with_basic_appendix(senders: list[str]):
+    """Test placing trigger order with basic appendix functionality."""
+    product_id = 1
+    sender = hex_to_bytes32(senders[0])
+    
+    # Test with IOC order type
+    ioc_appendix = build_appendix(order_type=OrderType.IOC)
+    params = PlaceTriggerOrderParams(
+        product_id=product_id,
+        order=OrderParams(
+            sender=sender,
+            priceX18=28898000000000000000000,
+            amount=-10000000000000000,
+            expiration=4611687701117784255,
+            appendix=ioc_appendix,
+        ),
+        trigger=PriceAboveTrigger(price_above="30000000000000000000000"),
+    )
+    
+    assert params.order.appendix == ioc_appendix
+    
+    # Test with reduce-only flag
+    reduce_only_appendix = build_appendix(
+        order_type=OrderType.POST_ONLY,
+        reduce_only=True
+    )
+    params_reduce = PlaceTriggerOrderParams(
+        product_id=product_id,
+        order=OrderParams(
+            sender=sender,
+            priceX18=28898000000000000000000,
+            amount=-10000000000000000,
+            expiration=4611687701117784255,
+            appendix=reduce_only_appendix,
+        ),
+        trigger=PriceBelowTrigger(price_below="28000000000000000000000"),
+    )
+    
+    assert params_reduce.order.appendix == reduce_only_appendix
+
+
+def test_place_trigger_order_with_price_trigger_appendix(senders: list[str]):
+    """Test placing trigger order with price trigger appendix."""
+    product_id = 1
+    sender = hex_to_bytes32(senders[0])
+    
+    # This creates a compound trigger: price-based trigger in the API + price-based trigger in appendix
+    # This might be useful for complex trigger strategies
+    trigger_appendix = build_appendix(
+        trigger_type=OrderAppendixTriggerType.PRICE,
+        order_type=OrderType.IOC,
+        reduce_only=True
+    )
+    
+    params = PlaceTriggerOrderParams(
+        product_id=product_id,
+        order=OrderParams(
+            sender=sender,
+            priceX18=28898000000000000000000,
+            amount=-5000000000000000,  # Partial close
+            expiration=4611687701117784255,
+            appendix=trigger_appendix,
+        ),
+        trigger=PriceAboveTrigger(price_above="29000000000000000000000"),
+    )
+    
+    assert params.order.appendix == trigger_appendix
+
+
+def test_place_trigger_order_with_isolated_position_appendix(senders: list[str]):
+    """Test placing trigger order with isolated position appendix."""
+    product_id = 1
+    sender = hex_to_bytes32(senders[0])
+    margin = 2000000  # 2M units margin
+    
+    isolated_appendix = build_appendix(
+        isolated=True,
+        isolated_margin=margin,
+        order_type=OrderType.POST_ONLY,
+        reduce_only=False
+    )
+    
+    params = PlaceTriggerOrderParams(
+        product_id=product_id,
+        order=OrderParams(
+            sender=sender,
+            priceX18=28898000000000000000000,
+            amount=10000000000000000,  # Long position
+            expiration=4611687701117784255,
+            appendix=isolated_appendix,
+        ),
+        trigger=PriceBelowTrigger(price_below="28000000000000000000000"),  # Buy the dip
+    )
+    
+    assert params.order.appendix == isolated_appendix
+
+
+def test_place_trigger_order_appendix_combinations(senders: list[str]):
+    """Test various valid appendix combinations with trigger orders."""
+    product_id = 1
+    sender = hex_to_bytes32(senders[0])
+    
+    # Test all order types with reduce-only and price triggers
+    order_types = [OrderType.DEFAULT, OrderType.IOC, OrderType.FOK, OrderType.POST_ONLY]
+    
+    for order_type in order_types:
+        appendix = build_appendix(
+            order_type=order_type,
+            reduce_only=True
+        )
+        
+        params = PlaceTriggerOrderParams(
+            product_id=product_id,
+            order=OrderParams(
+                sender=sender,
+                priceX18=28898000000000000000000,
+                amount=-10000000000000000,
+                expiration=4611687701117784255,
+                appendix=appendix,
+            ),
+            trigger=PriceAboveTrigger(price_above="29500000000000000000000"),
+        )
+        
+        assert params.order.appendix == appendix
+        
+    # Test isolated position with different trigger types
+    for trigger_price in ["27000000000000000000000", "31000000000000000000000"]:
+        isolated_appendix = build_appendix(
+            isolated=True,
+            isolated_margin=1500000,
+            order_type=OrderType.DEFAULT
+        )
+        
+        trigger = (PriceBelowTrigger(price_below=trigger_price) 
+                  if trigger_price.startswith("27") 
+                  else PriceAboveTrigger(price_above=trigger_price))
+        
+        params = PlaceTriggerOrderParams(
+            product_id=product_id,
+            order=OrderParams(
+                sender=sender,
+                priceX18=28898000000000000000000,
+                amount=10000000000000000,
+                expiration=4611687701117784255,
+                appendix=isolated_appendix,
+            ),
+            trigger=trigger,
+        )
+        
+        assert params.order.appendix == isolated_appendix
+
+
+def test_place_trigger_order_complex_scenarios(senders: list[str]):
+    """Test complex real-world scenarios with trigger orders and appendix."""
+    product_id = 1
+    sender = hex_to_bytes32(senders[0])
+    
+    # Scenario 1: Stop-loss with reduce-only
+    stop_loss_appendix = build_appendix(
+        order_type=OrderType.IOC,  # Execute immediately when triggered
+        reduce_only=True  # Only reduce position, don't increase
+    )
+    
+    stop_loss_params = PlaceTriggerOrderParams(
+        product_id=product_id,
+        order=OrderParams(
+            sender=sender,
+            priceX18=27000000000000000000000,  # Lower than current price
+            amount=-10000000000000000,  # Sell to close long
+            expiration=4611687701117784255,
+            appendix=stop_loss_appendix,
+        ),
+        trigger=PriceBelowTrigger(price_below="27500000000000000000000"),  # Trigger below current
+    )
+    
+    assert stop_loss_params.order.appendix == stop_loss_appendix
+    
+    # Scenario 2: Take-profit with post-only to avoid paying fees
+    take_profit_appendix = build_appendix(
+        order_type=OrderType.POST_ONLY,  # Only add liquidity
+        reduce_only=True  # Only reduce position
+    )
+    
+    take_profit_params = PlaceTriggerOrderParams(
+        product_id=product_id,
+        order=OrderParams(
+            sender=sender,
+            priceX18=32000000000000000000000,  # Higher than current price
+            amount=-10000000000000000,  # Sell to close long
+            expiration=4611687701117784255,
+            appendix=take_profit_appendix,
+        ),
+        trigger=PriceAboveTrigger(price_above="31500000000000000000000"),  # Trigger above current
+    )
+    
+    assert take_profit_params.order.appendix == take_profit_appendix
+    
+    # Scenario 3: Isolated position entry on breakout
+    breakout_appendix = build_appendix(
+        isolated=True,
+        isolated_margin=5000000,  # 5M units of isolated margin
+        order_type=OrderType.IOC  # Execute immediately on breakout
+    )
+    
+    breakout_params = PlaceTriggerOrderParams(
+        product_id=product_id,
+        order=OrderParams(
+            sender=sender,
+            priceX18=31000000000000000000000,  # Above breakout level
+            amount=15000000000000000,  # Larger position for breakout
+            expiration=4611687701117784255,
+            appendix=breakout_appendix,
+        ),
+        trigger=PriceAboveTrigger(price_above="30500000000000000000000"),  # Breakout trigger
+    )
+    
+    assert breakout_params.order.appendix == breakout_appendix

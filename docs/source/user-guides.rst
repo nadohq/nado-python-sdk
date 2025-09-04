@@ -31,13 +31,15 @@ You can build the expected EIP-712 typed data for each execute via :mod:`nado_pr
     >>> from nado_protocol.contracts.types import NadoExecuteType
     >>> from nado_protocol.engine_client.types import OrderParams, SubaccountParams
     >>> from nado_protocol.utils import subaccount_to_bytes32, to_x18, to_pow_10, get_expiration_timestamp, gen_order_nonce, OrderType
+    >>> from nado_protocol.utils.order import build_appendix
     >>> from nado_protocol.contracts.eip712 import build_eip712_typed_data
     >>> verifying_contract = "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6"
     >>> chain_id = 421613
     >>> sender = SubaccountParams(subaccount_owner="0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", subaccount_name="default")
     >>> order_nonce = gen_order_nonce()
     >>> order_expiration = get_expiration_timestamp(OrderType.DEFAULT, int(time.time()) + 40)
-    >>> order =  OrderParams(amount=to_x18(20000), priceX18=to_pow_10(1, 17), expiration=order_expiration, nonce=order_nonce, sender=sender, appendix=0)
+    >>> appendix = build_appendix(order_type=OrderType.DEFAULT)
+    >>> order =  OrderParams(amount=to_x18(20000), priceX18=to_pow_10(1, 17), expiration=order_expiration, nonce=order_nonce, sender=sender, appendix=appendix)
     >>> order_typed_data = build_eip712_typed_data(NadoExecuteType.PLACE_ORDER, order.dict(), verifying_contract, chain_id)
 
 The following object is generated and can be signed via :mod:`nado_protocol.contracts.eip712.sign_eip712_typed_data()`:
@@ -57,7 +59,8 @@ The following object is generated and can be signed via :mod:`nado_protocol.cont
                 {'name': 'priceX18', 'type': 'int128'},
                 {'name': 'amount', 'type': 'int128'},
                 {'name': 'expiration', 'type': 'uint64'},
-                {'name': 'nonce', 'type': 'uint64'}
+                {'name': 'nonce', 'type': 'uint64'},
+                {'name': 'appendix', 'type': 'int128'}
             ]
         },
         'primaryType': 'Order',
@@ -72,7 +75,8 @@ The following object is generated and can be signed via :mod:`nado_protocol.cont
             'nonce': 1768628938411606731,
             'priceX18': 100000000000000000,
             'amount': 20000000000000000000000,
-            'expiration': 1686695965
+            'expiration': 1686695965,
+            'appendix': 0
         }
     }
 

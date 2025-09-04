@@ -37,6 +37,7 @@ from nado_protocol.utils.math import mul_x18, round_x18, to_x18
 from nado_protocol.utils.model import NadoBaseModel, is_instance_of_union
 from nado_protocol.utils.subaccount import Subaccount, SubaccountParams
 from nado_protocol.utils.execute import NadoBaseExecute
+from nado_protocol.utils.order import build_appendix
 
 
 class EngineExecuteClient(NadoBaseExecute):
@@ -180,7 +181,10 @@ class EngineExecuteClient(NadoBaseExecute):
             expiration=get_expiration_timestamp(
                 OrderType.FOK, int(time.time()) + 1000, bool(params.reduce_only)
             ),
-            appendix=params.market_order.appendix,
+            appendix=params.market_order.appendix or build_appendix(
+                order_type=OrderType.FOK,
+                reduce_only=bool(params.reduce_only)
+            ),
         )
         return self.place_order(
             PlaceOrderParams(  # type: ignore
@@ -391,7 +395,10 @@ class EngineExecuteClient(NadoBaseExecute):
                     expiration=get_expiration_timestamp(
                         OrderType.FOK, int(time.time()) + 1000, reduce_only=True
                     ),
-                    appendix=0,
+                    appendix=build_appendix(
+                        order_type=OrderType.FOK,
+                        reduce_only=True
+                    ),
                 ),
             )
         )
