@@ -34,6 +34,18 @@ def chain_id() -> int:
 def endpoint_addr() -> str:
     return "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6"
 
+@pytest.fixture
+def order_verifying_contracts() -> list[str]:
+    return [
+        "0x0000000000000000000000000000000000000000",
+        "0x0000000000000000000000000000000000000001",
+        "0x0000000000000000000000000000000000000002",
+        "0x0000000000000000000000000000000000000003"
+    ]
+
+@pytest.fixture
+def querier_addr() -> str:
+    return "0x4ed7c70F96B99c776995fB64377f0d4aB3B0e1C1"
 
 @pytest.fixture
 def owners() -> list[str]:
@@ -52,22 +64,10 @@ def senders() -> list[str]:
 
 
 @pytest.fixture
-def book_addrs() -> list[str]:
-    return [
-        "0x0000000000000000000000000000000000000000",
-        "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-        "0x59b670e9fA9D0A427751Af201D676719a970857b",
-        "0x610178dA211FEF7D417bC0e6FeD39F05609AD788",
-        "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
-    ]
-
-
-@pytest.fixture
 def engine_client(
     url: str,
     chain_id: int,
     endpoint_addr: str,
-    book_addrs: list[str],
     private_keys: list[str],
 ) -> EngineClient:
     return EngineClient(
@@ -75,7 +75,6 @@ def engine_client(
             url=url,
             chain_id=chain_id,
             endpoint_addr=endpoint_addr,
-            book_addrs=book_addrs,
             signer=Account.from_key(private_keys[0]),
             linked_signer=Account.from_key(private_keys[1]),
         )
@@ -87,7 +86,6 @@ def trigger_client(
     url: str,
     chain_id: int,
     endpoint_addr: str,
-    book_addrs: list[str],
     private_keys: list[str],
 ) -> TriggerClient:
     return TriggerClient(
@@ -95,7 +93,6 @@ def trigger_client(
             url=url,
             chain_id=chain_id,
             endpoint_addr=endpoint_addr,
-            book_addrs=book_addrs,
             signer=Account.from_key(private_keys[0]),
             linked_signer=Account.from_key(private_keys[1]),
         )
@@ -107,7 +104,6 @@ def nado_client(
     mock_post: MagicMock,
     chain_id: int,
     endpoint_addr: str,
-    book_addrs: list[str],
     private_keys: list[str],
 ) -> NadoClient:
     mock_response = MagicMock()
@@ -116,7 +112,6 @@ def nado_client(
         "status": "success",
         "data": {
             "endpoint_addr": endpoint_addr,
-            "book_addrs": book_addrs,
             "chain_id": chain_id,
         },
     }
@@ -131,6 +126,7 @@ def order_params(senders: list[str]) -> dict:
         "priceX18": 28898000000000000000000,
         "amount": -10000000000000000,
         "expiration": 4611687701117784255,
+        "appendix": 0,
         "nonce": 1764428860167815857,
     }
 
@@ -320,5 +316,5 @@ def mock_tx_nonce():
 
 
 @pytest.fixture
-def contracts_context(endpoint_addr: str, book_addrs: str) -> NadoContractsContext:
-    return NadoContractsContext(endpoint_addr=endpoint_addr, querier_addr=book_addrs[1])
+def contracts_context(endpoint_addr: str, querier_addr: str) -> NadoContractsContext:
+    return NadoContractsContext(endpoint_addr=endpoint_addr, querier_addr=querier_addr)

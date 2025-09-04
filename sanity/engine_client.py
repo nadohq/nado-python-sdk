@@ -48,7 +48,6 @@ def run():
 
     client.endpoint_addr = contracts_data.endpoint_addr
     client.chain_id = contracts_data.chain_id
-    client.book_addrs = contracts_data.book_addrs
 
     print("querying product symbols...")
     product_symbols = client.get_product_symbols()

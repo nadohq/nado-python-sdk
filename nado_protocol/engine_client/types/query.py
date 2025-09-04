@@ -262,7 +262,6 @@ class ContractsData(NadoBaseModel):
 
     chain_id: str
     endpoint_addr: str
-    book_addrs: list[str]
 
 
 class NoncesData(NadoBaseModel):

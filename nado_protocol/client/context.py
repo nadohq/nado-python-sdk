@@ -67,7 +67,6 @@ def create_nado_client_context(
     try:
         contracts = engine_client.get_contracts()
         engine_client.endpoint_addr = contracts.endpoint_addr
-        engine_client.book_addrs = contracts.book_addrs
         engine_client.chain_id = int(contracts.chain_id)
 
         if opts.trigger_endpoint_url is not None:
@@ -75,7 +74,6 @@ def create_nado_client_context(
                 TriggerClientOpts(url=opts.trigger_endpoint_url, signer=signer)
             )
             trigger_client.endpoint_addr = contracts.endpoint_addr
-            trigger_client.book_addrs = contracts.book_addrs
             trigger_client.chain_id = int(contracts.chain_id)
     except Exception as e:
         logging.warning(

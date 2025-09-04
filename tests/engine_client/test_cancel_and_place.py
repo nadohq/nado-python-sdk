@@ -50,6 +50,7 @@ def test_cancel_and_place_params(
                 "priceX18": order_params["priceX18"],
                 "amount": order_params["amount"],
                 "expiration": order_params["expiration"],
+                "appendix": order_params["appendix"],
             },
         }
     )
@@ -60,6 +61,7 @@ def test_cancel_and_place_params(
             priceX18=order_params["priceX18"],
             amount=order_params["amount"],
             expiration=order_params["expiration"],
+            appendix=order_params["appendix"],
         ),
     )
     place_bytes32_sender = PlaceOrderParams(
@@ -69,6 +71,7 @@ def test_cancel_and_place_params(
             priceX18=order_params["priceX18"],
             amount=order_params["amount"],
             expiration=order_params["expiration"],
+            appendix=order_params["appendix"]
         ),
     )
     place_subaccount_params_sender = PlaceOrderParams(
@@ -80,6 +83,7 @@ def test_cancel_and_place_params(
             priceX18=order_params["priceX18"],
             amount=order_params["amount"],
             expiration=order_params["expiration"],
+            appendix=order_params["appendix"],
         ),
     )
 
@@ -95,6 +99,7 @@ def test_cancel_and_place_params(
     assert place_params_from_dict.order.amount == order_params["amount"]
     assert place_params_from_dict.order.priceX18 == order_params["priceX18"]
     assert place_params_from_dict.order.expiration == order_params["expiration"]
+    assert place_params_from_dict.order.appendix == order_params["appendix"]
     assert place_params_from_dict.signature is None
 
     place_params_from_dict.signature = (
@@ -126,6 +131,7 @@ def test_cancel_and_place_params(
                     "priceX18": str(order_params["priceX18"]),
                     "amount": str(order_params["amount"]),
                     "expiration": str(order_params["expiration"]),
+                    "appendix": str(order_params["appendix"]),
                     "nonce": str(place_params_from_dict.order.nonce),
                 },
                 "signature": place_params_from_dict.signature,

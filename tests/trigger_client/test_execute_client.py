@@ -7,15 +7,11 @@ def test_execute_client_properties(
     url: str,
     chain_id: int,
     endpoint_addr: str,
-    book_addrs: list[str],
     private_keys: list[str],
 ):
     trigger_client = TriggerClient(opts={"url": url})
     with pytest.raises(AttributeError, match="Endpoint address not set"):
         trigger_client.endpoint_addr
-
-    with pytest.raises(AttributeError, match="Book addresses are not set"):
-        trigger_client.book_addrs
 
     with pytest.raises(AttributeError, match="Chain ID is not set"):
         trigger_client.chain_id
@@ -27,7 +23,6 @@ def test_execute_client_properties(
         trigger_client.linked_signer
 
     trigger_client.endpoint_addr = endpoint_addr
-    trigger_client.book_addrs = book_addrs
     trigger_client.chain_id = chain_id
 
     signer = Account.from_key(private_keys[0])
@@ -48,7 +43,6 @@ def test_execute_client_properties(
     trigger_client.linked_signer = linked_signer
 
     assert trigger_client.endpoint_addr == endpoint_addr
-    assert trigger_client.book_addrs == book_addrs
     assert trigger_client.chain_id == chain_id
     assert trigger_client.signer == signer
     assert trigger_client.linked_signer == linked_signer

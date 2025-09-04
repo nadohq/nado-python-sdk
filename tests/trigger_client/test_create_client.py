@@ -60,8 +60,7 @@ def test_create_client_all_opts(
     url: str,
     private_keys: list[str],
     chain_id: int,
-    endpoint_addr: str,
-    book_addrs: list[str],
+    endpoint_addr: str
 ):
     client_from_dict = TriggerClient(
         {
@@ -69,8 +68,7 @@ def test_create_client_all_opts(
             "signer": private_keys[0],
             "linked_signer": private_keys[1],
             "chain_id": chain_id,
-            "endpoint_addr": endpoint_addr,
-            "book_addrs": book_addrs,
+            "endpoint_addr": endpoint_addr
         }
     )
     client_from_opts = TriggerClient(
@@ -79,8 +77,7 @@ def test_create_client_all_opts(
             signer=private_keys[0],
             linked_signer=private_keys[1],
             chain_id=chain_id,
-            endpoint_addr=endpoint_addr,
-            book_addrs=book_addrs,
+            endpoint_addr=endpoint_addr
         )
     )
 
@@ -100,4 +97,3 @@ def test_create_client_all_opts(
         == client_from_opts.endpoint_addr
         == endpoint_addr
     )
-    assert client_from_dict.book_addrs == client_from_opts.book_addrs == book_addrs

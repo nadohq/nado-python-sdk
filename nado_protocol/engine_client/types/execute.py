@@ -247,7 +247,7 @@ class PlaceOrderRequest(NadoBaseModel):
             raise ValueError("Missing `signature")
         if isinstance(v.order.sender, bytes):
             v.order.serialize_dict(["sender"], bytes32_to_hex)
-        v.order.serialize_dict(["nonce", "priceX18", "amount", "expiration"], str)
+        v.order.serialize_dict(["nonce", "priceX18", "amount", "expiration", "appendix"], str)
         return v
 
 
@@ -478,7 +478,7 @@ class BurnNlpRequest(NadoBaseModel):
 
     @validator("burn_nlp")
     def serialize(cls, v: BurnNlpParams) -> BurnNlpParams:
-        v.serialize_dict(["amount"], str)
+        v.serialize_dict(["nlpAmount"], str)
         return v
 
     _validator = validator("burn_nlp", allow_reuse=True)(to_tx_request)

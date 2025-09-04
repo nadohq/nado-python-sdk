@@ -34,7 +34,6 @@ class NadoClientOpts(BaseModel):
         linked_signer (Optional[Signer]): An optional signer linked the main subaccount to perform executes on it's behalf.
         chain_id (Optional[int]): An optional network chain ID.
         endpoint_addr (Optional[str]): Nado's endpoint address used for verifying executes.
-        book_addrs (Optional[list[str]]): Nado's book addresses used for verifying order placement.
 
     Notes:
         - The class also includes several methods for validating and sanitizing the input values.
@@ -46,7 +45,6 @@ class NadoClientOpts(BaseModel):
     linked_signer: Optional[Signer] = None
     chain_id: Optional[int] = None
     endpoint_addr: Optional[str] = None
-    book_addrs: Optional[list[str]] = None
 
     class Config:
         arbitrary_types_allowed = True

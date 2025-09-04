@@ -180,6 +180,7 @@ class EngineExecuteClient(NadoBaseExecute):
             expiration=get_expiration_timestamp(
                 OrderType.FOK, int(time.time()) + 1000, bool(params.reduce_only)
             ),
+            appendix=params.market_order.appendix,
         )
         return self.place_order(
             PlaceOrderParams(  # type: ignore
@@ -390,6 +391,7 @@ class EngineExecuteClient(NadoBaseExecute):
                     expiration=get_expiration_timestamp(
                         OrderType.FOK, int(time.time()) + 1000, reduce_only=True
                     ),
+                    appendix=0,
                 ),
             )
         )

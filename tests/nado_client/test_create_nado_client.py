@@ -20,7 +20,7 @@ def test_create_nado_client_context(
     private_keys: list[str],
     url: str,
     endpoint_addr: str,
-    book_addrs: list[str],
+    querier_addr: str,
     chain_id: int,
 ):
     mock_response = MagicMock()
@@ -29,7 +29,6 @@ def test_create_nado_client_context(
         "status": "success",
         "data": {
             "endpoint_addr": endpoint_addr,
-            "book_addrs": book_addrs,
             "chain_id": chain_id,
         },
     }
@@ -41,7 +40,7 @@ def test_create_nado_client_context(
             indexer_endpoint_url=url,
             rpc_node_url=url,
             contracts_context=NadoContractsContext(
-                endpoint_addr=endpoint_addr, querier_addr=endpoint_addr
+                endpoint_addr=endpoint_addr, querier_addr=querier_addr
             ),
         ),
         signer=private_keys[0],
@@ -49,7 +48,6 @@ def test_create_nado_client_context(
 
     assert full_engine_client_setup.engine_client.chain_id == chain_id
     assert full_engine_client_setup.engine_client.endpoint_addr == endpoint_addr
-    assert full_engine_client_setup.engine_client.book_addrs == book_addrs
     assert (
         full_engine_client_setup.engine_client.signer.address
         == Account.from_key(private_keys[0]).address
@@ -73,7 +71,7 @@ def test_create_nado_client_context(
             indexer_endpoint_url=url,
             rpc_node_url=url,
             contracts_context=NadoContractsContext(
-                endpoint_addr=endpoint_addr, querier_addr=endpoint_addr
+                endpoint_addr=endpoint_addr, querier_addr=querier_addr
             ),
         ),
         private_keys[0],
@@ -81,9 +79,6 @@ def test_create_nado_client_context(
 
     with pytest.raises(AttributeError, match="Endpoint address not set."):
         partial_engine_client_setup.engine_client.endpoint_addr
-
-    with pytest.raises(AttributeError, match="Book addresses are not set."):
-        partial_engine_client_setup.engine_client.book_addrs
 
     with pytest.raises(AttributeError, match="Chain ID is not set."):
         partial_engine_client_setup.engine_client.chain_id
@@ -106,7 +101,6 @@ def test_create_nado_client(
     private_keys: list[str],
     url: str,
     endpoint_addr: str,
-    book_addrs: list[str],
     chain_id: int,
     contracts_context: NadoContractsContext,
 ):
@@ -116,7 +110,6 @@ def test_create_nado_client(
         "status": "success",
         "data": {
             "endpoint_addr": endpoint_addr,
-            "book_addrs": book_addrs,
             "chain_id": chain_id,
         },
     }
@@ -128,7 +121,6 @@ def test_create_nado_client(
 
     assert devnet_nado_client.context.engine_client.chain_id == chain_id
     assert devnet_nado_client.context.engine_client.endpoint_addr == endpoint_addr
-    assert devnet_nado_client.context.engine_client.book_addrs == book_addrs
     assert devnet_nado_client.context.engine_client.url == NadoBackendURL.DEVNET_GATEWAY
     assert (
         devnet_nado_client.context.indexer_client.url == NadoBackendURL.DEVNET_INDEXER
