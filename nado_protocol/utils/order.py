@@ -165,6 +165,9 @@ def build_appendix(
         appendix |= (isolated_margin & AppendixBitFields.VALUE_MASK) << AppendixBitFields.VALUE_SHIFT
     elif trigger_type in [OrderAppendixTriggerType.TWAP, OrderAppendixTriggerType.TWAP_CUSTOM_AMOUNTS]:
         # TWAP value (bits 127..32) - 96 bits
+        # These are guaranteed to be non-None due to validation above
+        assert twap_num_orders is not None
+        assert twap_slippage_frac is not None
         twap_value = pack_twap_appendix_value(twap_num_orders, twap_slippage_frac)
         appendix |= (twap_value & AppendixBitFields.VALUE_MASK) << AppendixBitFields.VALUE_SHIFT
 
