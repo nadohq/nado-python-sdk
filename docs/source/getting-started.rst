@@ -29,6 +29,7 @@ Before you start, import the necessary utilities:
     from nado_protocol.utils.math import to_pow_10, to_x18
     from nado_protocol.utils.nonce import gen_order_nonce
     from nado_protocol.utils.subaccount import SubaccountParams
+    from nado_protocol.utils.order import build_appendix
 
 The following sections outline the main functionalities:
 
@@ -76,9 +77,9 @@ Places an order via `execute:place_order <TODO>`_.
             ),
             priceX18=to_x18(20000),
             amount=to_pow_10(1, 17),
-            expiration=get_expiration_timestamp(OrderType.POST_ONLY, int(time.time()) + 40),
+            expiration=get_expiration_timestamp(40),
             nonce=gen_order_nonce(),
-            appendix=0
+            appendix=build_appendix(OrderType.POST_ONLY)
         )
     >>> res = client.market.place_order(PlaceOrderParams(product_id=1, order=order))
     >>> print("order result:", res.json(indent=2))

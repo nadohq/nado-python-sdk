@@ -185,7 +185,7 @@ def test_build_eip712_domain_type():
                 "amount": -10000000000000000,
                 "expiration": 4611687701117784255,
                 "nonce": 1764428860167815857,
-                "appendix": build_appendix(order_type=OrderType.DEFAULT)
+                "appendix": build_appendix(OrderType.DEFAULT),
             },
         ),
         (

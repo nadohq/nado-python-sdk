@@ -31,6 +31,7 @@ from nado_protocol.engine_client.types.execute import (
 from nado_protocol.utils.expiration import OrderType, get_expiration_timestamp
 from nado_protocol.utils.math import to_pow_10, to_x18
 from nado_protocol.utils.nonce import gen_order_nonce
+from nado_protocol.utils.order import build_appendix
 ```
 
 ### Create the NadoClient providing your private key:
@@ -72,9 +73,9 @@ order = OrderParams(
    ),
    priceX18=to_x18(20000),
    amount=to_pow_10(1, 17),
-   expiration=get_expiration_timestamp(OrderType.POST_ONLY, int(time.time()) + 40),
+   expiration=get_expiration_timestamp(40),
    nonce=gen_order_nonce(),
-   appendix=0
+   appendix=build_appendix(order_type=OrderType.POST_ONLY)
 )
 res = client.market.place_order({"product_id": product_id, "order": order})
 print("order result:", res.json(indent=2))

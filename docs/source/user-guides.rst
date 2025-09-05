@@ -37,8 +37,8 @@ You can build the expected EIP-712 typed data for each execute via :mod:`nado_pr
     >>> chain_id = 421613
     >>> sender = SubaccountParams(subaccount_owner="0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", subaccount_name="default")
     >>> order_nonce = gen_order_nonce()
-    >>> order_expiration = get_expiration_timestamp(OrderType.DEFAULT, int(time.time()) + 40)
-    >>> appendix = build_appendix(order_type=OrderType.DEFAULT)
+    >>> order_expiration = get_expiration_timestamp(40)
+    >>> appendix = build_appendix(OrderType.DEFAULT)
     >>> order =  OrderParams(amount=to_x18(20000), priceX18=to_pow_10(1, 17), expiration=order_expiration, nonce=order_nonce, sender=sender, appendix=appendix)
     >>> order_typed_data = build_eip712_typed_data(NadoExecuteType.PLACE_ORDER, order.dict(), verifying_contract, chain_id)
 

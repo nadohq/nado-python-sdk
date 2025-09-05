@@ -81,11 +81,12 @@ Isolated positions allow you to allocate specific margin to a trade, limiting yo
 
     from nado_protocol.utils.order import build_appendix
     from nado_protocol.utils.expiration import OrderType
+    from nado_protocol.utils.math import to_x18
 
     # Create isolated position with 1M units of margin
     isolated_appendix = build_appendix(
         isolated=True,
-        isolated_margin=1000000,
+        isolated_margin=to_x18(1000000),
         order_type=OrderType.POST_ONLY
     )
 
@@ -152,9 +153,11 @@ You can extract information from an existing appendix:
         order_twap_data
     )
 
+    from nado_protocol.utils.math import to_x18
+
     appendix = build_appendix(
         isolated=True,
-        isolated_margin=500000,
+        isolated_margin=to_x18(500000),
         order_type=OrderType.IOC,
         reduce_only=True
     )
@@ -217,7 +220,8 @@ Here are examples of complex trading scenarios using appendix:
     # Stop loss: reduce-only IOC order that executes immediately when triggered
     stop_loss_appendix = build_appendix(
         order_type=OrderType.IOC,
-        reduce_only=True
+        reduce_only=True,
+        trigger_type=OrderAppendixTriggerType.PRICE
     )
 
 **Take Profit Order**
@@ -227,17 +231,20 @@ Here are examples of complex trading scenarios using appendix:
     # Take profit: reduce-only post-only order to avoid paying taker fees
     take_profit_appendix = build_appendix(
         order_type=OrderType.POST_ONLY,
-        reduce_only=True
+        reduce_only=True,
+        trigger_type=OrderAppendixTriggerType.PRICE
     )
 
 **Breakout Strategy with Isolated Position**
 
 .. code-block:: python
 
+    from nado_protocol.utils.math import to_x18
+
     # Enter large position on breakout with dedicated margin
     breakout_appendix = build_appendix(
         isolated=True,
-        isolated_margin=5000000,  # 5M units dedicated margin
+        isolated_margin=to_x18(5000000),  # 5M units dedicated margin
         order_type=OrderType.IOC
     )
 
@@ -271,7 +278,7 @@ The appendix functions will raise `ValueError` for invalid configurations:
 
     # This will raise ValueError: isolated_margin can only be set when isolated=True
     try:
-        build_appendix(isolated=False, isolated_margin=1000)
+        build_appendix(isolated=False, isolated_margin=to_x18(1000))
     except ValueError as e:
         print(f"Error: {e}")
 
@@ -285,7 +292,7 @@ The appendix functions will raise `ValueError` for invalid configurations:
     try:
         build_appendix(
             isolated=True,
-            isolated_margin=1000,
+            isolated_margin=to_x18(1000),
             trigger_type=OrderAppendixTriggerType.TWAP,
             twap_num_orders=5,
             twap_slippage_frac=0.01

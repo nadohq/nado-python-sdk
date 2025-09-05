@@ -27,6 +27,7 @@ from nado_protocol.utils.bytes32 import (
     subaccount_to_hex,
 )
 from nado_protocol.utils.expiration import OrderType, get_expiration_timestamp
+from nado_protocol.utils.order import build_appendix
 from nado_protocol.utils.math import to_pow_10, to_x18
 from nado_protocol.utils.nonce import gen_order_nonce
 from nado_protocol.utils.subaccount import SubaccountParams
@@ -91,8 +92,9 @@ def run():
         ),
         priceX18=to_x18(order_price),
         amount=to_pow_10(1, 17),
-        expiration=get_expiration_timestamp(OrderType.DEFAULT, int(time.time()) + 40),
+        expiration=get_expiration_timestamp(40),
         nonce=gen_order_nonce(),
+        appendix=build_appendix(OrderType.DEFAULT),
     )
     order_digest = client.get_order_digest(order, product_id)
     print("order digest:", order_digest)
@@ -109,8 +111,9 @@ def run():
         ),
         priceX18=to_x18(order_price),
         amount=to_pow_10(1, 17),
-        expiration=get_expiration_timestamp(OrderType.DEFAULT, int(time.time()) + 40),
+        expiration=get_expiration_timestamp(40),
         nonce=gen_order_nonce(),
+        appendix=build_appendix(OrderType.DEFAULT),
     )
     place_order = PlaceOrderParams(product_id=product_id, order=order, id=100)
     res = client.place_order(place_order)
@@ -274,10 +277,9 @@ def run():
             ),
             priceX18=to_x18(order_price),
             amount=to_pow_10(1, 17),
-            expiration=get_expiration_timestamp(
-                OrderType.DEFAULT, int(time.time()) + 40
-            ),
+            expiration=get_expiration_timestamp(40),
             nonce=gen_order_nonce(),
+            appendix=build_appendix(OrderType.DEFAULT),
         )
         order_digest = client.get_order_digest(order, 2)
         print("order digest:", order_digest)

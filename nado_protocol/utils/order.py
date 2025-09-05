@@ -3,46 +3,66 @@ from enum import IntEnum
 from nado_protocol.utils.expiration import OrderType
 
 
-def order_type_appendix_bit(order_type: OrderType) -> int:
-    """
-    Gets the appendix bits for a given order type.
+# Order appendix version - hardcoded to 0 for now, will be updated in future versions
+APPENDIX_VERSION = 0
 
-    Args:
-        order_type (OrderType): The order type.
 
-    Returns:
-        int: The appendix bits for the order type.
-    """
-    return int(order_type) << AppendixBitFields.ORDER_TYPE_SHIFT
+class AppendixBitFields:
+    # Bit positions (from LSB to MSB)
+    VERSION_BITS = 8  # bits 7..0
+    ISOLATED_BITS = 1  # bit 8
+    ORDER_TYPE_BITS = 2  # bits 10..9
+    REDUCE_ONLY_BITS = 1  # bit 11
+    TRIGGER_TYPE_BITS = 2  # bits 13..12
+    RESERVED_BITS = 18  # bits 31..14
+    VALUE_BITS = 96  # bits 127..32 (for isolated margin or TWAP data)
+
+    # Bit masks
+    VERSION_MASK = (1 << VERSION_BITS) - 1
+    ISOLATED_MASK = (1 << ISOLATED_BITS) - 1
+    ORDER_TYPE_MASK = (1 << ORDER_TYPE_BITS) - 1
+    REDUCE_ONLY_MASK = (1 << REDUCE_ONLY_BITS) - 1
+    TRIGGER_TYPE_MASK = (1 << TRIGGER_TYPE_BITS) - 1
+    RESERVED_MASK = (1 << RESERVED_BITS) - 1
+    VALUE_MASK = (1 << VALUE_BITS) - 1
+
+    # Bit shift positions
+    VERSION_SHIFT = 0
+    ISOLATED_SHIFT = 8
+    ORDER_TYPE_SHIFT = 9
+    REDUCE_ONLY_SHIFT = 11
+    TRIGGER_TYPE_SHIFT = 12
+    RESERVED_SHIFT = 14
+    VALUE_SHIFT = 32
 
 
 class OrderAppendixTriggerType(IntEnum):
     """
     Enumeration for trigger order types encoded in the appendix.
     """
-    NONE = 0
+
     PRICE = 1
     TWAP = 2
     TWAP_CUSTOM_AMOUNTS = 3
 
 
-# TWAP appendix value bit layout constants
 class TWAPBitFields:
     """Bit field definitions for TWAP value packing within the 96-bit value field."""
+
     # Bit layout (MSB → LSB): | times (32 bits) | slippage_x6 (32 bits) | reserved (32 bits) |
     TIMES_BITS = 32
     SLIPPAGE_BITS = 32
     TWAP_RESERVED_BITS = 32
-    
+
     # Bit masks
     TIMES_MASK = (1 << TIMES_BITS) - 1
     SLIPPAGE_MASK = (1 << SLIPPAGE_BITS) - 1
-    
+
     # Bit shift positions (within the 96-bit value field)
     TWAP_RESERVED_SHIFT = 0
     SLIPPAGE_SHIFT = 32
     TIMES_SHIFT = 64
-    
+
     # Slippage scaling factor (6 decimal places)
     SLIPPAGE_SCALE = 1_000_000
 
@@ -65,9 +85,12 @@ def pack_twap_appendix_value(num_orders: int, slippage_frac: float) -> int:
         int: The packed 96-bit value.
     """
     slippage_x6 = int(slippage_frac * TWAPBitFields.SLIPPAGE_SCALE)
-    
-    return ((num_orders & TWAPBitFields.TIMES_MASK) << TWAPBitFields.TIMES_SHIFT) | \
-           ((slippage_x6 & TWAPBitFields.SLIPPAGE_MASK) << TWAPBitFields.SLIPPAGE_SHIFT) | 0
+
+    return (
+        ((num_orders & TWAPBitFields.TIMES_MASK) << TWAPBitFields.TIMES_SHIFT)
+        | ((slippage_x6 & TWAPBitFields.SLIPPAGE_MASK) << TWAPBitFields.SLIPPAGE_SHIFT)
+        | 0
+    )
 
 
 def unpack_twap_appendix_value(value: int) -> tuple[int, float]:
@@ -83,61 +106,29 @@ def unpack_twap_appendix_value(value: int) -> tuple[int, float]:
     num_orders = (value >> TWAPBitFields.TIMES_SHIFT) & TWAPBitFields.TIMES_MASK
     slippage_x6 = (value >> TWAPBitFields.SLIPPAGE_SHIFT) & TWAPBitFields.SLIPPAGE_MASK
     slippage_frac = slippage_x6 / TWAPBitFields.SLIPPAGE_SCALE
-    
+
     return int(num_orders), slippage_frac
 
 
-# Order appendix version - hardcoded to 0 for now, will be updated in future versions
-APPENDIX_VERSION = 0
-
-# Appendix bit field definitions - makes bit manipulation more readable
-class AppendixBitFields:
-    # Bit positions (from LSB to MSB)
-    VERSION_BITS = 8       # bits 7..0
-    ISOLATED_BITS = 1      # bit 8
-    ORDER_TYPE_BITS = 2    # bits 10..9
-    REDUCE_ONLY_BITS = 1   # bit 11
-    TRIGGER_TYPE_BITS = 2  # bits 13..12
-    RESERVED_BITS = 18     # bits 31..14
-    VALUE_BITS = 96        # bits 127..32 (for isolated margin or TWAP data)
-    
-    # Bit masks
-    VERSION_MASK = (1 << VERSION_BITS) - 1
-    ISOLATED_MASK = (1 << ISOLATED_BITS) - 1
-    ORDER_TYPE_MASK = (1 << ORDER_TYPE_BITS) - 1
-    REDUCE_ONLY_MASK = (1 << REDUCE_ONLY_BITS) - 1
-    TRIGGER_TYPE_MASK = (1 << TRIGGER_TYPE_BITS) - 1
-    RESERVED_MASK = (1 << RESERVED_BITS) - 1
-    VALUE_MASK = (1 << VALUE_BITS) - 1
-    
-    # Bit shift positions
-    VERSION_SHIFT = 0
-    ISOLATED_SHIFT = 8
-    ORDER_TYPE_SHIFT = 9
-    REDUCE_ONLY_SHIFT = 11
-    TRIGGER_TYPE_SHIFT = 12
-    RESERVED_SHIFT = 14
-    VALUE_SHIFT = 32
-
-
 def build_appendix(
+    order_type: OrderType,
     isolated: bool = False,
-    isolated_margin: Optional[int] = None,
-    order_type: OrderType = OrderType.DEFAULT,
     reduce_only: bool = False,
-    trigger_type: OrderAppendixTriggerType = OrderAppendixTriggerType.NONE,
+    trigger_type: Optional[OrderAppendixTriggerType] = None,
+    isolated_margin: Optional[int] = None,
     twap_num_orders: Optional[int] = None,
     twap_slippage_frac: Optional[float] = None,
+    _version: Optional[int] = APPENDIX_VERSION
 ) -> int:
     """
     Builds an appendix value with the specified parameters.
 
     Args:
+        order_type (OrderType): The order execution type. Required.
         isolated (bool): Whether this order is for an isolated position. Defaults to False.
-        isolated_margin (Optional[int]): Margin amount for isolated position if isolated is True.
-        order_type (OrderType): The order execution type. Defaults to DEFAULT.
         reduce_only (bool): Whether this is a reduce-only order. Defaults to False.
-        trigger_type (OrderAppendixTriggerType): Trigger type. Defaults to NONE.
+        trigger_type (Optional[OrderAppendixTriggerType]): Trigger type. Defaults to None (no trigger).
+        isolated_margin (Optional[int]): Margin amount for isolated position if isolated is True.
         twap_num_orders (Optional[int]): Number of TWAP orders (required for TWAP trigger type).
         twap_slippage_frac (Optional[float]): TWAP slippage fraction (required for TWAP trigger type).
 
@@ -150,50 +141,84 @@ def build_appendix(
     if isolated_margin is not None and not isolated:
         raise ValueError("isolated_margin can only be set when isolated=True")
 
-    if isolated and trigger_type in [OrderAppendixTriggerType.TWAP, OrderAppendixTriggerType.TWAP_CUSTOM_AMOUNTS]:
+    if (
+        isolated
+        and trigger_type is not None
+        and trigger_type
+        in [OrderAppendixTriggerType.TWAP, OrderAppendixTriggerType.TWAP_CUSTOM_AMOUNTS]
+    ):
         raise ValueError("An order cannot be both isolated and a TWAP order")
 
-    if trigger_type in [OrderAppendixTriggerType.TWAP, OrderAppendixTriggerType.TWAP_CUSTOM_AMOUNTS]:
+    if trigger_type is not None and trigger_type in [
+        OrderAppendixTriggerType.TWAP,
+        OrderAppendixTriggerType.TWAP_CUSTOM_AMOUNTS,
+    ]:
         if twap_num_orders is None or twap_slippage_frac is None:
-            raise ValueError("twap_num_orders and twap_slippage_frac are required for TWAP orders")
-
-    if isolated and isolated_margin is not None:
-        # Check if isolated_margin fits in the VALUE_BITS (96 bits)
-        if isolated_margin < 0 or isolated_margin > AppendixBitFields.VALUE_MASK:
-            raise ValueError(f"isolated_margin must be between 0 and {AppendixBitFields.VALUE_MASK}")
+            raise ValueError(
+                "twap_num_orders and twap_slippage_frac are required for TWAP orders"
+            )
 
     appendix = 0
 
+    version = _version if _version is not None else APPENDIX_VERSION
+
     # Version (bits 7..0)
-    appendix |= (APPENDIX_VERSION & AppendixBitFields.VERSION_MASK) << AppendixBitFields.VERSION_SHIFT
+    appendix |= (
+        version & AppendixBitFields.VERSION_MASK
+    ) << AppendixBitFields.VERSION_SHIFT
 
     # Isolated bit (bit 8)
     if isolated:
         appendix |= 1 << AppendixBitFields.ISOLATED_SHIFT
 
     # Order type (bits 10..9) - 2 bits only
-    appendix |= (int(order_type) & AppendixBitFields.ORDER_TYPE_MASK) << AppendixBitFields.ORDER_TYPE_SHIFT
+    appendix |= (
+        int(order_type) & AppendixBitFields.ORDER_TYPE_MASK
+    ) << AppendixBitFields.ORDER_TYPE_SHIFT
 
     # Reduce only bit (bit 11)
     if reduce_only:
         appendix |= 1 << AppendixBitFields.REDUCE_ONLY_SHIFT
 
-    # Trigger type (bits 13..12)
-    appendix |= (int(trigger_type) & AppendixBitFields.TRIGGER_TYPE_MASK) << AppendixBitFields.TRIGGER_TYPE_SHIFT
+    # Trigger type (bits 13..12) - default to 0 if None
+    trigger_value = 0 if trigger_type is None else int(trigger_type)
+    appendix |= (
+        trigger_value & AppendixBitFields.TRIGGER_TYPE_MASK
+    ) << AppendixBitFields.TRIGGER_TYPE_SHIFT
 
     # Handle upper bits (127..32) based on order type
     if isolated and isolated_margin is not None:
         # Isolated margin (bits 127..32)
-        appendix |= (isolated_margin & AppendixBitFields.VALUE_MASK) << AppendixBitFields.VALUE_SHIFT
-    elif trigger_type in [OrderAppendixTriggerType.TWAP, OrderAppendixTriggerType.TWAP_CUSTOM_AMOUNTS]:
+        appendix |= (
+            isolated_margin & AppendixBitFields.VALUE_MASK
+        ) << AppendixBitFields.VALUE_SHIFT
+    elif trigger_type is not None and trigger_type in [
+        OrderAppendixTriggerType.TWAP,
+        OrderAppendixTriggerType.TWAP_CUSTOM_AMOUNTS,
+    ]:
         # TWAP value (bits 127..32) - 96 bits
         # These are guaranteed to be non-None due to validation above
         assert twap_num_orders is not None
         assert twap_slippage_frac is not None
         twap_value = pack_twap_appendix_value(twap_num_orders, twap_slippage_frac)
-        appendix |= (twap_value & AppendixBitFields.VALUE_MASK) << AppendixBitFields.VALUE_SHIFT
+        appendix |= (
+            twap_value & AppendixBitFields.VALUE_MASK
+        ) << AppendixBitFields.VALUE_SHIFT
 
     return appendix
+
+
+def order_type_appendix_bit(order_type: OrderType) -> int:
+    """
+    Gets the appendix bits for a given order type.
+
+    Args:
+        order_type (OrderType): The order type.
+
+    Returns:
+        int: The appendix bits for the order type.
+    """
+    return int(order_type) << AppendixBitFields.ORDER_TYPE_SHIFT
 
 
 def gen_order_verifying_contract(product_id: int) -> str:
@@ -220,7 +245,10 @@ def order_reduce_only(appendix: int) -> bool:
     Returns:
         bool: True if the order is reduce-only, False otherwise.
     """
-    return (appendix >> AppendixBitFields.REDUCE_ONLY_SHIFT & AppendixBitFields.REDUCE_ONLY_MASK) == 1
+    return (
+        appendix >> AppendixBitFields.REDUCE_ONLY_SHIFT
+        & AppendixBitFields.REDUCE_ONLY_MASK
+    ) == 1
 
 
 def order_is_trigger_order(appendix: int) -> bool:
@@ -233,7 +261,10 @@ def order_is_trigger_order(appendix: int) -> bool:
     Returns:
         bool: True if the order is a trigger order, False otherwise.
     """
-    return (appendix >> AppendixBitFields.TRIGGER_TYPE_SHIFT & AppendixBitFields.TRIGGER_TYPE_MASK) > 0
+    return (
+        appendix >> AppendixBitFields.TRIGGER_TYPE_SHIFT
+        & AppendixBitFields.TRIGGER_TYPE_MASK
+    ) > 0
 
 
 def order_is_isolated(appendix: int) -> bool:
@@ -246,7 +277,9 @@ def order_is_isolated(appendix: int) -> bool:
     Returns:
         bool: True if the order is for an isolated position, False otherwise.
     """
-    return (appendix >> AppendixBitFields.ISOLATED_SHIFT & AppendixBitFields.ISOLATED_MASK) == 1
+    return (
+        appendix >> AppendixBitFields.ISOLATED_SHIFT & AppendixBitFields.ISOLATED_MASK
+    ) == 1
 
 
 def order_isolated_margin(appendix: int) -> Optional[int]:
@@ -260,7 +293,9 @@ def order_isolated_margin(appendix: int) -> Optional[int]:
         Optional[int]: The isolated margin amount if the order is isolated, None otherwise.
     """
     if order_is_isolated(appendix):
-        return (appendix >> AppendixBitFields.VALUE_SHIFT) & AppendixBitFields.VALUE_MASK
+        return (
+            appendix >> AppendixBitFields.VALUE_SHIFT
+        ) & AppendixBitFields.VALUE_MASK
     return None
 
 
@@ -274,7 +309,9 @@ def order_reserved_bits(appendix: int) -> int:
     Returns:
         int: The reserved bits (bits 31..14).
     """
-    return (appendix >> AppendixBitFields.RESERVED_SHIFT) & AppendixBitFields.RESERVED_MASK
+    return (
+        appendix >> AppendixBitFields.RESERVED_SHIFT
+    ) & AppendixBitFields.RESERVED_MASK
 
 
 def order_version(appendix: int) -> int:
@@ -287,10 +324,12 @@ def order_version(appendix: int) -> int:
     Returns:
         int: The version number (bits 7..0).
     """
-    return (appendix >> AppendixBitFields.VERSION_SHIFT) & AppendixBitFields.VERSION_MASK
+    return (
+        appendix >> AppendixBitFields.VERSION_SHIFT
+    ) & AppendixBitFields.VERSION_MASK
 
 
-def order_trigger_type(appendix: int) -> OrderAppendixTriggerType:
+def order_trigger_type(appendix: int) -> Optional[OrderAppendixTriggerType]:
     """
     Extracts the trigger type from the appendix value.
 
@@ -298,9 +337,13 @@ def order_trigger_type(appendix: int) -> OrderAppendixTriggerType:
         appendix (int): The order appendix value.
 
     Returns:
-        OrderAppendixTriggerType: The trigger type.
+        Optional[OrderAppendixTriggerType]: The trigger type, or None if no trigger is set.
     """
-    trigger_bits = (appendix >> AppendixBitFields.TRIGGER_TYPE_SHIFT) & AppendixBitFields.TRIGGER_TYPE_MASK
+    trigger_bits = (
+        appendix >> AppendixBitFields.TRIGGER_TYPE_SHIFT
+    ) & AppendixBitFields.TRIGGER_TYPE_MASK
+    if trigger_bits == 0:
+        return None
     return OrderAppendixTriggerType(trigger_bits)
 
 
@@ -315,8 +358,13 @@ def order_twap_data(appendix: int) -> Optional[tuple[int, float]]:
         Optional[tuple[int, float]]: Tuple of (num_orders, slippage_frac) if TWAP, None otherwise.
     """
     trigger_type = order_trigger_type(appendix)
-    if trigger_type in [OrderAppendixTriggerType.TWAP, OrderAppendixTriggerType.TWAP_CUSTOM_AMOUNTS]:
-        twap_value = (appendix >> AppendixBitFields.VALUE_SHIFT) & AppendixBitFields.VALUE_MASK
+    if trigger_type is not None and trigger_type in [
+        OrderAppendixTriggerType.TWAP,
+        OrderAppendixTriggerType.TWAP_CUSTOM_AMOUNTS,
+    ]:
+        twap_value = (
+            appendix >> AppendixBitFields.VALUE_SHIFT
+        ) & AppendixBitFields.VALUE_MASK
         return unpack_twap_appendix_value(twap_value)
     return None
 
@@ -331,5 +379,7 @@ def order_execution_type(appendix: int) -> OrderType:
     Returns:
         OrderType: The order execution type.
     """
-    order_type_bits = (appendix >> AppendixBitFields.ORDER_TYPE_SHIFT) & AppendixBitFields.ORDER_TYPE_MASK
+    order_type_bits = (
+        appendix >> AppendixBitFields.ORDER_TYPE_SHIFT
+    ) & AppendixBitFields.ORDER_TYPE_MASK
     return OrderType(order_type_bits)

@@ -15,6 +15,7 @@ from nado_protocol.engine_client.types.execute import (
 )
 
 from nado_protocol.utils.expiration import OrderType, get_expiration_timestamp
+from nado_protocol.utils.order import build_appendix
 from nado_protocol.utils.math import to_pow_10, to_x18
 from nado_protocol.utils.nonce import gen_order_nonce
 from nado_protocol.utils.subaccount import SubaccountParams
@@ -53,7 +54,8 @@ def run():
         ),
         priceX18=to_x18(60000),
         amount=to_pow_10(1, 17),
-        expiration=get_expiration_timestamp(OrderType.DEFAULT, int(time.time()) + 40),
+        expiration=get_expiration_timestamp(40),
+        appendix=build_appendix(OrderType.DEFAULT),
         nonce=gen_order_nonce(),
     )
     now = time.time()

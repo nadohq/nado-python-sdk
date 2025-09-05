@@ -184,9 +184,7 @@ class NadoBaseExecute:
         """
         return gen_order_verifying_contract(product_id)
 
-    def order_nonce(
-        self, recv_time_ms: Optional[int] = None, is_trigger_order: bool = False
-    ) -> int:
+    def order_nonce(self, recv_time_ms: Optional[int] = None) -> int:
         """
         Generate the order nonce. Used for oder placements and cancellations.
 
@@ -196,7 +194,7 @@ class NadoBaseExecute:
         Returns:
             int: The generated order nonce.
         """
-        return gen_order_nonce(recv_time_ms, is_trigger_order=is_trigger_order)
+        return gen_order_nonce(recv_time_ms)
 
     def _inject_owner_if_needed(self, params: Type[BaseParams]) -> Type[BaseParams]:
         """

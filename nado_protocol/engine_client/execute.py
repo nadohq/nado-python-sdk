@@ -1,4 +1,3 @@
-import time
 import requests
 from functools import singledispatchmethod
 
@@ -178,12 +177,9 @@ class EngineExecuteClient(NadoBaseExecute):
             amount=params.market_order.amount,
             nonce=params.market_order.nonce,
             priceX18=round_x18(market_price_x18, price_increment_x18),
-            expiration=get_expiration_timestamp(
-                OrderType.FOK, int(time.time()) + 1000, bool(params.reduce_only)
-            ),
-            appendix=params.market_order.appendix or build_appendix(
-                order_type=OrderType.FOK,
-                reduce_only=bool(params.reduce_only)
+            expiration=get_expiration_timestamp(1000),
+            appendix=build_appendix(
+                OrderType.FOK, reduce_only=bool(params.reduce_only)
             ),
         )
         return self.place_order(
@@ -392,13 +388,8 @@ class EngineExecuteClient(NadoBaseExecute):
                         closing_price_x18,
                         product.book_info.price_increment_x18,
                     ),
-                    expiration=get_expiration_timestamp(
-                        OrderType.FOK, int(time.time()) + 1000, reduce_only=True
-                    ),
-                    appendix=build_appendix(
-                        order_type=OrderType.FOK,
-                        reduce_only=True
-                    ),
+                    expiration=get_expiration_timestamp(1000),
+                    appendix=build_appendix(OrderType.FOK, reduce_only=True),
                 ),
             )
         )

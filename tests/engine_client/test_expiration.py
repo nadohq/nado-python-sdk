@@ -3,37 +3,46 @@ from nado_protocol.utils.expiration import (
     decode_expiration,
     get_expiration_timestamp,
 )
+from nado_protocol.utils.order import (
+    build_appendix,
+    order_execution_type,
+    order_reduce_only,
+)
 
 
-def test_expiration_encoding():
-    unix_epoch = 1685939478
+def test_simple_expiration():
+    """Test that get_expiration_timestamp now returns timestamp + seconds."""
+    import time
 
+    seconds_from_now = 40
+    before = int(time.time())
+    result = get_expiration_timestamp(seconds_from_now)
+    after = int(time.time())
+    # Should be approximately current time + seconds_from_now
+    assert before + seconds_from_now <= result <= after + seconds_from_now + 1
+
+
+def test_order_types_via_appendix():
+    """Test that order types are now handled via build_appendix."""
     for order_type in [
         OrderType.DEFAULT,
         OrderType.IOC,
         OrderType.FOK,
         OrderType.POST_ONLY,
     ]:
-        encoded_expiration = get_expiration_timestamp(order_type, unix_epoch)
-        decoded_order_type, decoded_unix_epoch = decode_expiration(encoded_expiration)
-
-        assert decoded_unix_epoch == unix_epoch
-        assert decoded_order_type == order_type
+        appendix = build_appendix(order_type)
+        extracted_order_type = order_execution_type(appendix)
+        assert extracted_order_type == order_type
 
 
-def test_reduce_only():
-    unix_epoch = 1685939478
+def test_reduce_only_via_appendix():
+    """Test that reduce_only is now handled via build_appendix."""
+    # Test reduce_only=True
+    reduce_only_appendix = build_appendix(OrderType.FOK, reduce_only=True)
+    assert order_reduce_only(reduce_only_appendix)
+    assert order_execution_type(reduce_only_appendix) == OrderType.FOK
 
-    def is_reduce_only(expiration: int):
-        return (expiration & (1 << 61)) != 0
-
-    reduced_only_expiration = get_expiration_timestamp(
-        OrderType.FOK, unix_epoch, reduce_only=True
-    )
-    non_reduced_only_expiration = get_expiration_timestamp(OrderType.FOK, unix_epoch)
-
-    assert is_reduce_only(reduced_only_expiration)
-    assert not is_reduce_only(non_reduced_only_expiration)
-    assert not is_reduce_only(
-        get_expiration_timestamp(OrderType.FOK, unix_epoch, bool(None))
-    )
+    # Test reduce_only=False
+    non_reduce_only_appendix = build_appendix(OrderType.FOK, reduce_only=False)
+    assert not order_reduce_only(non_reduce_only_appendix)
+    assert order_execution_type(non_reduce_only_appendix) == OrderType.FOK

@@ -19,6 +19,7 @@ from nado_protocol.trigger_client.types.query import (
 )
 from nado_protocol.utils.bytes32 import subaccount_to_hex
 from nado_protocol.utils.expiration import OrderType, get_expiration_timestamp
+from nado_protocol.utils.order import build_appendix
 from nado_protocol.utils.math import to_pow_10, to_x18
 from nado_protocol.utils.subaccount import SubaccountParams
 from nado_protocol.utils.time import now_in_millis
@@ -48,8 +49,9 @@ def run():
         ),
         priceX18=to_x18(order_price),
         amount=to_pow_10(1, 17),
-        expiration=get_expiration_timestamp(OrderType.DEFAULT, int(time.time()) + 40),
-        nonce=client.order_nonce(is_trigger_order=True),
+        expiration=get_expiration_timestamp(40),
+        appendix=build_appendix(OrderType.DEFAULT),
+        nonce=client.order_nonce(),
     )
     order_digest = client.get_order_digest(order, product_id)
     print("order digest:", order_digest)
@@ -77,8 +79,9 @@ def run():
         ),
         priceX18=to_x18(order_price),
         amount=to_pow_10(1, 17),
-        expiration=get_expiration_timestamp(OrderType.DEFAULT, int(time.time()) + 40),
-        nonce=client.order_nonce(is_trigger_order=True),
+        expiration=get_expiration_timestamp(40),
+        appendix=build_appendix(OrderType.DEFAULT),
+        nonce=client.order_nonce(),
     )
     order_digest = client.get_order_digest(order, product_id)
     print("order digest:", order_digest)

@@ -16,6 +16,7 @@ from nado_protocol.engine_client.types.models import SpotProductBalance
 from nado_protocol.engine_client.types.query import QueryMaxOrderSizeParams
 from nado_protocol.utils.bytes32 import subaccount_to_bytes32, subaccount_to_hex
 from nado_protocol.utils.expiration import OrderType, get_expiration_timestamp
+from nado_protocol.utils.order import build_appendix
 from nado_protocol.utils.math import round_x18, to_pow_10, to_x18
 from nado_protocol.utils.nonce import gen_order_nonce
 from nado_protocol.utils.subaccount import SubaccountParams
@@ -85,7 +86,8 @@ def run():
         ),
         priceX18=to_x18(order_price),
         amount=to_pow_10(1, 17),
-        expiration=get_expiration_timestamp(OrderType.POST_ONLY, int(time.time()) + 40),
+        expiration=get_expiration_timestamp(40),
+        appendix=build_appendix(OrderType.POST_ONLY),
         nonce=gen_order_nonce(),
     )
     res = client.market.place_order({"product_id": product_id, "order": order})
@@ -138,7 +140,8 @@ def run():
         ),
         priceX18=to_x18(order_price),
         amount=to_pow_10(1, 17),
-        expiration=get_expiration_timestamp(OrderType.POST_ONLY, int(time.time()) + 40),
+        expiration=get_expiration_timestamp(40),
+        appendix=build_appendix(OrderType.POST_ONLY),
         nonce=gen_order_nonce(),
     )
 
@@ -162,7 +165,8 @@ def run():
         ),
         priceX18=to_x18(order_price + 10_000),
         amount=-to_pow_10(1, 17),
-        expiration=get_expiration_timestamp(OrderType.POST_ONLY, int(time.time()) + 40),
+        expiration=get_expiration_timestamp(40),
+        appendix=build_appendix(OrderType.POST_ONLY),
         nonce=gen_order_nonce(),
     )
 
@@ -184,7 +188,8 @@ def run():
         ),
         priceX18=to_x18(order_price),
         amount=to_pow_10(1, 17),
-        expiration=get_expiration_timestamp(OrderType.POST_ONLY, int(time.time()) + 60),
+        expiration=get_expiration_timestamp(60),
+        appendix=build_appendix(OrderType.POST_ONLY),
         nonce=gen_order_nonce(),
     )
 
@@ -249,7 +254,8 @@ def run():
         )
         + to_x18(100),
         amount=to_pow_10(1, 17),
-        expiration=get_expiration_timestamp(OrderType.IOC, int(time.time()) + 1000),
+        expiration=get_expiration_timestamp(1000),
+        appendix=build_appendix(OrderType.IOC),
         nonce=gen_order_nonce(),
     )
     res = client.market.place_order({"product_id": 4, "order": order})
