@@ -353,7 +353,9 @@ def test_place_trigger_order_with_basic_appendix(senders: list[str]):
     sender = hex_to_bytes32(senders[0])
 
     # Test with IOC order type
-    ioc_appendix = build_appendix(OrderType.IOC)
+    ioc_appendix = build_appendix(
+        OrderType.IOC, trigger_type=OrderAppendixTriggerType.PRICE
+    )
     params = PlaceTriggerOrderParams(
         product_id=product_id,
         order=OrderParams(
@@ -369,7 +371,11 @@ def test_place_trigger_order_with_basic_appendix(senders: list[str]):
     assert params.order.appendix == ioc_appendix
 
     # Test with reduce-only flag
-    reduce_only_appendix = build_appendix(OrderType.POST_ONLY, reduce_only=True)
+    reduce_only_appendix = build_appendix(
+        OrderType.POST_ONLY,
+        reduce_only=True,
+        trigger_type=OrderAppendixTriggerType.PRICE,
+    )
     params_reduce = PlaceTriggerOrderParams(
         product_id=product_id,
         order=OrderParams(
@@ -418,7 +424,11 @@ def test_place_trigger_order_with_isolated_position_appendix(senders: list[str])
     margin = 2000000  # 2M units margin
 
     isolated_appendix = build_appendix(
-        OrderType.POST_ONLY, isolated=True, reduce_only=False, isolated_margin=margin
+        OrderType.POST_ONLY,
+        isolated=True,
+        reduce_only=False,
+        isolated_margin=margin,
+        trigger_type=OrderAppendixTriggerType.PRICE,
     )
 
     params = PlaceTriggerOrderParams(
@@ -445,7 +455,9 @@ def test_place_trigger_order_appendix_combinations(senders: list[str]):
     order_types = [OrderType.DEFAULT, OrderType.IOC, OrderType.FOK, OrderType.POST_ONLY]
 
     for order_type in order_types:
-        appendix = build_appendix(order_type, reduce_only=True)
+        appendix = build_appendix(
+            order_type, reduce_only=True, trigger_type=OrderAppendixTriggerType.PRICE
+        )
 
         params = PlaceTriggerOrderParams(
             product_id=product_id,
@@ -464,7 +476,10 @@ def test_place_trigger_order_appendix_combinations(senders: list[str]):
     # Test isolated position with different trigger types
     for trigger_price in ["27000000000000000000000", "31000000000000000000000"]:
         isolated_appendix = build_appendix(
-            OrderType.DEFAULT, isolated=True, isolated_margin=to_x18(1500000)
+            OrderType.DEFAULT,
+            isolated=True,
+            isolated_margin=to_x18(1500000),
+            trigger_type=OrderAppendixTriggerType.PRICE,
         )
 
         trigger = (
@@ -497,6 +512,7 @@ def test_place_trigger_order_complex_scenarios(senders: list[str]):
     stop_loss_appendix = build_appendix(
         OrderType.IOC,  # Execute immediately when triggered
         reduce_only=True,  # Only reduce position, don't increase
+        trigger_type=OrderAppendixTriggerType.PRICE,
     )
 
     stop_loss_params = PlaceTriggerOrderParams(
@@ -519,6 +535,7 @@ def test_place_trigger_order_complex_scenarios(senders: list[str]):
     take_profit_appendix = build_appendix(
         OrderType.POST_ONLY,  # Only add liquidity
         reduce_only=True,  # Only reduce position
+        trigger_type=OrderAppendixTriggerType.PRICE,
     )
 
     take_profit_params = PlaceTriggerOrderParams(
@@ -542,6 +559,7 @@ def test_place_trigger_order_complex_scenarios(senders: list[str]):
         OrderType.IOC,  # Execute immediately on breakout
         isolated=True,
         isolated_margin=to_x18(5000000),  # 5M units of isolated margin
+        trigger_type=OrderAppendixTriggerType.PRICE,
     )
 
     breakout_params = PlaceTriggerOrderParams(
