@@ -50,7 +50,9 @@ def run():
         priceX18=to_x18(order_price),
         amount=to_pow_10(1, 17),
         expiration=get_expiration_timestamp(40),
-        appendix=build_appendix(OrderType.DEFAULT, trigger_type=OrderAppendixTriggerType.PRICE),
+        appendix=build_appendix(
+            OrderType.DEFAULT, trigger_type=OrderAppendixTriggerType.PRICE
+        ),
         nonce=client.order_nonce(),
     )
     order_digest = client.get_order_digest(order, product_id)
@@ -80,7 +82,9 @@ def run():
         priceX18=to_x18(order_price),
         amount=to_pow_10(1, 17),
         expiration=get_expiration_timestamp(40),
-        appendix=build_appendix(OrderType.DEFAULT, trigger_type=OrderAppendixTriggerType.PRICE),
+        appendix=build_appendix(
+            OrderType.DEFAULT, trigger_type=OrderAppendixTriggerType.PRICE
+        ),
         nonce=client.order_nonce(),
     )
     order_digest = client.get_order_digest(order, product_id)

@@ -89,7 +89,7 @@ class TriggerExecuteClient(NadoBaseExecute):
 
     def place_trigger_order(self, params: PlaceTriggerOrderParams) -> ExecuteResponse:
         params = PlaceTriggerOrderParams.parse_obj(params)
-        params.order = self.prepare_execute_params(params.order, True, True)
+        params.order = self.prepare_execute_params(params.order, True)
         params.signature = params.signature or self._sign(
             NadoExecuteType.PLACE_ORDER, params.order.dict(), params.product_id
         )

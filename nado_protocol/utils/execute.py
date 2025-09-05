@@ -217,7 +217,6 @@ class NadoBaseExecute:
         self,
         params: Type[BaseParams],
         use_order_nonce: bool,
-        is_trigger_order: bool = False,
     ) -> Type[BaseParams]:
         """
         Inject the nonce if needed.
@@ -231,15 +230,13 @@ class NadoBaseExecute:
         if params.nonce is not None:
             return params
         params.nonce = (
-            self.order_nonce(is_trigger_order=is_trigger_order)
+            self.order_nonce()
             if use_order_nonce
             else self.tx_nonce(subaccount_to_hex(params.sender))
         )
         return params
 
-    def prepare_execute_params(
-        self, params, use_order_nonce: bool, is_trigger_order: bool = False
-    ):
+    def prepare_execute_params(self, params, use_order_nonce: bool):
         """
         Prepares the parameters for execution by ensuring that both owner and nonce are correctly set.
 
@@ -251,7 +248,7 @@ class NadoBaseExecute:
         """
         params = deepcopy(params)
         params = self._inject_owner_if_needed(params)
-        params = self._inject_nonce_if_needed(params, use_order_nonce, is_trigger_order)
+        params = self._inject_nonce_if_needed(params, use_order_nonce)
         return params
 
     def _sign(
