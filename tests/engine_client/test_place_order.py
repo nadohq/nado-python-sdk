@@ -391,7 +391,7 @@ def test_place_order_with_twap_appendix(senders: list[str]):
     twap_appendix = build_appendix(
         OrderType.DEFAULT,
         trigger_type=OrderAppendixTriggerType.TWAP,
-        twap_num_orders=10,
+        twap_times=10,
         twap_slippage_frac=0.005,  # 0.5% slippage
     )
 
@@ -413,7 +413,7 @@ def test_place_order_with_twap_appendix(senders: list[str]):
         OrderType.DEFAULT,
         reduce_only=True,
         trigger_type=OrderAppendixTriggerType.TWAP_CUSTOM_AMOUNTS,
-        twap_num_orders=5,
+        twap_times=5,
         twap_slippage_frac=0.01,  # 1% slippage
     )
 

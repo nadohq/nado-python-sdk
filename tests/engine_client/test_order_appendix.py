@@ -92,11 +92,11 @@ def test_twap_functionality():
         OrderAppendixTriggerType.TWAP,
         OrderAppendixTriggerType.TWAP_CUSTOM_AMOUNTS,
     ]:
-        for num_orders, slippage_frac in twap_configs:
+        for times, slippage_frac in twap_configs:
             appendix = build_appendix(
                 OrderType.DEFAULT,
                 trigger_type=trigger_type,
-                twap_num_orders=num_orders,
+                twap_times=times,
                 twap_slippage_frac=slippage_frac,
             )
 
@@ -106,7 +106,7 @@ def test_twap_functionality():
             twap_data = order_twap_data(appendix)
             assert twap_data is not None
             extracted_orders, extracted_slippage = twap_data
-            assert extracted_orders == num_orders
+            assert extracted_orders == times
             assert (
                 abs(extracted_slippage - slippage_frac) < 1e-6
             )  # Allow for floating point precision
@@ -138,14 +138,14 @@ def test_validation_and_edge_cases():
             isolated=True,
             trigger_type=OrderAppendixTriggerType.TWAP,
             isolated_margin=to_x18(1000),
-            twap_num_orders=5,
+            twap_times=5,
             twap_slippage_frac=0.01,
         )
 
     # Test TWAP parameter validation
     with pytest.raises(
         ValueError,
-        match="twap_num_orders and twap_slippage_frac are required for TWAP orders",
+        match="twap_times and twap_slippage_frac are required for TWAP orders",
     ):
         build_appendix(OrderType.DEFAULT, trigger_type=OrderAppendixTriggerType.TWAP)
 
@@ -230,13 +230,13 @@ def test_round_trip_conversions():
         {
             "order_type": OrderType.DEFAULT,
             "trigger_type": OrderAppendixTriggerType.TWAP,
-            "twap_num_orders": 5,
+            "twap_times": 5,
             "twap_slippage_frac": 0.01,
         },
         {
             "order_type": OrderType.DEFAULT,
             "trigger_type": OrderAppendixTriggerType.TWAP_CUSTOM_AMOUNTS,
-            "twap_num_orders": 10,
+            "twap_times": 10,
             "twap_slippage_frac": 0.005,
         },
         # Isolated cases
@@ -293,5 +293,5 @@ def test_round_trip_conversions():
             ]:
                 assert extracted["twap_data"] is not None
                 orders, slippage = extracted["twap_data"]
-                assert orders == case["twap_num_orders"]
+                assert orders == case["twap_times"]
                 assert abs(slippage - case["twap_slippage_frac"]) < 1e-6

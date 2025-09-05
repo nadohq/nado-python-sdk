@@ -56,12 +56,12 @@ class TWAPBitFields:
     # Bit layout (MSB → LSB): | times (32 bits) | slippage_x6 (32 bits) | reserved (32 bits) |
     TIMES_BITS = 32
     SLIPPAGE_BITS = 32
-    TWAP_RESERVED_BITS = 32
+    RESERVED_BITS = 32
 
     # Bit masks
     TIMES_MASK = (1 << TIMES_BITS) - 1
     SLIPPAGE_MASK = (1 << SLIPPAGE_BITS) - 1
-    RESERVED_MASK = (1 << TWAP_RESERVED_BITS) - 1
+    RESERVED_MASK = (1 << RESERVED_BITS) - 1
 
     # Bit shift positions (within the 96-bit value field)
     RESERVED_SHIFT = 0
@@ -72,7 +72,7 @@ class TWAPBitFields:
     SLIPPAGE_SCALE = 1_000_000
 
 
-def pack_twap_appendix_value(num_orders: int, slippage_frac: float) -> int:
+def pack_twap_appendix_value(times: int, slippage_frac: float) -> int:
     """
     Packs TWAP order fields into a 96-bit integer for the appendix.
 
@@ -86,7 +86,7 @@ def pack_twap_appendix_value(num_orders: int, slippage_frac: float) -> int:
     reserved = 0  # reserved 32-bit field (currently unused)
 
     return (
-        ((num_orders & TWAPBitFields.TIMES_MASK) << TWAPBitFields.TIMES_SHIFT)
+        ((times & TWAPBitFields.TIMES_MASK) << TWAPBitFields.TIMES_SHIFT)
         | ((slippage_x6 & TWAPBitFields.SLIPPAGE_MASK) << TWAPBitFields.SLIPPAGE_SHIFT)
         | ((reserved & TWAPBitFields.RESERVED_MASK) << TWAPBitFields.RESERVED_SHIFT)
     )
@@ -100,13 +100,13 @@ def unpack_twap_appendix_value(value: int) -> tuple[int, float]:
         value (int): The 96-bit value to unpack.
 
     Returns:
-        tuple[int, float]: Number of orders and slippage fraction.
+        tuple[int, float]: Number of TWAP executions and slippage fraction.
     """
-    num_orders = (value >> TWAPBitFields.TIMES_SHIFT) & TWAPBitFields.TIMES_MASK
+    times = (value >> TWAPBitFields.TIMES_SHIFT) & TWAPBitFields.TIMES_MASK
     slippage_x6 = (value >> TWAPBitFields.SLIPPAGE_SHIFT) & TWAPBitFields.SLIPPAGE_MASK
     slippage_frac = slippage_x6 / TWAPBitFields.SLIPPAGE_SCALE
 
-    return int(num_orders), slippage_frac
+    return int(times), slippage_frac
 
 
 def build_appendix(
@@ -115,7 +115,7 @@ def build_appendix(
     reduce_only: bool = False,
     trigger_type: Optional[OrderAppendixTriggerType] = None,
     isolated_margin: Optional[int] = None,
-    twap_num_orders: Optional[int] = None,
+    twap_times: Optional[int] = None,
     twap_slippage_frac: Optional[float] = None,
     _version: Optional[int] = APPENDIX_VERSION,
 ) -> int:
@@ -128,7 +128,7 @@ def build_appendix(
         reduce_only (bool): Whether this is a reduce-only order. Defaults to False.
         trigger_type (Optional[OrderAppendixTriggerType]): Trigger type. Defaults to None (no trigger).
         isolated_margin (Optional[int]): Margin amount for isolated position if isolated is True.
-        twap_num_orders (Optional[int]): Number of TWAP orders (required for TWAP trigger type).
+        twap_times (Optional[int]): Number of TWAP executions (required for TWAP trigger type).
         twap_slippage_frac (Optional[float]): TWAP slippage fraction (required for TWAP trigger type).
 
     Returns:
@@ -152,9 +152,9 @@ def build_appendix(
         OrderAppendixTriggerType.TWAP,
         OrderAppendixTriggerType.TWAP_CUSTOM_AMOUNTS,
     ]:
-        if twap_num_orders is None or twap_slippage_frac is None:
+        if twap_times is None or twap_slippage_frac is None:
             raise ValueError(
-                "twap_num_orders and twap_slippage_frac are required for TWAP orders"
+                "twap_times and twap_slippage_frac are required for TWAP orders"
             )
 
     appendix = 0
@@ -197,9 +197,9 @@ def build_appendix(
     ]:
         # TWAP value (bits 127..32) - 96 bits
         # These are guaranteed to be non-None due to validation above
-        assert twap_num_orders is not None
+        assert twap_times is not None
         assert twap_slippage_frac is not None
-        twap_value = pack_twap_appendix_value(twap_num_orders, twap_slippage_frac)
+        twap_value = pack_twap_appendix_value(twap_times, twap_slippage_frac)
         appendix |= (
             twap_value & AppendixBitFields.VALUE_MASK
         ) << AppendixBitFields.VALUE_SHIFT
@@ -326,7 +326,7 @@ def order_twap_data(appendix: int) -> Optional[tuple[int, float]]:
         appendix (int): The order appendix value.
 
     Returns:
-        Optional[tuple[int, float]]: Tuple of (num_orders, slippage_frac) if TWAP, None otherwise.
+        Optional[tuple[int, float]]: Tuple of (times, slippage_frac) if TWAP, None otherwise.
     """
     trigger_type = order_trigger_type(appendix)
     if trigger_type is not None and trigger_type in [

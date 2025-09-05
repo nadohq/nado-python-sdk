@@ -106,14 +106,14 @@ Time-Weighted Average Price (TWAP) orders split large orders into smaller chunks
     # Create TWAP order with 10 child orders and 0.5% slippage tolerance
     twap_appendix = build_appendix(
         trigger_type=OrderAppendixTriggerType.TWAP,
-        twap_num_orders=10,
+        twap_times=10,
         twap_slippage_frac=0.005
     )
 
     # TWAP with custom amounts and reduce-only
     twap_custom_appendix = build_appendix(
         trigger_type=OrderAppendixTriggerType.TWAP_CUSTOM_AMOUNTS,
-        twap_num_orders=5,
+        twap_times=5,
         twap_slippage_frac=0.01,
         reduce_only=True
     )
@@ -255,7 +255,7 @@ Here are examples of complex trading scenarios using appendix:
     # Split large order into 20 smaller orders with 0.1% slippage tolerance
     twap_appendix = build_appendix(
         trigger_type=OrderAppendixTriggerType.TWAP,
-        twap_num_orders=20,
+        twap_times=20,
         twap_slippage_frac=0.001
     )
 
@@ -265,7 +265,7 @@ Validation Rules
 The appendix system enforces several validation rules:
 
 - **Isolated + TWAP Exclusion**: An order cannot be both isolated and a TWAP order
-- **TWAP Parameters**: TWAP orders require both `twap_num_orders` and `twap_slippage_frac`
+- **TWAP Parameters**: TWAP orders require both `twap_times` and `twap_slippage_frac`
 - **Isolated Margin**: `isolated_margin` can only be set when `isolated=True`
 - **Margin Limits**: Isolated margin must be between 0 and 2^96 - 1
 
@@ -294,7 +294,7 @@ The appendix functions will raise `ValueError` for invalid configurations:
             isolated=True,
             isolated_margin=to_x18(1000),
             trigger_type=OrderAppendixTriggerType.TWAP,
-            twap_num_orders=5,
+            twap_times=5,
             twap_slippage_frac=0.01
         )
     except ValueError as e:

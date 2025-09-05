@@ -107,13 +107,13 @@ def test_order_type_bit_positions():
 
 def test_twap_basic_packing():
     """Test basic TWAP packing functionality."""
-    num_orders = 5
+    times = 5
     slippage_frac = 0.01
 
-    packed = pack_twap_appendix_value(num_orders, slippage_frac)
+    packed = pack_twap_appendix_value(times, slippage_frac)
     unpacked_orders, unpacked_slippage = unpack_twap_appendix_value(packed)
 
-    assert unpacked_orders == num_orders
+    assert unpacked_orders == times
     assert unpacked_slippage == slippage_frac
 
 
@@ -136,14 +136,14 @@ def test_twap_edge_values():
 
 def test_twap_bit_layout():
     """Test that TWAP packing follows the correct bit layout."""
-    num_orders = 10
+    times = 10
     slippage_frac = 0.005
 
-    packed = pack_twap_appendix_value(num_orders, slippage_frac)
+    packed = pack_twap_appendix_value(times, slippage_frac)
 
     # Check bit positions
     extracted_orders = (packed >> TWAPBitFields.TIMES_SHIFT) & TWAPBitFields.TIMES_MASK
-    assert extracted_orders == num_orders
+    assert extracted_orders == times
 
     extracted_slippage_x6 = (
         packed >> TWAPBitFields.SLIPPAGE_SHIFT
@@ -204,7 +204,7 @@ def test_trigger_order_types():
             appendix = build_appendix(
                 OrderType.DEFAULT,
                 trigger_type=trigger_type,
-                twap_num_orders=5,
+                twap_times=5,
                 twap_slippage_frac=0.01,
             )
         else:
@@ -218,20 +218,20 @@ def test_trigger_order_types():
 
 def test_twap_order_data_extraction():
     """Test TWAP order data extraction."""
-    num_orders = 10
+    times = 10
     slippage_frac = 0.005
 
     appendix = build_appendix(
         OrderType.DEFAULT,
         trigger_type=OrderAppendixTriggerType.TWAP,
-        twap_num_orders=num_orders,
+        twap_times=times,
         twap_slippage_frac=slippage_frac,
     )
 
     twap_data = order_twap_data(appendix)
     assert twap_data is not None
     extracted_orders, extracted_slippage = twap_data
-    assert extracted_orders == num_orders
+    assert extracted_orders == times
     assert extracted_slippage == slippage_frac
 
 
@@ -343,7 +343,7 @@ def test_twap_parameters_without_twap_trigger():
     """Test that TWAP parameters are required for TWAP orders."""
     with pytest.raises(
         ValueError,
-        match="twap_num_orders and twap_slippage_frac are required for TWAP orders",
+        match="twap_times and twap_slippage_frac are required for TWAP orders",
     ):
         build_appendix(OrderType.DEFAULT, trigger_type=OrderAppendixTriggerType.TWAP)
 
@@ -358,7 +358,7 @@ def test_isolated_and_twap_mutual_exclusion():
             isolated=True,
             trigger_type=OrderAppendixTriggerType.TWAP,
             isolated_margin=to_x18(1000),
-            twap_num_orders=5,
+            twap_times=5,
             twap_slippage_frac=0.01,
         )
 
@@ -399,7 +399,7 @@ def test_typescript_twap_compatibility():
     appendix = build_appendix(
         OrderType.DEFAULT,
         trigger_type=OrderAppendixTriggerType.TWAP,
-        twap_num_orders=10,
+        twap_times=10,
         twap_slippage_frac=0.005,
     )
     assert appendix == 792281717376363744483197591552
@@ -446,7 +446,7 @@ def test_twap_round_trip():
         OrderType.DEFAULT,
         reduce_only=True,
         trigger_type=OrderAppendixTriggerType.TWAP_CUSTOM_AMOUNTS,
-        twap_num_orders=original_orders,
+        twap_times=original_orders,
         twap_slippage_frac=original_slippage,
     )
 
@@ -462,7 +462,7 @@ def test_twap_round_trip():
         OrderType.DEFAULT,
         reduce_only=reduce_only,
         trigger_type=trigger_type,
-        twap_num_orders=extracted_orders,
+        twap_times=extracted_orders,
         twap_slippage_frac=extracted_slippage,
     )
 
