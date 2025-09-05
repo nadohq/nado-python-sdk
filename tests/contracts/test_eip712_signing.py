@@ -15,6 +15,12 @@ from nado_protocol.utils.expiration import OrderType
 import pytest
 
 
+def test_order_verifying_contract():
+    assert (
+        gen_order_verifying_contract(18) == "0x0000000000000000000000000000000000000012"
+    )
+
+
 def test_build_eip712_domain(
     endpoint_addr: str, chain_id: int, order_verifying_contracts: list[str]
 ):
