@@ -40,14 +40,6 @@ def run():
     eth_perp_trades = client.get_historical_trades("ETH-PERP_USDC", 2)
     pprint(eth_perp_trades)
 
-    print("querying VRTX token total supply...")
-    vrtx_total_supply = client.get_vrtx_token_info("total_supply")
-    pprint(vrtx_total_supply)
-
-    print("querying VRTX token circulating supply...")
-    vrtx_circulating_supply = client.get_vrtx_token_info("circulating_supply")
-    pprint(vrtx_circulating_supply)
-
     owner = Account.from_key(SIGNER_PRIVATE_KEY).address
     subaccount = subaccount_to_hex(
         SubaccountParams(subaccount_owner=owner, subaccount_name="default")
@@ -161,11 +153,6 @@ def run():
     print("querying usdc price...")
     usdc_price = client.get_usdc_price()
     print("usdc price", usdc_price.price_x18)
-
-    print("querying vrtx merkle proofs...")
-    print(owner)
-    vrtx_merkle_proofs = client.get_vrtx_merkle_proofs(owner)
-    print("vrtx merkle proofs:", vrtx_merkle_proofs.json(indent=2))
 
     print("querying foundation rewards merkle proofs...")
     foundation_rewards_merkle_proofs = client.get_foundation_rewards_merkle_proofs(

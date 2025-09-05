@@ -13,12 +13,6 @@
         "internalType": "address",
         "name": "quote",
         "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "fees",
-        "type": "address"
       }
     ],
     "name": "ClearinghouseInitialized",
@@ -40,16 +34,16 @@
         "type": "bytes32"
       },
       {
-        "indexed": true,
-        "internalType": "uint8",
-        "name": "mode",
-        "type": "uint8"
+        "indexed": false,
+        "internalType": "uint32",
+        "name": "productId",
+        "type": "uint32"
       },
       {
         "indexed": false,
-        "internalType": "uint32",
-        "name": "healthGroup",
-        "type": "uint32"
+        "internalType": "bool",
+        "name": "isEncodedSpread",
+        "type": "bool"
       },
       {
         "indexed": false,
@@ -61,12 +55,6 @@
         "indexed": false,
         "internalType": "int128",
         "name": "amountQuote",
-        "type": "int128"
-      },
-      {
-        "indexed": false,
-        "internalType": "int128",
-        "name": "insuranceCover",
         "type": "int128"
       }
     ],
@@ -106,6 +94,11 @@
         "type": "address"
       },
       {
+        "internalType": "address",
+        "name": "offchainExchange",
+        "type": "address"
+      },
+      {
         "internalType": "enum IProductEngine.EngineType",
         "name": "engineType",
         "type": "uint8"
@@ -119,6 +112,19 @@
   {
     "inputs": [
       {
+        "internalType": "bytes",
+        "name": "tx",
+        "type": "bytes"
+      }
+    ],
+    "name": "assertCode",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "components": [
           {
             "internalType": "bytes32",
@@ -126,13 +132,8 @@
             "type": "bytes32"
           },
           {
-            "internalType": "uint32",
-            "name": "productId",
-            "type": "uint32"
-          },
-          {
             "internalType": "uint128",
-            "name": "amount",
+            "name": "nlpAmount",
             "type": "uint128"
           },
           {
@@ -141,65 +142,55 @@
             "type": "uint64"
           }
         ],
-        "internalType": "struct IEndpoint.BurnLp",
-        "name": "tx",
+        "internalType": "struct IEndpoint.BurnNlp",
+        "name": "txn",
         "type": "tuple"
-      }
-    ],
-    "name": "burnLp",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
+      },
+      {
+        "internalType": "int128",
+        "name": "oraclePriceX18",
+        "type": "int128"
+      },
       {
         "components": [
           {
-            "internalType": "bytes32",
-            "name": "sender",
-            "type": "bytes32"
+            "internalType": "uint64",
+            "name": "poolId",
+            "type": "uint64"
           },
-          {
-            "internalType": "uint32",
-            "name": "productId",
-            "type": "uint32"
-          },
-          {
-            "internalType": "uint128",
-            "name": "amount",
-            "type": "uint128"
-          },
-          {
-            "internalType": "bytes32",
-            "name": "recipient",
-            "type": "bytes32"
-          }
-        ],
-        "internalType": "struct IEndpoint.BurnLpAndTransfer",
-        "name": "tx",
-        "type": "tuple"
-      }
-    ],
-    "name": "burnLpAndTransfer",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "components": [
           {
             "internalType": "bytes32",
             "name": "subaccount",
             "type": "bytes32"
+          },
+          {
+            "internalType": "address",
+            "name": "owner",
+            "type": "address"
+          },
+          {
+            "internalType": "uint128",
+            "name": "balanceWeightX18",
+            "type": "uint128"
           }
         ],
-        "internalType": "struct IEndpoint.ClaimSequencerFees",
-        "name": "tx",
-        "type": "tuple"
+        "internalType": "struct IEndpoint.NlpPool[]",
+        "name": "nlpPools",
+        "type": "tuple[]"
       },
+      {
+        "internalType": "int128[]",
+        "name": "nlpPoolRebalanceX18",
+        "type": "int128[]"
+      }
+    ],
+    "name": "burnNlp",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
       {
         "internalType": "int128[]",
         "name": "fees",
@@ -207,6 +198,32 @@
       }
     ],
     "name": "claimSequencerFees",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "subaccount",
+        "type": "bytes32"
+      }
+    ],
+    "name": "clearNlpPoolPosition",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "transaction",
+        "type": "bytes"
+      }
+    ],
+    "name": "delistProduct",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -244,16 +261,9 @@
   {
     "inputs": [
       {
-        "components": [
-          {
-            "internalType": "uint128",
-            "name": "amount",
-            "type": "uint128"
-          }
-        ],
-        "internalType": "struct IEndpoint.DepositInsurance",
-        "name": "tx",
-        "type": "tuple"
+        "internalType": "bytes",
+        "name": "transaction",
+        "type": "bytes"
       }
     ],
     "name": "depositInsurance",
@@ -263,12 +273,12 @@
   },
   {
     "inputs": [],
-    "name": "getAllBooks",
+    "name": "getClearinghouseLiq",
     "outputs": [
       {
-        "internalType": "address[]",
+        "internalType": "address",
         "name": "",
-        "type": "address[]"
+        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -364,101 +374,6 @@
   },
   {
     "inputs": [],
-    "name": "getMaxHealthGroup",
-    "outputs": [
-      {
-        "internalType": "uint32",
-        "name": "",
-        "type": "uint32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getNumProducts",
-    "outputs": [
-      {
-        "internalType": "uint32",
-        "name": "",
-        "type": "uint32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint32",
-        "name": "productId",
-        "type": "uint32"
-      }
-    ],
-    "name": "getOraclePriceX18",
-    "outputs": [
-      {
-        "internalType": "int128",
-        "name": "",
-        "type": "int128"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint32",
-        "name": "healthGroup",
-        "type": "uint32"
-      }
-    ],
-    "name": "getOraclePricesX18",
-    "outputs": [
-      {
-        "components": [
-          {
-            "internalType": "int128",
-            "name": "spotPriceX18",
-            "type": "int128"
-          },
-          {
-            "internalType": "int128",
-            "name": "perpPriceX18",
-            "type": "int128"
-          }
-        ],
-        "internalType": "struct IEndpoint.Prices",
-        "name": "",
-        "type": "tuple"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint32",
-        "name": "productId",
-        "type": "uint32"
-      }
-    ],
-    "name": "getOrderbook",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "getQuote",
     "outputs": [
       {
@@ -471,46 +386,13 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint32",
-        "name": "productId",
-        "type": "uint32"
-      }
-    ],
-    "name": "getRisk",
+    "inputs": [],
+    "name": "getSlowModeFee",
     "outputs": [
       {
-        "components": [
-          {
-            "internalType": "int128",
-            "name": "longWeightInitialX18",
-            "type": "int128"
-          },
-          {
-            "internalType": "int128",
-            "name": "shortWeightInitialX18",
-            "type": "int128"
-          },
-          {
-            "internalType": "int128",
-            "name": "longWeightMaintenanceX18",
-            "type": "int128"
-          },
-          {
-            "internalType": "int128",
-            "name": "shortWeightMaintenanceX18",
-            "type": "int128"
-          },
-          {
-            "internalType": "int128",
-            "name": "largePositionPenaltyX18",
-            "type": "int128"
-          }
-        ],
-        "internalType": "struct RiskHelper.Risk",
+        "internalType": "uint256",
         "name": "",
-        "type": "tuple"
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -518,12 +400,12 @@
   },
   {
     "inputs": [],
-    "name": "getSupportedEngines",
+    "name": "getSpreads",
     "outputs": [
       {
-        "internalType": "enum IProductEngine.EngineType[]",
+        "internalType": "uint256",
         "name": "",
-        "type": "uint8[]"
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -531,15 +413,15 @@
   },
   {
     "inputs": [],
-    "name": "getVersion",
+    "name": "getWithdrawPool",
     "outputs": [
       {
-        "internalType": "uint64",
+        "internalType": "address",
         "name": "",
-        "type": "uint64"
+        "type": "address"
       }
     ],
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -557,14 +439,14 @@
             "type": "bytes32"
           },
           {
-            "internalType": "uint8",
-            "name": "mode",
-            "type": "uint8"
+            "internalType": "uint32",
+            "name": "productId",
+            "type": "uint32"
           },
           {
-            "internalType": "uint32",
-            "name": "healthGroup",
-            "type": "uint32"
+            "internalType": "bool",
+            "name": "isEncodedSpread",
+            "type": "bool"
           },
           {
             "internalType": "int128",
@@ -590,44 +472,12 @@
   {
     "inputs": [
       {
-        "components": [
-          {
-            "internalType": "bytes32",
-            "name": "sender",
-            "type": "bytes32"
-          },
-          {
-            "internalType": "uint32",
-            "name": "productId",
-            "type": "uint32"
-          },
-          {
-            "internalType": "uint128",
-            "name": "amountBase",
-            "type": "uint128"
-          },
-          {
-            "internalType": "uint128",
-            "name": "quoteAmountLow",
-            "type": "uint128"
-          },
-          {
-            "internalType": "uint128",
-            "name": "quoteAmountHigh",
-            "type": "uint128"
-          },
-          {
-            "internalType": "uint64",
-            "name": "nonce",
-            "type": "uint64"
-          }
-        ],
-        "internalType": "struct IEndpoint.MintLp",
+        "internalType": "bytes",
         "name": "tx",
-        "type": "tuple"
+        "type": "bytes"
       }
     ],
-    "name": "mintLp",
+    "name": "manualAssert",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -642,23 +492,8 @@
             "type": "bytes32"
           },
           {
-            "internalType": "uint32",
-            "name": "productId",
-            "type": "uint32"
-          },
-          {
             "internalType": "uint128",
-            "name": "amountBase",
-            "type": "uint128"
-          },
-          {
-            "internalType": "uint128",
-            "name": "quoteAmountLow",
-            "type": "uint128"
-          },
-          {
-            "internalType": "uint128",
-            "name": "quoteAmountHigh",
+            "name": "quoteAmount",
             "type": "uint128"
           },
           {
@@ -667,12 +502,80 @@
             "type": "uint64"
           }
         ],
-        "internalType": "struct IEndpoint.MintLp",
-        "name": "tx",
+        "internalType": "struct IEndpoint.MintNlp",
+        "name": "txn",
         "type": "tuple"
+      },
+      {
+        "internalType": "int128",
+        "name": "oraclePriceX18",
+        "type": "int128"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint64",
+            "name": "poolId",
+            "type": "uint64"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "subaccount",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "address",
+            "name": "owner",
+            "type": "address"
+          },
+          {
+            "internalType": "uint128",
+            "name": "balanceWeightX18",
+            "type": "uint128"
+          }
+        ],
+        "internalType": "struct IEndpoint.NlpPool[]",
+        "name": "nlpPools",
+        "type": "tuple[]"
+      },
+      {
+        "internalType": "int128[]",
+        "name": "nlpPoolRebalanceX18",
+        "type": "int128[]"
       }
     ],
-    "name": "mintLpSlowMode",
+    "name": "mintNlp",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "transaction",
+        "type": "bytes"
+      },
+      {
+        "internalType": "uint64",
+        "name": "nSubmissions",
+        "type": "uint64"
+      }
+    ],
+    "name": "rebalanceXWithdraw",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint32",
+        "name": "productId",
+        "type": "uint32"
+      }
+    ],
+    "name": "registerProduct",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -685,39 +588,12 @@
         "type": "uint32"
       },
       {
-        "components": [
-          {
-            "internalType": "int32",
-            "name": "longWeightInitial",
-            "type": "int32"
-          },
-          {
-            "internalType": "int32",
-            "name": "shortWeightInitial",
-            "type": "int32"
-          },
-          {
-            "internalType": "int32",
-            "name": "longWeightMaintenance",
-            "type": "int32"
-          },
-          {
-            "internalType": "int32",
-            "name": "shortWeightMaintenance",
-            "type": "int32"
-          },
-          {
-            "internalType": "int32",
-            "name": "largePositionPenalty",
-            "type": "int32"
-          }
-        ],
-        "internalType": "struct IClearinghouseState.RiskStore",
-        "name": "riskStore",
-        "type": "tuple"
+        "internalType": "uint128",
+        "name": "amount",
+        "type": "uint128"
       }
     ],
-    "name": "modifyProductConfig",
+    "name": "requireMinDeposit",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -726,79 +602,11 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "book",
+        "name": "_withdrawPool",
         "type": "address"
-      },
-      {
-        "components": [
-          {
-            "internalType": "int32",
-            "name": "longWeightInitial",
-            "type": "int32"
-          },
-          {
-            "internalType": "int32",
-            "name": "shortWeightInitial",
-            "type": "int32"
-          },
-          {
-            "internalType": "int32",
-            "name": "longWeightMaintenance",
-            "type": "int32"
-          },
-          {
-            "internalType": "int32",
-            "name": "shortWeightMaintenance",
-            "type": "int32"
-          },
-          {
-            "internalType": "int32",
-            "name": "largePositionPenalty",
-            "type": "int32"
-          }
-        ],
-        "internalType": "struct IClearinghouseState.RiskStore",
-        "name": "riskStore",
-        "type": "tuple"
-      },
-      {
-        "internalType": "uint32",
-        "name": "healthGroup",
-        "type": "uint32"
       }
     ],
-    "name": "registerProductForId",
-    "outputs": [
-      {
-        "internalType": "uint32",
-        "name": "",
-        "type": "uint32"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "components": [
-          {
-            "internalType": "bytes32[]",
-            "name": "subaccounts",
-            "type": "bytes32[]"
-          },
-          {
-            "internalType": "uint256[]",
-            "name": "productIds",
-            "type": "uint256[]"
-          }
-        ],
-        "internalType": "struct IEndpoint.SettlePnl",
-        "name": "tx",
-        "type": "tuple"
-      }
-    ],
-    "name": "settlePnl",
+    "name": "setWithdrawPool",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -806,34 +614,12 @@
   {
     "inputs": [
       {
-        "components": [
-          {
-            "internalType": "address",
-            "name": "user",
-            "type": "address"
-          },
-          {
-            "internalType": "uint32",
-            "name": "productId",
-            "type": "uint32"
-          },
-          {
-            "internalType": "int64",
-            "name": "makerRateX18",
-            "type": "int64"
-          },
-          {
-            "internalType": "int64",
-            "name": "takerRateX18",
-            "type": "int64"
-          }
-        ],
-        "internalType": "struct IEndpoint.UpdateFeeRates",
-        "name": "tx",
-        "type": "tuple"
+        "internalType": "bytes",
+        "name": "transaction",
+        "type": "bytes"
       }
     ],
-    "name": "updateFeeRates",
+    "name": "settlePnl",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -848,9 +634,9 @@
             "type": "bytes32"
           },
           {
-            "internalType": "uint32",
-            "name": "productId",
-            "type": "uint32"
+            "internalType": "bytes32",
+            "name": "recipient",
+            "type": "bytes32"
           },
           {
             "internalType": "uint128",
@@ -863,12 +649,113 @@
             "type": "uint64"
           }
         ],
-        "internalType": "struct IEndpoint.WithdrawCollateral",
+        "internalType": "struct IEndpoint.TransferQuote",
         "name": "tx",
         "type": "tuple"
       }
     ],
+    "name": "transferQuote",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "transaction",
+        "type": "bytes"
+      }
+    ],
+    "name": "updateFeeTier",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "transaction",
+        "type": "bytes"
+      }
+    ],
+    "name": "updatePrice",
+    "outputs": [
+      {
+        "internalType": "uint32",
+        "name": "",
+        "type": "uint32"
+      },
+      {
+        "internalType": "int128",
+        "name": "",
+        "type": "int128"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_clearinghouseLiq",
+        "type": "address"
+      }
+    ],
+    "name": "upgradeClearinghouseLiq",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "sender",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint32",
+        "name": "productId",
+        "type": "uint32"
+      },
+      {
+        "internalType": "uint128",
+        "name": "amount",
+        "type": "uint128"
+      },
+      {
+        "internalType": "address",
+        "name": "sendTo",
+        "type": "address"
+      },
+      {
+        "internalType": "uint64",
+        "name": "idx",
+        "type": "uint64"
+      }
+    ],
     "name": "withdrawCollateral",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "transaction",
+        "type": "bytes"
+      },
+      {
+        "internalType": "uint64",
+        "name": "idx",
+        "type": "uint64"
+      }
+    ],
+    "name": "withdrawInsurance",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

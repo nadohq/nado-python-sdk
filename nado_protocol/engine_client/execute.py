@@ -8,7 +8,7 @@ from nado_protocol.engine_client.types import (
     EngineClientOpts,
 )
 from nado_protocol.engine_client.types.execute import (
-    BurnLpParams,
+    BurnNlpParams,
     CancelAndPlaceParams,
     CancelOrdersParams,
     CancelProductOrdersParams,
@@ -17,9 +17,8 @@ from nado_protocol.engine_client.types.execute import (
     ExecuteResponse,
     LinkSignerParams,
     LiquidateSubaccountParams,
-    MintLpParams,
+    MintNlpParams,
     OrderParams,
-    PlaceIsolatedOrderParams,
     PlaceMarketOrderParams,
     PlaceOrderParams,
     WithdrawCollateralParams,
@@ -151,26 +150,6 @@ class EngineExecuteClient(NadoBaseExecute):
         )
         return self.execute(params)
 
-    def place_isolated_order(self, params: PlaceIsolatedOrderParams) -> ExecuteResponse:
-        """
-        Execute a place isolated order operation.
-
-        Args:
-            params (PlaceIsolatedOrderParams): Parameters required for placing an isolated order.
-            The parameters include the isolated order details.
-
-        Returns:
-            ExecuteResponse: Response of the execution, including status and potential error message.
-        """
-        params = PlaceIsolatedOrderParams.parse_obj(params)
-        params.isolated_order = self.prepare_execute_params(params.isolated_order, True)
-        params.signature = params.signature or self._sign(
-            NadoExecuteType.PLACE_ISOLATED_ORDER,
-            params.isolated_order.dict(),
-            params.product_id,
-        )
-        return self.execute(params)
-
     def place_market_order(self, params: PlaceMarketOrderParams) -> ExecuteResponse:
         """
         Places an FOK order using top of the book price with provided slippage.
@@ -201,6 +180,7 @@ class EngineExecuteClient(NadoBaseExecute):
             expiration=get_expiration_timestamp(
                 OrderType.FOK, int(time.time()) + 1000, bool(params.reduce_only)
             ),
+            appendix=params.market_order.appendix,
         )
         return self.place_order(
             PlaceOrderParams(  # type: ignore
@@ -317,38 +297,38 @@ class EngineExecuteClient(NadoBaseExecute):
         )
         return self.execute(params)
 
-    def mint_lp(self, params: MintLpParams) -> ExecuteResponse:
+    def mint_nlp(self, params: MintNlpParams) -> ExecuteResponse:
         """
-        Execute a mint LP tokens operation.
+        Execute a mint NLP tokens operation.
 
         Args:
-            params (MintLpParams): Parameters required for minting LP tokens.
+            params (MintNlpParams): Parameters required for minting NLP tokens.
             The parameters include the LP details.
 
         Returns:
             ExecuteResponse: Response of the execution, including status and potential error message.
         """
-        params = self.prepare_execute_params(MintLpParams.parse_obj(params), False)
+        params = self.prepare_execute_params(MintNlpParams.parse_obj(params), False)
         params.signature = params.signature or self._sign(
-            NadoExecuteType.MINT_LP,
+            NadoExecuteType.MINT_NLP,
             params.dict(),
         )
         return self.execute(params)
 
-    def burn_lp(self, params: BurnLpParams) -> ExecuteResponse:
+    def burn_nlp(self, params: BurnNlpParams) -> ExecuteResponse:
         """
-        Execute a burn LP tokens operation.
+        Execute a burn NLP tokens operation.
 
         Args:
-            params (BurnLpParams): Parameters required for burning LP tokens.
+            params (BurnNlpParams): Parameters required for burning LP tokens.
             The parameters include the LP details.
 
         Returns:
             ExecuteResponse: Response of the execution, including status and potential error message.
         """
-        params = self.prepare_execute_params(BurnLpParams.parse_obj(params), False)
+        params = self.prepare_execute_params(BurnNlpParams.parse_obj(params), False)
         params.signature = params.signature or self._sign(
-            NadoExecuteType.BURN_LP,
+            NadoExecuteType.BURN_NLP,
             params.dict(),
         )
         return self.execute(params)
@@ -411,6 +391,7 @@ class EngineExecuteClient(NadoBaseExecute):
                     expiration=get_expiration_timestamp(
                         OrderType.FOK, int(time.time()) + 1000, reduce_only=True
                     ),
+                    appendix=0,
                 ),
             )
         )

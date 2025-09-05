@@ -54,13 +54,13 @@ The Market API allows you to manage and execute orders on the Nado Protocol. Her
 
 - `Minting LP <TODO>`_:
 
-    >>> from nado-protocol.engine_client.types import MintLpParams
-    >>> client.market.mint_lp(MintLpParams(...))
+    >>> from nado-protocol.engine_client.types import MintNlpParams
+    >>> client.market.mint_nlp(MintNlpParams(...))
 
 - `Burning LP <TODO>`_:
 
-    >>> from nado-protocol.engine_client.types import BurnLpParams
-    >>> client.market.burn_lp(BurnLpParams(...))
+    >>> from nado-protocol.engine_client.types import BurnNlpParams
+    >>> client.market.burn_nlp(BurnNlpParams(...))
 
 You also have available the following queries:
 
@@ -132,7 +132,7 @@ You also have available the following queries:
 
     >>> client.market.get_oracle_prices([1, 2, 3, 4])
 
-- `Retrieves $VRTX token rewards for a wallet <TODO>`_:
+- `Retrieves token rewards for a wallet <TODO>`_:
 
 .. code-block:: python
 

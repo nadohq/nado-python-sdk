@@ -25,6 +25,7 @@ import pytest
 from nado_protocol.utils.exceptions import ExecuteFailedException
 
 from nado_protocol.utils.nonce import gen_order_nonce
+from nado_protocol.utils.order import gen_order_verifying_contract
 from nado_protocol.utils.subaccount import SubaccountParams
 
 
@@ -38,6 +39,7 @@ def test_place_order_params(senders: list[str], owners: list[str], order_params:
                 "sender": senders[0],
                 "priceX18": order_params["priceX18"],
                 "amount": order_params["amount"],
+                "appendix": order_params["appendix"],
                 "expiration": order_params["expiration"],
             },
         }
@@ -49,6 +51,7 @@ def test_place_order_params(senders: list[str], owners: list[str], order_params:
             priceX18=order_params["priceX18"],
             amount=order_params["amount"],
             expiration=order_params["expiration"],
+            appendix=order_params["appendix"],
         ),
     )
     bytes32_sender = PlaceOrderParams(
@@ -58,6 +61,7 @@ def test_place_order_params(senders: list[str], owners: list[str], order_params:
             priceX18=order_params["priceX18"],
             amount=order_params["amount"],
             expiration=order_params["expiration"],
+            appendix=order_params["appendix"],
         ),
     )
     subaccount_params_sender = PlaceOrderParams(
@@ -69,6 +73,7 @@ def test_place_order_params(senders: list[str], owners: list[str], order_params:
             priceX18=order_params["priceX18"],
             amount=order_params["amount"],
             expiration=order_params["expiration"],
+            appendix=order_params["appendix"],
         ),
     )
 
@@ -84,6 +89,7 @@ def test_place_order_params(senders: list[str], owners: list[str], order_params:
     assert params_from_dict.order.amount == order_params["amount"]
     assert params_from_dict.order.priceX18 == order_params["priceX18"]
     assert params_from_dict.order.expiration == order_params["expiration"]
+    assert params_from_dict.order.appendix == order_params["appendix"]
     assert params_from_dict.signature is None
 
     params_from_dict.signature = (
@@ -100,6 +106,7 @@ def test_place_order_params(senders: list[str], owners: list[str], order_params:
                 "priceX18": str(order_params["priceX18"]),
                 "amount": str(order_params["amount"]),
                 "expiration": str(order_params["expiration"]),
+                "appendix": str(order_params["appendix"]),
                 "nonce": str(params_from_dict.order.nonce),
             },
             "signature": params_from_dict.signature,
@@ -118,6 +125,7 @@ def test_place_order_params(senders: list[str], owners: list[str], order_params:
                 "priceX18": str(order_params["priceX18"]),
                 "amount": str(order_params["amount"]),
                 "expiration": str(order_params["expiration"]),
+                "appendix": str(order_params["appendix"]),
                 "nonce": str(params_from_dict.order.nonce),
             },
             "signature": params_from_dict.signature,
@@ -129,7 +137,6 @@ def test_place_order_execute_fails_incomplete_client(
     mock_post: MagicMock,
     url: str,
     chain_id: int,
-    book_addrs: list[str],
     private_keys: list[str],
     senders: list[str],
     order_params: dict,
@@ -139,11 +146,6 @@ def test_place_order_execute_fails_incomplete_client(
         "product_id": 1,
         "order": order_params,
     }
-
-    with pytest.raises(AttributeError, match="Book addresses are not set"):
-        engine_client.place_order(place_order_params)
-
-    engine_client.book_addrs = book_addrs
 
     with pytest.raises(AttributeError, match="Chain ID is not set."):
         engine_client.place_order(place_order_params)
@@ -181,6 +183,7 @@ def test_place_order_execute_success(
             amount=1000,
             expiration=1000,
             nonce=1000,
+            appendix=0
         ),
     )
 
@@ -190,7 +193,7 @@ def test_place_order_execute_success(
 
     with pytest.raises(
         ValueError,
-        match="Missing `product_id` to sign place_order or place_isolated_order execute",
+        match="Missing `product_id` to sign place_order execute",
     ):
         engine_client._sign(NadoExecuteType.PLACE_ORDER, order.dict())
 
@@ -203,7 +206,7 @@ def test_place_order_execute_success(
         typed_data=build_eip712_typed_data(
             NadoExecuteType.PLACE_ORDER,
             order.dict(),
-            engine_client._opts.book_addrs[1],
+            gen_order_verifying_contract(1),
             engine_client.chain_id,
         ),
         signer=engine_client._opts.linked_signer,
@@ -248,7 +251,7 @@ def test_place_order_execute_success(
         typed_data=build_eip712_typed_data(
             NadoExecuteType.PLACE_ORDER,
             order.dict(),
-            engine_client._opts.book_addrs[1],
+            gen_order_verifying_contract(1),
             engine_client.chain_id,
         ),
         signer=engine_client._opts.signer,
@@ -272,8 +275,7 @@ def test_place_order_execute_provide_full_params(
     mock_post: MagicMock,
     url: str,
     chain_id: int,
-    private_keys: list[str],
-    book_addrs: str,
+    private_keys: list[str]
 ):
     mock_response = MagicMock()
     mock_response.status_code = 200
@@ -292,10 +294,11 @@ def test_place_order_execute_provide_full_params(
         "amount": 10000,
         "sender": sender,
         "nonce": gen_order_nonce(),
+        "appendix": 0,
         "expiration": 10000,
     }
     signature = engine_client.sign(
-        NadoExecuteType.PLACE_ORDER, order_params, book_addrs[1], chain_id, signer
+        NadoExecuteType.PLACE_ORDER, order_params, gen_order_verifying_contract(product_id), chain_id, signer
     )
     order_params["sender"] = bytes32_to_hex(order_params["sender"])
     res = engine_client.place_order(
@@ -309,3 +312,4 @@ def test_place_order_execute_provide_full_params(
     assert req.place_order.order.sender == order_params["sender"]
     assert req.place_order.order.nonce == str(order_params["nonce"])
     assert req.place_order.order.expiration == str(order_params["expiration"])
+    assert req.place_order.order.appendix == str(order_params["appendix"])

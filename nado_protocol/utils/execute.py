@@ -13,6 +13,7 @@ from nado_protocol.utils.backend import NadoClientOpts
 from nado_protocol.utils.bytes32 import subaccount_to_bytes32, subaccount_to_hex
 from nado_protocol.utils.model import NadoBaseModel
 from nado_protocol.utils.nonce import gen_order_nonce
+from nado_protocol.utils.order import gen_order_verifying_contract
 from nado_protocol.utils.subaccount import Subaccount, SubaccountParams
 
 
@@ -81,10 +82,13 @@ class MarketOrderParams(BaseParams):
         expiration (int): The unix timestamp at which the order will expire.
 
         nonce (Optional[int]): A unique number used to prevent replay attacks.
+
+        appendix (int): Additional data or instructions related to the order. Use to encode order type and other related data.
     """
 
     amount: int
-    nonce: Optional[int]
+    expiration: int
+    appendix: int
 
 
 class OrderParams(MarketOrderParams):
@@ -99,29 +103,11 @@ class OrderParams(MarketOrderParams):
         amount (int): The amount of the asset to be bought or sold in the order. Positive for a `long` position and negative for a `short`.
 
         nonce (Optional[int]): A unique number used to prevent replay attacks.
+
+        appendix (int): Additional data or instructions related to the order. Use to encode order type and other related data.
     """
 
     priceX18: int
-    expiration: int
-
-
-class IsolatedOrderParams(OrderParams):
-    """
-    Class for defining the parameters of an isolated order.
-
-    Attributes:
-        priceX18 (int): The price of the order with a precision of 18 decimal places.
-
-        expiration (int): The unix timestamp at which the order will expire.
-
-        amount (int): The amount of the asset to be bought or sold in the order. Positive for a `long` position and negative for a `short`.
-
-        nonce (Optional[int]): A unique number used to prevent replay attacks.
-
-        margin (int): The margin amount for the isolated order.
-    """
-
-    margin: int
 
 
 class NadoBaseExecute:
@@ -141,16 +127,6 @@ class NadoBaseExecute:
     @endpoint_addr.setter
     def endpoint_addr(self, addr: str) -> None:
         self._opts.endpoint_addr = addr
-
-    @property
-    def book_addrs(self) -> list[str]:
-        if self._opts.book_addrs is None:
-            raise AttributeError("Book addresses are not set.")
-        return self._opts.book_addrs
-
-    @book_addrs.setter
-    def book_addrs(self, book_addrs: list[str]) -> None:
-        self._opts.book_addrs = book_addrs
 
     @property
     def chain_id(self) -> int:
@@ -191,24 +167,22 @@ class NadoBaseExecute:
             )
         self._opts.linked_signer = linked_signer
 
-    def book_addr(self, product_id: int) -> str:
+    def order_verifying_contract(self, product_id: int) -> str:
         """
-        Retrieves the book address corresponding to the provided product ID.
+        Returns the `place_order` verifying contract address for a given product.
 
-        Needed for signing order placement executes for different products.
+        Note:
+            Previously, `place_order` verifying contracts were accessed via `book_addrs[product_id]`.
+            Virtual books have now been removed, and the verifying contract is derived
+            directly from the product id.
 
-        Args:
-            product_id (int): The ID of the product.
+            The address is computed as `address(product_id)`, i.e. the 20-byte
+            big-endian representation of the product id, zero-padded on the left.
 
-        Returns:
-            str: The book address associated with the given product ID.
-
-        Raises:
-            ValueError: If the provided product_id is greater than or equal to the number of book addresses available.
+            Example:
+                product_id = 18  →  0x0000000000000000000000000000000000000012
         """
-        if product_id >= len(self.book_addrs):
-            raise ValueError(f"Invalid product_id {product_id} provided.")
-        return self.book_addrs[product_id]
+        return gen_order_verifying_contract(product_id)
 
     def order_nonce(
         self, recv_time_ms: Optional[int] = None, is_trigger_order: bool = False
@@ -308,14 +282,13 @@ class NadoBaseExecute:
         """
         is_place_order = (
             execute == NadoExecuteType.PLACE_ORDER
-            or execute == NadoExecuteType.PLACE_ISOLATED_ORDER
         )
         if is_place_order and product_id is None:
             raise ValueError(
-                "Missing `product_id` to sign place_order or place_isolated_order execute"
+                "Missing `product_id` to sign place_order execute"
             )
         verifying_contract = (
-            self.book_addr(product_id)
+            self.order_verifying_contract(product_id)
             if is_place_order and product_id
             else self.endpoint_addr
         )
@@ -398,6 +371,6 @@ class NadoBaseExecute:
         return self.build_digest(
             NadoExecuteType.PLACE_ORDER,
             order.dict(),
-            self.book_addr(product_id),
+            self.order_verifying_contract(product_id),
             self.chain_id,
         )

@@ -4,10 +4,10 @@ from sanity import CLIENT_MODE, SIGNER_PRIVATE_KEY
 from nado_protocol.client import NadoClient, create_nado_client
 from nado_protocol.contracts.types import DepositCollateralParams
 from nado_protocol.engine_client.types.execute import (
-    BurnLpParams,
+    BurnNlpParams,
     CancelAndPlaceParams,
     MarketOrderParams,
-    MintLpParams,
+    MintNlpParams,
     OrderParams,
     PlaceMarketOrderParams,
     WithdrawCollateralParams,
@@ -352,28 +352,24 @@ def run():
     perp_prices = client.perp.get_prices(2)
     print("perp prices:", perp_prices.json(indent=2))
 
-    print("minting lp...")
-    mint_lp_params = MintLpParams(
+    print("minting nlp...")
+    mint_nlp_params = MintNlpParams(
         sender=SubaccountParams(
             subaccount_owner=client.context.engine_client.signer.address,
             subaccount_name="default",
         ),
-        productId=3,
-        amountBase=to_x18(1),
-        quoteAmountLow=to_x18(2000),
-        quoteAmountHigh=to_x18(4000),
+        quoteAmount=to_x18(2000),
     )
-    res = client.market.mint_lp(mint_lp_params)
-    print("mint lp results:", res.json(indent=2))
+    res = client.market.mint_nlp(mint_nlp_params)
+    print("mint nlp results:", res.json(indent=2))
 
-    print("burning lp...")
-    burn_lp_params = BurnLpParams(
+    print("burning nlp...")
+    burn_nlp_params = BurnNlpParams(
         sender=SubaccountParams(
             subaccount_owner=client.context.engine_client.signer.address,
             subaccount_name="default",
         ),
-        productId=3,
-        amount=to_x18(1),
+        nlpAmount=to_x18(1),
         nonce=client.context.engine_client.tx_nonce(
             subaccount_to_hex(
                 SubaccountParams(
@@ -383,8 +379,8 @@ def run():
             )
         ),
     )
-    res = client.market.burn_lp(burn_lp_params)
-    print("burn lp result:", res.json(indent=2))
+    res = client.market.burn_nlp(burn_nlp_params)
+    print("burn nlp result:", res.json(indent=2))
 
     print("querying subaccount fee rates...")
     fee_rates = client.subaccount.get_subaccount_fee_rates(sender)

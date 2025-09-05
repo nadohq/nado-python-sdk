@@ -1,27 +1,5 @@
 [
   {
-    "inputs": [
-      {
-        "internalType": "int256",
-        "name": "x",
-        "type": "int256"
-      }
-    ],
-    "name": "PRBMathSD59x18__SqrtNegativeInput",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "int256",
-        "name": "x",
-        "type": "int256"
-      }
-    ],
-    "name": "PRBMathSD59x18__SqrtOverflow",
-    "type": "error"
-  },
-  {
     "inputs": [],
     "name": "getAllProducts",
     "outputs": [
@@ -63,7 +41,7 @@
                   },
                   {
                     "internalType": "int128",
-                    "name": "largePositionPenaltyX18",
+                    "name": "priceX18",
                     "type": "int128"
                   }
                 ],
@@ -96,6 +74,16 @@
                   {
                     "internalType": "int128",
                     "name": "interestLargeCapX18",
+                    "type": "int128"
+                  },
+                  {
+                    "internalType": "int128",
+                    "name": "withdrawFeeX18",
+                    "type": "int128"
+                  },
+                  {
+                    "internalType": "int128",
+                    "name": "minDepositRateX18",
                     "type": "int128"
                   }
                 ],
@@ -134,52 +122,6 @@
                 "components": [
                   {
                     "internalType": "int128",
-                    "name": "supply",
-                    "type": "int128"
-                  },
-                  {
-                    "components": [
-                      {
-                        "internalType": "int128",
-                        "name": "amount",
-                        "type": "int128"
-                      },
-                      {
-                        "internalType": "int128",
-                        "name": "lastCumulativeMultiplierX18",
-                        "type": "int128"
-                      }
-                    ],
-                    "internalType": "struct ISpotEngine.Balance",
-                    "name": "quote",
-                    "type": "tuple"
-                  },
-                  {
-                    "components": [
-                      {
-                        "internalType": "int128",
-                        "name": "amount",
-                        "type": "int128"
-                      },
-                      {
-                        "internalType": "int128",
-                        "name": "lastCumulativeMultiplierX18",
-                        "type": "int128"
-                      }
-                    ],
-                    "internalType": "struct ISpotEngine.Balance",
-                    "name": "base",
-                    "type": "tuple"
-                  }
-                ],
-                "internalType": "struct ISpotEngine.LpState",
-                "name": "lpState",
-                "type": "tuple"
-              },
-              {
-                "components": [
-                  {
-                    "internalType": "int128",
                     "name": "sizeIncrement",
                     "type": "int128"
                   },
@@ -196,11 +138,6 @@
                   {
                     "internalType": "int128",
                     "name": "collectedFees",
-                    "type": "int128"
-                  },
-                  {
-                    "internalType": "int128",
-                    "name": "lpSpreadX18",
                     "type": "int128"
                   }
                 ],
@@ -249,7 +186,7 @@
                   },
                   {
                     "internalType": "int128",
-                    "name": "largePositionPenaltyX18",
+                    "name": "priceX18",
                     "type": "int128"
                   }
                 ],
@@ -288,38 +225,6 @@
                 "components": [
                   {
                     "internalType": "int128",
-                    "name": "supply",
-                    "type": "int128"
-                  },
-                  {
-                    "internalType": "int128",
-                    "name": "lastCumulativeFundingX18",
-                    "type": "int128"
-                  },
-                  {
-                    "internalType": "int128",
-                    "name": "cumulativeFundingPerLpX18",
-                    "type": "int128"
-                  },
-                  {
-                    "internalType": "int128",
-                    "name": "base",
-                    "type": "int128"
-                  },
-                  {
-                    "internalType": "int128",
-                    "name": "quote",
-                    "type": "int128"
-                  }
-                ],
-                "internalType": "struct IPerpEngine.LpState",
-                "name": "lpState",
-                "type": "tuple"
-              },
-              {
-                "components": [
-                  {
-                    "internalType": "int128",
                     "name": "sizeIncrement",
                     "type": "int128"
                   },
@@ -336,11 +241,6 @@
                   {
                     "internalType": "int128",
                     "name": "collectedFees",
-                    "type": "int128"
-                  },
-                  {
-                    "internalType": "int128",
-                    "name": "lpSpreadX18",
                     "type": "int128"
                   }
                 ],
@@ -368,11 +268,6 @@
         "internalType": "uint32",
         "name": "productId",
         "type": "uint32"
-      },
-      {
-        "internalType": "contract IProductEngine",
-        "name": "engine",
-        "type": "address"
       }
     ],
     "name": "getBookInfo",
@@ -398,11 +293,6 @@
             "internalType": "int128",
             "name": "collectedFees",
             "type": "int128"
-          },
-          {
-            "internalType": "int128",
-            "name": "lpSpreadX18",
-            "type": "int128"
           }
         ],
         "internalType": "struct FQuerier.BookInfo",
@@ -421,6 +311,48 @@
         "internalType": "address",
         "name": "",
         "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getNlpPoolInfo",
+    "outputs": [
+      {
+        "components": [
+          {
+            "components": [
+              {
+                "internalType": "uint64",
+                "name": "poolId",
+                "type": "uint64"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "subaccount",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "address",
+                "name": "owner",
+                "type": "address"
+              },
+              {
+                "internalType": "uint128",
+                "name": "balanceWeightX18",
+                "type": "uint128"
+              }
+            ],
+            "internalType": "struct FQuerier.NlpPool[]",
+            "name": "nlpPools",
+            "type": "tuple[]"
+          }
+        ],
+        "internalType": "struct FQuerier.NlpPoolInfo",
+        "name": "",
+        "type": "tuple"
       }
     ],
     "stateMutability": "view",
@@ -447,23 +379,6 @@
             "internalType": "uint32",
             "name": "productId",
             "type": "uint32"
-          },
-          {
-            "components": [
-              {
-                "internalType": "int128",
-                "name": "amount",
-                "type": "int128"
-              },
-              {
-                "internalType": "int128",
-                "name": "lastCumulativeFundingX18",
-                "type": "int128"
-              }
-            ],
-            "internalType": "struct IPerpEngine.LpBalance",
-            "name": "lpBalance",
-            "type": "tuple"
           },
           {
             "components": [
@@ -517,23 +432,6 @@
             "internalType": "uint32",
             "name": "productId",
             "type": "uint32"
-          },
-          {
-            "components": [
-              {
-                "internalType": "int128",
-                "name": "amount",
-                "type": "int128"
-              },
-              {
-                "internalType": "int128",
-                "name": "lastCumulativeFundingX18",
-                "type": "int128"
-              }
-            ],
-            "internalType": "struct IPerpEngine.LpBalance",
-            "name": "lpBalance",
-            "type": "tuple"
           },
           {
             "components": [
@@ -612,7 +510,7 @@
               },
               {
                 "internalType": "int128",
-                "name": "largePositionPenaltyX18",
+                "name": "priceX18",
                 "type": "int128"
               }
             ],
@@ -651,38 +549,6 @@
             "components": [
               {
                 "internalType": "int128",
-                "name": "supply",
-                "type": "int128"
-              },
-              {
-                "internalType": "int128",
-                "name": "lastCumulativeFundingX18",
-                "type": "int128"
-              },
-              {
-                "internalType": "int128",
-                "name": "cumulativeFundingPerLpX18",
-                "type": "int128"
-              },
-              {
-                "internalType": "int128",
-                "name": "base",
-                "type": "int128"
-              },
-              {
-                "internalType": "int128",
-                "name": "quote",
-                "type": "int128"
-              }
-            ],
-            "internalType": "struct IPerpEngine.LpState",
-            "name": "lpState",
-            "type": "tuple"
-          },
-          {
-            "components": [
-              {
-                "internalType": "int128",
                 "name": "sizeIncrement",
                 "type": "int128"
               },
@@ -699,11 +565,6 @@
               {
                 "internalType": "int128",
                 "name": "collectedFees",
-                "type": "int128"
-              },
-              {
-                "internalType": "int128",
-                "name": "lpSpreadX18",
                 "type": "int128"
               }
             ],
@@ -766,7 +627,7 @@
               },
               {
                 "internalType": "int128",
-                "name": "largePositionPenaltyX18",
+                "name": "priceX18",
                 "type": "int128"
               }
             ],
@@ -805,38 +666,6 @@
             "components": [
               {
                 "internalType": "int128",
-                "name": "supply",
-                "type": "int128"
-              },
-              {
-                "internalType": "int128",
-                "name": "lastCumulativeFundingX18",
-                "type": "int128"
-              },
-              {
-                "internalType": "int128",
-                "name": "cumulativeFundingPerLpX18",
-                "type": "int128"
-              },
-              {
-                "internalType": "int128",
-                "name": "base",
-                "type": "int128"
-              },
-              {
-                "internalType": "int128",
-                "name": "quote",
-                "type": "int128"
-              }
-            ],
-            "internalType": "struct IPerpEngine.LpState",
-            "name": "lpState",
-            "type": "tuple"
-          },
-          {
-            "components": [
-              {
-                "internalType": "int128",
                 "name": "sizeIncrement",
                 "type": "int128"
               },
@@ -853,11 +682,6 @@
               {
                 "internalType": "int128",
                 "name": "collectedFees",
-                "type": "int128"
-              },
-              {
-                "internalType": "int128",
-                "name": "lpSpreadX18",
                 "type": "int128"
               }
             ],
@@ -904,23 +728,6 @@
                 "type": "int128"
               }
             ],
-            "internalType": "struct ISpotEngine.LpBalance",
-            "name": "lpBalance",
-            "type": "tuple"
-          },
-          {
-            "components": [
-              {
-                "internalType": "int128",
-                "name": "amount",
-                "type": "int128"
-              },
-              {
-                "internalType": "int128",
-                "name": "lastCumulativeMultiplierX18",
-                "type": "int128"
-              }
-            ],
             "internalType": "struct ISpotEngine.Balance",
             "name": "balance",
             "type": "tuple"
@@ -961,23 +768,6 @@
               {
                 "internalType": "int128",
                 "name": "amount",
-                "type": "int128"
-              }
-            ],
-            "internalType": "struct ISpotEngine.LpBalance",
-            "name": "lpBalance",
-            "type": "tuple"
-          },
-          {
-            "components": [
-              {
-                "internalType": "int128",
-                "name": "amount",
-                "type": "int128"
-              },
-              {
-                "internalType": "int128",
-                "name": "lastCumulativeMultiplierX18",
                 "type": "int128"
               }
             ],
@@ -1040,7 +830,7 @@
               },
               {
                 "internalType": "int128",
-                "name": "largePositionPenaltyX18",
+                "name": "priceX18",
                 "type": "int128"
               }
             ],
@@ -1073,6 +863,16 @@
               {
                 "internalType": "int128",
                 "name": "interestLargeCapX18",
+                "type": "int128"
+              },
+              {
+                "internalType": "int128",
+                "name": "withdrawFeeX18",
+                "type": "int128"
+              },
+              {
+                "internalType": "int128",
+                "name": "minDepositRateX18",
                 "type": "int128"
               }
             ],
@@ -1111,52 +911,6 @@
             "components": [
               {
                 "internalType": "int128",
-                "name": "supply",
-                "type": "int128"
-              },
-              {
-                "components": [
-                  {
-                    "internalType": "int128",
-                    "name": "amount",
-                    "type": "int128"
-                  },
-                  {
-                    "internalType": "int128",
-                    "name": "lastCumulativeMultiplierX18",
-                    "type": "int128"
-                  }
-                ],
-                "internalType": "struct ISpotEngine.Balance",
-                "name": "quote",
-                "type": "tuple"
-              },
-              {
-                "components": [
-                  {
-                    "internalType": "int128",
-                    "name": "amount",
-                    "type": "int128"
-                  },
-                  {
-                    "internalType": "int128",
-                    "name": "lastCumulativeMultiplierX18",
-                    "type": "int128"
-                  }
-                ],
-                "internalType": "struct ISpotEngine.Balance",
-                "name": "base",
-                "type": "tuple"
-              }
-            ],
-            "internalType": "struct ISpotEngine.LpState",
-            "name": "lpState",
-            "type": "tuple"
-          },
-          {
-            "components": [
-              {
-                "internalType": "int128",
                 "name": "sizeIncrement",
                 "type": "int128"
               },
@@ -1173,11 +927,6 @@
               {
                 "internalType": "int128",
                 "name": "collectedFees",
-                "type": "int128"
-              },
-              {
-                "internalType": "int128",
-                "name": "lpSpreadX18",
                 "type": "int128"
               }
             ],
@@ -1240,7 +989,7 @@
               },
               {
                 "internalType": "int128",
-                "name": "largePositionPenaltyX18",
+                "name": "priceX18",
                 "type": "int128"
               }
             ],
@@ -1273,6 +1022,16 @@
               {
                 "internalType": "int128",
                 "name": "interestLargeCapX18",
+                "type": "int128"
+              },
+              {
+                "internalType": "int128",
+                "name": "withdrawFeeX18",
+                "type": "int128"
+              },
+              {
+                "internalType": "int128",
+                "name": "minDepositRateX18",
                 "type": "int128"
               }
             ],
@@ -1311,52 +1070,6 @@
             "components": [
               {
                 "internalType": "int128",
-                "name": "supply",
-                "type": "int128"
-              },
-              {
-                "components": [
-                  {
-                    "internalType": "int128",
-                    "name": "amount",
-                    "type": "int128"
-                  },
-                  {
-                    "internalType": "int128",
-                    "name": "lastCumulativeMultiplierX18",
-                    "type": "int128"
-                  }
-                ],
-                "internalType": "struct ISpotEngine.Balance",
-                "name": "quote",
-                "type": "tuple"
-              },
-              {
-                "components": [
-                  {
-                    "internalType": "int128",
-                    "name": "amount",
-                    "type": "int128"
-                  },
-                  {
-                    "internalType": "int128",
-                    "name": "lastCumulativeMultiplierX18",
-                    "type": "int128"
-                  }
-                ],
-                "internalType": "struct ISpotEngine.Balance",
-                "name": "base",
-                "type": "tuple"
-              }
-            ],
-            "internalType": "struct ISpotEngine.LpState",
-            "name": "lpState",
-            "type": "tuple"
-          },
-          {
-            "components": [
-              {
-                "internalType": "int128",
                 "name": "sizeIncrement",
                 "type": "int128"
               },
@@ -1373,11 +1086,6 @@
               {
                 "internalType": "int128",
                 "name": "collectedFees",
-                "type": "int128"
-              },
-              {
-                "internalType": "int128",
-                "name": "lpSpreadX18",
                 "type": "int128"
               }
             ],
@@ -1468,23 +1176,6 @@
                     "type": "int128"
                   }
                 ],
-                "internalType": "struct ISpotEngine.LpBalance",
-                "name": "lpBalance",
-                "type": "tuple"
-              },
-              {
-                "components": [
-                  {
-                    "internalType": "int128",
-                    "name": "amount",
-                    "type": "int128"
-                  },
-                  {
-                    "internalType": "int128",
-                    "name": "lastCumulativeMultiplierX18",
-                    "type": "int128"
-                  }
-                ],
                 "internalType": "struct ISpotEngine.Balance",
                 "name": "balance",
                 "type": "tuple"
@@ -1500,23 +1191,6 @@
                 "internalType": "uint32",
                 "name": "productId",
                 "type": "uint32"
-              },
-              {
-                "components": [
-                  {
-                    "internalType": "int128",
-                    "name": "amount",
-                    "type": "int128"
-                  },
-                  {
-                    "internalType": "int128",
-                    "name": "lastCumulativeFundingX18",
-                    "type": "int128"
-                  }
-                ],
-                "internalType": "struct IPerpEngine.LpBalance",
-                "name": "lpBalance",
-                "type": "tuple"
               },
               {
                 "components": [
@@ -1581,7 +1255,7 @@
                   },
                   {
                     "internalType": "int128",
-                    "name": "largePositionPenaltyX18",
+                    "name": "priceX18",
                     "type": "int128"
                   }
                 ],
@@ -1614,6 +1288,16 @@
                   {
                     "internalType": "int128",
                     "name": "interestLargeCapX18",
+                    "type": "int128"
+                  },
+                  {
+                    "internalType": "int128",
+                    "name": "withdrawFeeX18",
+                    "type": "int128"
+                  },
+                  {
+                    "internalType": "int128",
+                    "name": "minDepositRateX18",
                     "type": "int128"
                   }
                 ],
@@ -1652,52 +1336,6 @@
                 "components": [
                   {
                     "internalType": "int128",
-                    "name": "supply",
-                    "type": "int128"
-                  },
-                  {
-                    "components": [
-                      {
-                        "internalType": "int128",
-                        "name": "amount",
-                        "type": "int128"
-                      },
-                      {
-                        "internalType": "int128",
-                        "name": "lastCumulativeMultiplierX18",
-                        "type": "int128"
-                      }
-                    ],
-                    "internalType": "struct ISpotEngine.Balance",
-                    "name": "quote",
-                    "type": "tuple"
-                  },
-                  {
-                    "components": [
-                      {
-                        "internalType": "int128",
-                        "name": "amount",
-                        "type": "int128"
-                      },
-                      {
-                        "internalType": "int128",
-                        "name": "lastCumulativeMultiplierX18",
-                        "type": "int128"
-                      }
-                    ],
-                    "internalType": "struct ISpotEngine.Balance",
-                    "name": "base",
-                    "type": "tuple"
-                  }
-                ],
-                "internalType": "struct ISpotEngine.LpState",
-                "name": "lpState",
-                "type": "tuple"
-              },
-              {
-                "components": [
-                  {
-                    "internalType": "int128",
                     "name": "sizeIncrement",
                     "type": "int128"
                   },
@@ -1714,11 +1352,6 @@
                   {
                     "internalType": "int128",
                     "name": "collectedFees",
-                    "type": "int128"
-                  },
-                  {
-                    "internalType": "int128",
-                    "name": "lpSpreadX18",
                     "type": "int128"
                   }
                 ],
@@ -1767,7 +1400,7 @@
                   },
                   {
                     "internalType": "int128",
-                    "name": "largePositionPenaltyX18",
+                    "name": "priceX18",
                     "type": "int128"
                   }
                 ],
@@ -1806,38 +1439,6 @@
                 "components": [
                   {
                     "internalType": "int128",
-                    "name": "supply",
-                    "type": "int128"
-                  },
-                  {
-                    "internalType": "int128",
-                    "name": "lastCumulativeFundingX18",
-                    "type": "int128"
-                  },
-                  {
-                    "internalType": "int128",
-                    "name": "cumulativeFundingPerLpX18",
-                    "type": "int128"
-                  },
-                  {
-                    "internalType": "int128",
-                    "name": "base",
-                    "type": "int128"
-                  },
-                  {
-                    "internalType": "int128",
-                    "name": "quote",
-                    "type": "int128"
-                  }
-                ],
-                "internalType": "struct IPerpEngine.LpState",
-                "name": "lpState",
-                "type": "tuple"
-              },
-              {
-                "components": [
-                  {
-                    "internalType": "int128",
                     "name": "sizeIncrement",
                     "type": "int128"
                   },
@@ -1854,11 +1455,6 @@
                   {
                     "internalType": "int128",
                     "name": "collectedFees",
-                    "type": "int128"
-                  },
-                  {
-                    "internalType": "int128",
-                    "name": "lpSpreadX18",
                     "type": "int128"
                   }
                 ],
@@ -1878,19 +1474,6 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getVersion",
-    "outputs": [
-      {
-        "internalType": "uint64",
-        "name": "",
-        "type": "uint64"
-      }
-    ],
-    "stateMutability": "pure",
     "type": "function"
   },
   {

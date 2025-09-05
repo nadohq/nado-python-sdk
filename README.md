@@ -74,6 +74,7 @@ order = OrderParams(
    amount=to_pow_10(1, 17),
    expiration=get_expiration_timestamp(OrderType.POST_ONLY, int(time.time()) + 40),
    nonce=gen_order_nonce(),
+   appendix=0
 )
 res = client.market.place_order({"product_id": product_id, "order": order})
 print("order result:", res.json(indent=2))

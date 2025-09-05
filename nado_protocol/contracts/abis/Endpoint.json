@@ -130,14 +130,8 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint32",
-        "name": "count",
-        "type": "uint32"
-      }
-    ],
-    "name": "executeSlowModeTransactions",
+    "inputs": [],
+    "name": "executeSlowModeTransaction",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -145,17 +139,52 @@
   {
     "inputs": [
       {
-        "internalType": "uint32",
-        "name": "productId",
-        "type": "uint32"
+        "internalType": "bytes32",
+        "name": "subaccount",
+        "type": "bytes32"
       }
     ],
-    "name": "getBook",
+    "name": "getLinkedSigner",
     "outputs": [
       {
         "internalType": "address",
         "name": "",
         "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getNlpPools",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint64",
+            "name": "poolId",
+            "type": "uint64"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "subaccount",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "address",
+            "name": "owner",
+            "type": "address"
+          },
+          {
+            "internalType": "uint128",
+            "name": "balanceWeightX18",
+            "type": "uint128"
+          }
+        ],
+        "internalType": "struct IEndpoint.NlpPool[]",
+        "name": "",
+        "type": "tuple[]"
       }
     ],
     "stateMutability": "view",
@@ -181,6 +210,19 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "getOffchainExchange",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "uint32",
@@ -192,39 +234,8 @@
     "outputs": [
       {
         "internalType": "int128",
-        "name": "priceX18",
+        "name": "_priceX18",
         "type": "int128"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint32",
-        "name": "healthGroup",
-        "type": "uint32"
-      }
-    ],
-    "name": "getPricesX18",
-    "outputs": [
-      {
-        "components": [
-          {
-            "internalType": "int128",
-            "name": "spotPriceX18",
-            "type": "int128"
-          },
-          {
-            "internalType": "int128",
-            "name": "perpPriceX18",
-            "type": "int128"
-          }
-        ],
-        "internalType": "struct IEndpoint.Prices",
-        "name": "",
-        "type": "tuple"
       }
     ],
     "stateMutability": "view",
@@ -238,6 +249,52 @@
         "internalType": "address",
         "name": "",
         "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint64",
+        "name": "idx",
+        "type": "uint64"
+      }
+    ],
+    "name": "getSlowModeTx",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint64",
+            "name": "executableAt",
+            "type": "uint64"
+          },
+          {
+            "internalType": "address",
+            "name": "sender",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes",
+            "name": "tx",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct IEndpoint.SlowModeTx",
+        "name": "",
+        "type": "tuple"
+      },
+      {
+        "internalType": "uint64",
+        "name": "",
+        "type": "uint64"
+      },
+      {
+        "internalType": "uint64",
+        "name": "",
+        "type": "uint64"
       }
     ],
     "stateMutability": "view",
@@ -276,19 +333,6 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "getVersion",
-    "outputs": [
-      {
-        "internalType": "uint64",
-        "name": "",
-        "type": "uint64"
-      }
-    ],
-    "stateMutability": "pure",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "address",
@@ -301,23 +345,23 @@
         "type": "address"
       },
       {
+        "internalType": "address",
+        "name": "_offchainExchange",
+        "type": "address"
+      },
+      {
         "internalType": "contract IClearinghouse",
         "name": "_clearinghouse",
         "type": "address"
       },
       {
-        "internalType": "uint64",
-        "name": "slowModeTimeout",
-        "type": "uint64"
-      },
-      {
-        "internalType": "uint128",
-        "name": "_time",
-        "type": "uint128"
+        "internalType": "address",
+        "name": "_verifier",
+        "type": "address"
       },
       {
         "internalType": "int128[]",
-        "name": "_prices",
+        "name": "initialPrices",
         "type": "int128[]"
       }
     ],
@@ -334,6 +378,40 @@
         "internalType": "uint64",
         "name": "",
         "type": "uint64"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "nlpPools",
+    "outputs": [
+      {
+        "internalType": "uint64",
+        "name": "poolId",
+        "type": "uint64"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "subaccount",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "internalType": "uint128",
+        "name": "balanceWeightX18",
+        "type": "uint128"
       }
     ],
     "stateMutability": "view",
@@ -390,156 +468,10 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "wallet",
-        "type": "address"
-      },
-      {
-        "internalType": "bool",
-        "name": "transferable",
-        "type": "bool"
-      }
-    ],
-    "name": "registerTransferableWallet",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
     "inputs": [],
     "name": "renounceOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "subaccount",
-        "type": "bytes32"
-      }
-    ],
-    "name": "requireSubaccount",
-    "outputs": [],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint32",
-        "name": "",
-        "type": "uint32"
-      }
-    ],
-    "name": "sequencerFee",
-    "outputs": [
-      {
-        "internalType": "int128",
-        "name": "",
-        "type": "int128"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "sequencerFees",
-    "outputs": [
-      {
-        "internalType": "int128",
-        "name": "",
-        "type": "int128"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint32",
-        "name": "productId",
-        "type": "uint32"
-      },
-      {
-        "internalType": "address",
-        "name": "book",
-        "type": "address"
-      }
-    ],
-    "name": "setBook",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_sequencer",
-        "type": "address"
-      }
-    ],
-    "name": "setSequencer",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "slowModeConfig",
-    "outputs": [
-      {
-        "internalType": "uint64",
-        "name": "timeout",
-        "type": "uint64"
-      },
-      {
-        "internalType": "uint64",
-        "name": "txCount",
-        "type": "uint64"
-      },
-      {
-        "internalType": "uint64",
-        "name": "txUpTo",
-        "type": "uint64"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint64",
-        "name": "",
-        "type": "uint64"
-      }
-    ],
-    "name": "slowModeTxs",
-    "outputs": [
-      {
-        "internalType": "uint64",
-        "name": "executableAt",
-        "type": "uint64"
-      },
-      {
-        "internalType": "address",
-        "name": "sender",
-        "type": "address"
-      },
-      {
-        "internalType": "bytes",
-        "name": "tx",
-        "type": "bytes"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -558,19 +490,6 @@
   {
     "inputs": [
       {
-        "internalType": "bytes[]",
-        "name": "transactions",
-        "type": "bytes[]"
-      }
-    ],
-    "name": "submitTransactions",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "uint64",
         "name": "idx",
         "type": "uint64"
@@ -579,6 +498,21 @@
         "internalType": "bytes[]",
         "name": "transactions",
         "type": "bytes[]"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "e",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "s",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint8",
+        "name": "signerBitmask",
+        "type": "uint8"
       }
     ],
     "name": "submitTransactionsChecked",
@@ -605,18 +539,7 @@
       }
     ],
     "name": "submitTransactionsCheckedWithGasLimit",
-    "outputs": [
-      {
-        "internalType": "uint64",
-        "name": "",
-        "type": "uint64"
-      },
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
+    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },

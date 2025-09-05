@@ -10,30 +10,31 @@ from nado_protocol.contracts.eip712.sign import (
 )
 from nado_protocol.contracts.eip712.types import get_nado_eip712_type
 from nado_protocol.contracts.types import NadoTxType
+from nado_protocol.utils.order import gen_order_verifying_contract
 import pytest
 
 
-def test_build_eip712_domain(endpoint_addr: str, book_addrs: list[str], chain_id: int):
+def test_build_eip712_domain(endpoint_addr: str, chain_id: int, order_verifying_contracts: list[str]):
     eip712_domain_endpoint_addr = get_nado_eip712_domain(
         verifying_contract=endpoint_addr, chain_id=chain_id
     )
-    eip712_domain_book_addr = get_nado_eip712_domain(
-        verifying_contract=book_addrs[1], chain_id=chain_id
+    eip712_order_domain_addr = get_nado_eip712_domain(
+        verifying_contract=gen_order_verifying_contract(1), chain_id=chain_id
     )
 
-    assert eip712_domain_endpoint_addr.name == eip712_domain_book_addr.name == "Nado"
+    assert eip712_domain_endpoint_addr.name == eip712_order_domain_addr.name == "Nado"
     assert (
         eip712_domain_endpoint_addr.version
-        == eip712_domain_book_addr.version
+        == eip712_order_domain_addr.version
         == "0.0.1"
     )
     assert (
         eip712_domain_endpoint_addr.chainId
-        == eip712_domain_book_addr.chainId
+        == eip712_order_domain_addr.chainId
         == chain_id
     )
     assert eip712_domain_endpoint_addr.verifyingContract == endpoint_addr
-    assert eip712_domain_book_addr.verifyingContract == book_addrs[1]
+    assert eip712_order_domain_addr.verifyingContract == order_verifying_contracts[1]
 
     assert eip712_domain_endpoint_addr.dict() == {
         "name": "Nado",
@@ -41,11 +42,11 @@ def test_build_eip712_domain(endpoint_addr: str, book_addrs: list[str], chain_id
         "chainId": chain_id,
         "verifyingContract": endpoint_addr,
     }
-    assert eip712_domain_book_addr.dict() == {
+    assert eip712_order_domain_addr.dict() == {
         "name": "Nado",
         "version": "0.0.1",
         "chainId": chain_id,
-        "verifyingContract": book_addrs[1],
+        "verifyingContract": order_verifying_contracts[1],
     }
 
 
@@ -61,6 +62,7 @@ def test_build_eip712_domain(endpoint_addr: str, book_addrs: list[str], chain_id
                 {"name": "amount", "type": "int128"},
                 {"name": "expiration", "type": "uint64"},
                 {"name": "nonce", "type": "uint64"},
+                {"name": "appendix", "type": "int128"}
             ],
         ),
         (
@@ -105,24 +107,20 @@ def test_build_eip712_domain(endpoint_addr: str, book_addrs: list[str], chain_id
             ],
         ),
         (
-            NadoTxType.MINT_LP,
-            "MintLp",
+            NadoTxType.MINT_NLP,
+            "MintNlp",
             [
                 {"name": "sender", "type": "bytes32"},
-                {"name": "productId", "type": "uint32"},
-                {"name": "amountBase", "type": "uint128"},
-                {"name": "quoteAmountLow", "type": "uint128"},
-                {"name": "quoteAmountHigh", "type": "uint128"},
+                {"name": "quoteAmount", "type": "uint128"},
                 {"name": "nonce", "type": "uint64"},
             ],
         ),
         (
-            NadoTxType.BURN_LP,
-            "BurnLp",
+            NadoTxType.BURN_NLP,
+            "BurnNlp",
             [
                 {"name": "sender", "type": "bytes32"},
-                {"name": "productId", "type": "uint32"},
-                {"name": "amount", "type": "uint128"},
+                {"name": "nlpAmount", "type": "uint128"},
                 {"name": "nonce", "type": "uint64"},
             ],
         ),
@@ -184,6 +182,7 @@ def test_build_eip712_domain_type():
                 "amount": -10000000000000000,
                 "expiration": 4611687701117784255,
                 "nonce": 1764428860167815857,
+                "appendix": 0
             },
         ),
         (
@@ -230,24 +229,20 @@ def test_build_eip712_domain_type():
             },
         ),
         (
-            NadoTxType.MINT_LP,
-            "MintLp",
+            NadoTxType.MINT_NLP,
+            "MintNlp",
             {
                 "sender": "0x841fe4876763357975d60da128d8a54bb045d76a64656661756c740000000000",
-                "productId": 1,
-                "amountBase": 1000000000000000000,
-                "quoteAmountLow": 20000000000000000000000,
-                "quoteAmountHigh": 40000000000000000000000,
+                "quoteAmount": 20000000000000000000000,
                 "nonce": 1,
             },
         ),
         (
-            NadoTxType.BURN_LP,
-            "BurnLp",
+            NadoTxType.BURN_NLP,
+            "BurnNlp",
             {
                 "sender": "0x841fe4876763357975d60da128d8a54bb045d76a64656661756c740000000000",
-                "productId": 1,
-                "amount": 1000000000000000000,
+                "nlpAmount": 1000000000000000000,
                 "nonce": 1,
             },
         ),
@@ -312,21 +307,21 @@ def test_build_eip712_typed_data(
 def test_sign_eip712_typed_data(
     chain_id: int,
     endpoint_addr: str,
-    book_addrs: list[str],
+    order_verifying_contracts: list[str],
     private_keys: list[str],
     order_params: dict,
     cancellation_params: dict,
     cancellation_products_params: dict,
     withdraw_collateral_params: dict,
     liquidate_subaccount_params: dict,
-    mint_lp_params: dict,
-    burn_lp_params: dict,
+    mint_nlp_params: dict,
+    burn_nlp_params: dict,
     link_signer_params: dict,
     authenticate_stream_params: dict,
     list_trigger_orders_params: dict,
 ):
     to_sign = [
-        (NadoTxType.PLACE_ORDER, book_addrs[1], order_params),
+        (NadoTxType.PLACE_ORDER, order_verifying_contracts[1], order_params),
         (NadoTxType.CANCEL_ORDERS, endpoint_addr, cancellation_params),
         (
             NadoTxType.CANCEL_PRODUCT_ORDERS,
@@ -343,8 +338,8 @@ def test_sign_eip712_typed_data(
             endpoint_addr,
             liquidate_subaccount_params,
         ),
-        (NadoTxType.MINT_LP, endpoint_addr, mint_lp_params),
-        (NadoTxType.BURN_LP, endpoint_addr, burn_lp_params),
+        (NadoTxType.MINT_NLP, endpoint_addr, mint_nlp_params),
+        (NadoTxType.BURN_NLP, endpoint_addr, burn_nlp_params),
         (NadoTxType.LINK_SIGNER, endpoint_addr, link_signer_params),
         (NadoTxType.AUTHENTICATE_STREAM, endpoint_addr, authenticate_stream_params),
         (NadoTxType.LIST_TRIGGER_ORDERS, endpoint_addr, list_trigger_orders_params),

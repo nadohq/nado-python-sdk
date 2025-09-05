@@ -85,19 +85,35 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint32",
-        "name": "productId",
-        "type": "uint32"
-      }
-    ],
-    "name": "getBook",
+    "inputs": [],
+    "name": "getNlpPools",
     "outputs": [
       {
-        "internalType": "address",
+        "components": [
+          {
+            "internalType": "uint64",
+            "name": "poolId",
+            "type": "uint64"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "subaccount",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "address",
+            "name": "owner",
+            "type": "address"
+          },
+          {
+            "internalType": "uint128",
+            "name": "balanceWeightX18",
+            "type": "uint128"
+          }
+        ],
+        "internalType": "struct IEndpoint.NlpPool[]",
         "name": "",
-        "type": "address"
+        "type": "tuple[]"
       }
     ],
     "stateMutability": "view",
@@ -123,6 +139,19 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "getOffchainExchange",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "uint32",
@@ -142,31 +171,13 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint32",
-        "name": "healthGroup",
-        "type": "uint32"
-      }
-    ],
-    "name": "getPricesX18",
+    "inputs": [],
+    "name": "getSequencer",
     "outputs": [
       {
-        "components": [
-          {
-            "internalType": "int128",
-            "name": "spotPriceX18",
-            "type": "int128"
-          },
-          {
-            "internalType": "int128",
-            "name": "perpPriceX18",
-            "type": "int128"
-          }
-        ],
-        "internalType": "struct IEndpoint.Prices",
+        "internalType": "address",
         "name": "",
-        "type": "tuple"
+        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -186,37 +197,6 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "getVersion",
-    "outputs": [
-      {
-        "internalType": "uint64",
-        "name": "",
-        "type": "uint64"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint32",
-        "name": "productId",
-        "type": "uint32"
-      },
-      {
-        "internalType": "address",
-        "name": "book",
-        "type": "address"
-      }
-    ],
-    "name": "setBook",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "bytes",
@@ -225,24 +205,6 @@
       }
     ],
     "name": "submitSlowModeTransaction",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint64",
-        "name": "idx",
-        "type": "uint64"
-      },
-      {
-        "internalType": "bytes[]",
-        "name": "transactions",
-        "type": "bytes[]"
-      }
-    ],
-    "name": "submitTransactionsChecked",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

@@ -15,33 +15,11 @@ class EngineStatus(StrEnum):
     FAILED = "failed"
 
 
-class MintLp(NadoBaseModel):
-    product_id: int
-    subaccount: str
-    amount_base: str
-    quote_amount_low: str
-    quote_amount_high: str
-
-
-class BurnLp(NadoBaseModel):
-    product_id: int
-    subaccount: str
-    amount_lp: str
-
-
 class ApplyDelta(NadoBaseModel):
     product_id: int
     subaccount: str
     amount_delta: str
     v_quote_delta: str
-
-
-class MintLpTx(NadoBaseModel):
-    mint_lp: MintLp
-
-
-class BurnLpTx(NadoBaseModel):
-    burn_lp: BurnLp
 
 
 class ApplyDeltaTx(NadoBaseModel):

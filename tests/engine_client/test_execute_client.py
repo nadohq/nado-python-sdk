@@ -7,15 +7,11 @@ def test_execute_client_properties(
     url: str,
     chain_id: int,
     endpoint_addr: str,
-    book_addrs: list[str],
     private_keys: list[str],
 ):
     engine_client = EngineClient(opts={"url": url})
     with pytest.raises(AttributeError, match="Endpoint address not set"):
         engine_client.endpoint_addr
-
-    with pytest.raises(AttributeError, match="Book addresses are not set"):
-        engine_client.book_addrs
 
     with pytest.raises(AttributeError, match="Chain ID is not set"):
         engine_client.chain_id
@@ -27,7 +23,6 @@ def test_execute_client_properties(
         engine_client.linked_signer
 
     engine_client.endpoint_addr = endpoint_addr
-    engine_client.book_addrs = book_addrs
     engine_client.chain_id = chain_id
 
     signer = Account.from_key(private_keys[0])
@@ -48,7 +43,6 @@ def test_execute_client_properties(
     engine_client.linked_signer = linked_signer
 
     assert engine_client.endpoint_addr == endpoint_addr
-    assert engine_client.book_addrs == book_addrs
     assert engine_client.chain_id == chain_id
     assert engine_client.signer == signer
     assert engine_client.linked_signer == linked_signer

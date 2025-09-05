@@ -1,13 +1,12 @@
 from nado_protocol.engine_client.types.execute import (
-    BurnLpParams,
+    BurnNlpParams,
     CancelAndPlaceParams,
     CancelOrdersParams,
     CancelProductOrdersParams,
     ExecuteResponse,
-    MintLpParams,
+    MintNlpParams,
     PlaceMarketOrderParams,
     PlaceOrderParams,
-    PlaceIsolatedOrderParams,
 )
 from nado_protocol.client.apis.base import NadoBaseAPI
 from nado_protocol.trigger_client.types.execute import (
@@ -32,12 +31,12 @@ class MarketExecuteAPI(NadoBaseAPI):
         This class should not be instantiated directly, it is designed to be used through a NadoClient instance.
     """
 
-    def mint_lp(self, params: MintLpParams) -> ExecuteResponse:
+    def mint_nlp(self, params: MintNlpParams) -> ExecuteResponse:
         """
-        Mint LP tokens through the engine.
+        Mint NLP tokens through the engine.
 
         Args:
-            params (MintLpParams): Parameters required to mint LP tokens.
+            params (MintNlpParams): Parameters required to mint NLP tokens.
 
         Returns:
             ExecuteResponse: The response from the engine execution.
@@ -45,14 +44,14 @@ class MarketExecuteAPI(NadoBaseAPI):
         Raises:
             Exception: If there is an error during the execution or the response status is not "success".
         """
-        return self.context.engine_client.mint_lp(params)
+        return self.context.engine_client.mint_nlp(params)
 
-    def burn_lp(self, params: BurnLpParams) -> ExecuteResponse:
+    def burn_nlp(self, params: BurnNlpParams) -> ExecuteResponse:
         """
-        Burn LP tokens through the engine.
+        Burn NLP tokens through the engine.
 
         Args:
-            params (BurnLpParams): Parameters required to burn LP tokens.
+            params (BurnNlpParams): Parameters required to burn NLP tokens.
 
         Returns:
             ExecuteResponse: The response from the engine execution.
@@ -60,7 +59,7 @@ class MarketExecuteAPI(NadoBaseAPI):
         Raises:
             Exception: If there is an error during the execution or the response status is not "success".
         """
-        return self.context.engine_client.burn_lp(params)
+        return self.context.engine_client.burn_nlp(params)
 
     def place_order(self, params: PlaceOrderParams) -> ExecuteResponse:
         """
@@ -76,21 +75,6 @@ class MarketExecuteAPI(NadoBaseAPI):
             Exception: If there is an error during the execution or the response status is not "success".
         """
         return self.context.engine_client.place_order(params)
-
-    def place_isolated_order(self, params: PlaceIsolatedOrderParams) -> ExecuteResponse:
-        """
-        Places an isolated order through the engine.
-
-        Args:
-            params (PlaceIsolatedOrderParams): Parameters required to place an isolated order.
-
-        Returns:
-            ExecuteResponse: The response from the engine execution.
-
-        Raises:
-            Exception: If there is an error during the execution or the response status is not "success".
-        """
-        return self.context.engine_client.place_isolated_order(params)
 
     def place_market_order(self, params: PlaceMarketOrderParams) -> ExecuteResponse:
         """

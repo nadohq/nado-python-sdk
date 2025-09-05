@@ -1,7 +1,7 @@
 from sanity import CLIENT_MODE, SIGNER_PRIVATE_KEY
 from nado_protocol.client import NadoClient, create_nado_client
 from nado_protocol.utils.math import to_x18
-from nado_protocol.contracts.types import ClaimVrtxParams
+from nado_protocol.contracts.types import ClaimTokensParams
 
 
 def run():
@@ -12,60 +12,56 @@ def run():
     print("network:", client.context.contracts.network)
     print("signer:", signer.address)
 
-    claim_vrtx_contract_params = client.rewards._get_claim_vrtx_contract_params(
+    claim_token_contract_params = client.rewards._get_claim_token_contract_params(
         ClaimVrtxParams(epoch=10, amount=to_x18(100)), signer
     )
 
-    print("claim vrtx params:", claim_vrtx_contract_params)
+    print("claim params:", claim_token_contract_params)
 
-    vrtx = client.context.contracts.get_token_contract_for_product(41)
-    vrtx_balance = vrtx.functions.balanceOf(signer.address).call()
+    token = client.context.contracts.get_token_contract_for_product(41)
+    token_balance = token.functions.balanceOf(signer.address).call()
 
-    print("vrtx balance (pre-claim):", vrtx_balance)
+    print("balance (pre-claim):", token_balance)
 
-    print("claiming vrtx...")
-    tx = client.rewards.claim_vrtx(ClaimVrtxParams(epoch=10, amount=to_x18(100)))
+    print("claiming...")
+    tx = client.rewards.claim(ClaimTokensParams(epoch=10, amount=to_x18(100)))
     print("tx:", tx)
 
-    vrtx_balance = vrtx.functions.balanceOf(signer.address).call()
-    print("vrtx balance (post-claim):", vrtx_balance)
+    token_balance = token.functions.balanceOf(signer.address).call()
+    print("balance (post-claim):", token_balance)
 
-    claim_and_stake_vrtx_contract_params = (
-        client.rewards._get_claim_vrtx_contract_params(
-            ClaimVrtxParams(epoch=10, amount=to_x18(100)), signer
-        )
+    claim_and_stake_contract_params = client.rewards._get_claim_tokens_contract_params(
+        ClaimTokensParams(epoch=10, amount=to_x18(100)), signer
     )
 
-    print("claim and stake vrtx params:", claim_and_stake_vrtx_contract_params)
+    print("claim and stake params:", claim_and_stake_contract_params)
 
     print("claiming and staking vrtx...")
-    tx = client.rewards.claim_and_stake_vrtx(
-        ClaimVrtxParams(epoch=10, amount=to_x18(100))
-    )
+    tx = client.rewards.claim_and_stake(ClaimTokensParams(epoch=10, amount=to_x18(100)))
     print("tx:", tx)
 
-    vrtx_balance = vrtx.functions.balanceOf(signer.address).call()
-    print("vrtx balance (post-claim-and-stake):", vrtx_balance)
+    token_balance = token.functions.balanceOf(signer.address).call()
+    print("balance (post-claim-and-stake):", token_balance)
 
     print("approving allowance to staking contract...")
     tx = client.context.contracts.approve_allowance(
-        vrtx, to_x18(100), signer, to=client.context.contracts.vrtx_staking.address
+        token, to_x18(100), signer, to=client.context.contracts.staking.address
     )
     print("tx:", tx)
 
-    print("staking vrtx...")
-    tx = client.rewards.stake_vrtx(to_x18(100))
+    print("staking...")
+    tx = client.rewards.stake(to_x18(100))
     print("tx:", tx)
 
-    vrtx_balance = vrtx.functions.balanceOf(signer.address).call()
-    print("vrtx balance (post-stake):", vrtx_balance)
+    token_balance = token.functions.balanceOf(signer.address).call()
+    print("balance (post-stake):", token_balance)
 
-    print("unstaking vrtx...")
-    tx = client.rewards.unstake_vrtx(to_x18(100))
+    print("unstaking...")
+    tx = client.rewards.unstake(to_x18(100))
     print(tx)
 
-    print("withdrawing unstaked vrtx...")
-    tx = client.rewards.withdraw_unstaked_vrtx()
+    print("withdrawing unstaked...")
+    tx = client.rewards.withdraw_unstaked()
     print(tx)
 
     print("claiming usdc rewards...")
@@ -77,8 +73,8 @@ def run():
     print(tx)
 
     print(
-        "claim and stake estimated vrtx...",
-        client.rewards.get_claim_and_stake_estimated_vrtx(signer.address),
+        "claim and stake estimated tokens...",
+        client.rewards.get_claim_and_stake_estimated_tokens(signer.address),
     )
 
     claim_foundation_rewards_contract_params = (

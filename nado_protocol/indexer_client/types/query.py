@@ -49,7 +49,8 @@ class IndexerQueryType(StrEnum):
     REFERRAL_CODE = "referral_code"
     SUBACCOUNTS = "subaccounts"
     USDC_PRICE = "usdc_price"
-    VRTX_MERKLE_PROOFS = "vrtx_merkle_proofs"
+    # TODO: revise once this endpoint is live
+    TOKEN_MERKLE_PROOFS = "token_merkle_proofs"
     FOUNDATION_REWARDS_MERKLE_PROOFS = "foundation_rewards_merkle_proofs"
     INTEREST_AND_FUNDING = "interest_and_funding"
 
@@ -262,9 +263,9 @@ class IndexerUsdcPriceParams(NadoBaseModel):
     pass
 
 
-class IndexerVrtxMerkleProofsParams(NadoBaseModel):
+class IndexerTokenMerkleProofsParams(NadoBaseModel):
     """
-    Parameters for querying VRTX merkle proofs.
+    Parameters for querying token merkle proofs.
     """
 
     address: str
@@ -308,7 +309,7 @@ IndexerParams = Union[
     IndexerSubaccountsParams,
     IndexerUsdcPriceParams,
     IndexerMarketSnapshotsParams,
-    IndexerVrtxMerkleProofsParams,
+    IndexerTokenMerkleProofsParams,
     IndexerFoundationRewardsMerkleProofsParams,
     IndexerInterestAndFundingParams,
 ]
@@ -460,12 +461,12 @@ class IndexerUsdcPriceRequest(NadoBaseModel):
     usdc_price: IndexerUsdcPriceParams
 
 
-class IndexerVrtxMerkleProofsRequest(NadoBaseModel):
+class IndexerTokenMerkleProofsRequest(NadoBaseModel):
     """
-    Request object for querying VRTX merkle proofs.
+    Request object for querying token merkle proofs.
     """
 
-    vrtx_merkle_proofs: IndexerVrtxMerkleProofsParams
+    token_merkle_proofs: IndexerTokenMerkleProofsParams
 
 
 class IndexerFoundationRewardsMerkleProofsRequest(NadoBaseModel):
@@ -502,7 +503,7 @@ IndexerRequest = Union[
     IndexerSubaccountsRequest,
     IndexerUsdcPriceRequest,
     IndexerMarketSnapshotsRequest,
-    IndexerVrtxMerkleProofsRequest,
+    IndexerTokenMerkleProofsRequest,
     IndexerFoundationRewardsMerkleProofsRequest,
     IndexerInterestAndFundingRequest,
 ]
@@ -794,9 +795,9 @@ def to_indexer_request(params: IndexerParams) -> IndexerRequest:
             IndexerUsdcPriceRequest,
             IndexerQueryType.USDC_PRICE.value,
         ),
-        IndexerVrtxMerkleProofsParams: (
-            IndexerVrtxMerkleProofsRequest,
-            IndexerQueryType.VRTX_MERKLE_PROOFS.value,
+        IndexerTokenMerkleProofsParams: (
+            IndexerTokenMerkleProofsRequest,
+            IndexerQueryType.TOKEN_MERKLE_PROOFS.value,
         ),
         IndexerFoundationRewardsMerkleProofsParams: (
             IndexerFoundationRewardsMerkleProofsRequest,

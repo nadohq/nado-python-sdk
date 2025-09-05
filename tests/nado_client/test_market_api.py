@@ -3,46 +3,37 @@ from unittest.mock import MagicMock
 from nado_protocol.client import NadoClient
 from nado_protocol.contracts.types import NadoExecuteType
 from nado_protocol.engine_client.types.execute import (
-    BurnLpParams,
+    BurnNlpParams,
     CancelOrdersParams,
     CancelProductOrdersParams,
-    MintLpParams,
+    MintNlpParams,
     OrderParams,
     PlaceOrderParams,
 )
 from nado_protocol.utils.bytes32 import subaccount_to_bytes32
 
 
-def test_mint_lp(
+def test_mint_nlp(
     nado_client: NadoClient,
     senders: list[str],
     mock_tx_nonce: MagicMock,
     mock_execute_response: MagicMock,
 ):
-    params = MintLpParams(
-        sender=senders[0],
-        productId=1,
-        amountBase=10,
-        quoteAmountLow=10,
-        quoteAmountHigh=10,
-    )
-    res = nado_client.market.mint_lp(params)
+    params = MintNlpParams(sender=senders[0], quoteAmount=10)
+    res = nado_client.market.mint_nlp(params)
     params.sender = subaccount_to_bytes32(senders[0])
     params.nonce = 1
     signature = nado_client.context.engine_client.sign(
-        NadoExecuteType.MINT_LP,
+        NadoExecuteType.MINT_NLP,
         params.dict(),
         nado_client.context.engine_client.endpoint_addr,
         nado_client.context.engine_client.chain_id,
         nado_client.context.engine_client.signer,
     )
     assert res.req == {
-        "mint_lp": {
+        "mint_nlp": {
             "tx": {
-                "productId": 1,
-                "amountBase": "10",
-                "quoteAmountLow": "10",
-                "quoteAmountHigh": "10",
+                "quoteAmount": "10",
                 "sender": senders[0].lower(),
                 "nonce": "1",
             },
@@ -51,28 +42,27 @@ def test_mint_lp(
     }
 
 
-def test_burn_lp(
+def test_burn_nlp(
     nado_client: NadoClient,
     senders: list[str],
     mock_execute_response: MagicMock,
     mock_tx_nonce: MagicMock,
 ):
-    params = BurnLpParams(sender=senders[0], productId=1, amount=10)
-    res = nado_client.market.burn_lp(params)
+    params = BurnNlpParams(sender=senders[0], productId=1, nlpAmount=10)
+    res = nado_client.market.burn_nlp(params)
     params.sender = subaccount_to_bytes32(senders[0])
     params.nonce = 1
     signature = nado_client.context.engine_client.sign(
-        NadoExecuteType.BURN_LP,
+        NadoExecuteType.BURN_NLP,
         params.dict(),
         nado_client.context.engine_client.endpoint_addr,
         nado_client.context.engine_client.chain_id,
         nado_client.context.engine_client.signer,
     )
     assert res.req == {
-        "burn_lp": {
+        "burn_nlp": {
             "tx": {
-                "productId": 1,
-                "amount": "10",
+                "nlpAmount": "10",
                 "sender": senders[0].lower(),
                 "nonce": "1",
             },
@@ -88,7 +78,7 @@ def test_place_order(
     mock_tx_nonce: MagicMock,
 ):
     order = OrderParams(
-        sender=senders[0], priceX18=1000, amount=1, expiration=1, nonce=1
+        sender=senders[0], priceX18=1000, amount=1, expiration=1, nonce=1, appendix=0
     )
     params = PlaceOrderParams(product_id=1, order=order)
     res = nado_client.market.place_order(params)
@@ -96,7 +86,7 @@ def test_place_order(
     signature = nado_client.context.engine_client.sign(
         NadoExecuteType.PLACE_ORDER,
         order.dict(),
-        nado_client.context.engine_client.book_addr(1),
+        nado_client.context.engine_client.order_verifying_contract(1),
         nado_client.context.engine_client.chain_id,
         nado_client.context.engine_client.signer,
     )
@@ -109,6 +99,7 @@ def test_place_order(
                 "priceX18": str(1000),
                 "amount": str(1),
                 "expiration": str(1),
+                "appendix": str(0),
                 "nonce": str(1),
             },
             "signature": signature,

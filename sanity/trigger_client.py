@@ -37,7 +37,6 @@ def run():
     contracts_data = engine_client.get_contracts()
     client.endpoint_addr = contracts_data.endpoint_addr
     client.chain_id = contracts_data.chain_id
-    client.book_addrs = contracts_data.book_addrs
 
     print("placing trigger order...")
     order_price = 100_000

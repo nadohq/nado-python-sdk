@@ -7,11 +7,11 @@ from eth_account.signers.local import LocalAccount
 from sanity import ENGINE_BACKEND_URL, LINKED_SIGNER_PRIVATE_KEY, SIGNER_PRIVATE_KEY
 from nado_protocol.engine_client import EngineClient, EngineClientOpts
 from nado_protocol.engine_client.types.execute import (
-    BurnLpParams,
+    BurnNlpParams,
     CancelOrdersParams,
     LinkSignerParams,
     LiquidateSubaccountParams,
-    MintLpParams,
+    MintNlpParams,
     PlaceOrderParams,
     OrderParams,
     WithdrawCollateralParams,
@@ -48,7 +48,6 @@ def run():
 
     client.endpoint_addr = contracts_data.endpoint_addr
     client.chain_id = contracts_data.chain_id
-    client.book_addrs = contracts_data.book_addrs
 
     print("querying product symbols...")
     product_symbols = client.get_product_symbols()
@@ -198,26 +197,22 @@ def run():
     linked_signer = client.get_linked_signer(subaccount=sender)
     print("linked signer:", linked_signer.json(indent=2))
 
-    print("minting lp...")
-    mint_lp_params = MintLpParams(
+    print("minting nlp...")
+    mint_nlp_params = MintNlpParams(
         sender=SubaccountParams(
             subaccount_owner=client.signer.address, subaccount_name="default"
         ),
-        productId=3,
-        amountBase=to_x18(1),
-        quoteAmountLow=to_x18(2000),
-        quoteAmountHigh=to_x18(4000),
+        quoteAmount=to_x18(2000),
     )
-    res = client.mint_lp(mint_lp_params)
-    print("mint lp results:", res.json(indent=2))
+    res = client.mint_nlp(mint_nlp_params)
+    print("mint nlp results:", res.json(indent=2))
 
-    print("burning lp...")
-    burn_lp_params = BurnLpParams(
+    print("burning nlp...")
+    burn_nlp_params = BurnNlpParams(
         sender=SubaccountParams(
             subaccount_owner=client.signer.address, subaccount_name="default"
         ),
-        productId=3,
-        amount=to_x18(1),
+        nlpAmount=to_x18(1),
         nonce=client.tx_nonce(
             subaccount_to_hex(
                 SubaccountParams(
@@ -226,7 +221,7 @@ def run():
             )
         ),
     )
-    res = client.burn_lp(burn_lp_params)
+    res = client.burn_nlp(burn_nlp_params)
     print("burn lp result:", res.json(indent=2))
 
     print("liquidating subaccount...")

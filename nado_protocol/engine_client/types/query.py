@@ -5,12 +5,10 @@ from nado_protocol.utils.model import NadoBaseModel
 from nado_protocol.engine_client.types.models import (
     ApplyDeltaTx,
     Asset,
-    BurnLpTx,
     EngineStatus,
     IsolatedPosition,
     MarketPair,
     MaxOrderSizeDirection,
-    MintLpTx,
     ProductSymbol,
     ResponseStatus,
     SpotApr,
@@ -93,7 +91,7 @@ class QueryIsolatedPositionsParams(NadoBaseModel):
     subaccount: str
 
 
-QuerySubaccountInfoTx = Union[MintLpTx, BurnLpTx, ApplyDeltaTx]
+QuerySubaccountInfoTx = Union[ApplyDeltaTx]
 
 
 class QuerySubaccountInfoParams(NadoBaseModel):
@@ -264,7 +262,6 @@ class ContractsData(NadoBaseModel):
 
     chain_id: str
     endpoint_addr: str
-    book_addrs: list[str]
 
 
 class NoncesData(NadoBaseModel):

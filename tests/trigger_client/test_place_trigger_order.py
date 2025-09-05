@@ -26,6 +26,7 @@ from nado_protocol.utils.bytes32 import (
 )
 from nado_protocol.utils.exceptions import ExecuteFailedException
 from nado_protocol.utils.nonce import gen_order_nonce
+from nado_protocol.utils.order import gen_order_verifying_contract
 from nado_protocol.utils.subaccount import SubaccountParams
 
 
@@ -42,6 +43,7 @@ def test_place_trigger_order_params(
                 "priceX18": order_params["priceX18"],
                 "amount": order_params["amount"],
                 "expiration": order_params["expiration"],
+                "appendix": order_params["appendix"],
             },
             "trigger": {"price_below": "9900000000000000000000"},
         }
@@ -53,6 +55,7 @@ def test_place_trigger_order_params(
             priceX18=order_params["priceX18"],
             amount=order_params["amount"],
             expiration=order_params["expiration"],
+            appendix=order_params["appendix"],
         ),
         trigger=PriceBelowTrigger(price_below="9900000000000000000000"),
     )
@@ -63,6 +66,7 @@ def test_place_trigger_order_params(
             priceX18=order_params["priceX18"],
             amount=order_params["amount"],
             expiration=order_params["expiration"],
+            appendix=order_params["appendix"],
         ),
         trigger=PriceBelowTrigger(price_below="9900000000000000000000"),
     )
@@ -75,6 +79,7 @@ def test_place_trigger_order_params(
             priceX18=order_params["priceX18"],
             amount=order_params["amount"],
             expiration=order_params["expiration"],
+            appendix=order_params["appendix"],
         ),
         trigger=PriceBelowTrigger(price_below="9900000000000000000000"),
     )
@@ -91,6 +96,7 @@ def test_place_trigger_order_params(
     assert params_from_dict.order.amount == order_params["amount"]
     assert params_from_dict.order.priceX18 == order_params["priceX18"]
     assert params_from_dict.order.expiration == order_params["expiration"]
+    assert params_from_dict.order.appendix == order_params["appendix"]
     assert params_from_dict.trigger.price_below == "9900000000000000000000"
     assert params_from_dict.signature is None
 
@@ -108,6 +114,7 @@ def test_place_trigger_order_params(
                 "priceX18": str(order_params["priceX18"]),
                 "amount": str(order_params["amount"]),
                 "expiration": str(order_params["expiration"]),
+                "appendix": str(order_params["appendix"]),
                 "nonce": str(params_from_dict.order.nonce),
             },
             "signature": params_from_dict.signature,
@@ -127,6 +134,7 @@ def test_place_trigger_order_params(
                 "priceX18": str(order_params["priceX18"]),
                 "amount": str(order_params["amount"]),
                 "expiration": str(order_params["expiration"]),
+                "appendix": str(order_params["appendix"]),
                 "nonce": str(params_from_dict.order.nonce),
             },
             "signature": params_from_dict.signature,
@@ -139,7 +147,6 @@ def test_place_order_execute_fails_incomplete_client(
     mock_post: MagicMock,
     url: str,
     chain_id: int,
-    book_addrs: list[str],
     private_keys: list[str],
     senders: list[str],
     order_params: dict,
@@ -150,11 +157,6 @@ def test_place_order_execute_fails_incomplete_client(
         "order": order_params,
         "trigger": {"price_below": "9900000000000000000000"},
     }
-
-    with pytest.raises(AttributeError, match="Book addresses are not set"):
-        trigger_client.place_trigger_order(place_trigger_order_params)
-
-    trigger_client.book_addrs = book_addrs
 
     with pytest.raises(AttributeError, match="Chain ID is not set."):
         trigger_client.place_trigger_order(place_trigger_order_params)
@@ -194,6 +196,7 @@ def test_place_order_execute_success(
             amount=1000,
             expiration=1000,
             nonce=1000,
+            appendix=0,
         ),
         trigger=PriceAboveTrigger(price_above=100),
     )
@@ -203,7 +206,7 @@ def test_place_order_execute_success(
 
     with pytest.raises(
         ValueError,
-        match="Missing `product_id` to sign place_order or place_isolated_order execute",
+        match="Missing `product_id` to sign place_order execute",
     ):
         trigger_client._sign(NadoExecuteType.PLACE_ORDER, order.dict())
 
@@ -216,7 +219,7 @@ def test_place_order_execute_success(
         typed_data=build_eip712_typed_data(
             NadoExecuteType.PLACE_ORDER,
             order.dict(),
-            trigger_client._opts.book_addrs[1],
+            gen_order_verifying_contract(product_id),
             trigger_client.chain_id,
         ),
         signer=trigger_client._opts.linked_signer,
@@ -267,7 +270,7 @@ def test_place_order_execute_success(
         typed_data=build_eip712_typed_data(
             NadoExecuteType.PLACE_ORDER,
             order.dict(),
-            trigger_client._opts.book_addrs[1],
+            gen_order_verifying_contract(product_id),
             trigger_client.chain_id,
         ),
         signer=trigger_client._opts.signer,
@@ -291,8 +294,7 @@ def test_place_order_execute_provide_full_params(
     mock_post: MagicMock,
     url: str,
     chain_id: int,
-    private_keys: list[str],
-    book_addrs: str,
+    private_keys: list[str]
 ):
     mock_response = MagicMock()
     mock_response.status_code = 200
@@ -311,10 +313,11 @@ def test_place_order_execute_provide_full_params(
         "amount": 10000,
         "sender": sender,
         "nonce": gen_order_nonce(),
+        "appendix": 0,
         "expiration": 10000,
     }
     signature = trigger_client.sign(
-        NadoExecuteType.PLACE_ORDER, order_params, book_addrs[1], chain_id, signer
+        NadoExecuteType.PLACE_ORDER, order_params, gen_order_verifying_contract(product_id), chain_id, signer
     )
     order_params["sender"] = bytes32_to_hex(order_params["sender"])
     res = trigger_client.place_trigger_order(
@@ -333,4 +336,5 @@ def test_place_order_execute_provide_full_params(
     assert req.place_order.order.sender == order_params["sender"]
     assert req.place_order.order.nonce == str(order_params["nonce"])
     assert req.place_order.order.expiration == str(order_params["expiration"])
+    assert req.place_order.order.appendix == str(order_params["appendix"])
     assert req.place_order.trigger.price_above == "100"
