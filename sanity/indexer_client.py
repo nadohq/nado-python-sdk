@@ -36,9 +36,9 @@ def run():
     perp_contracts = client.get_perp_contracts_info()
     pprint(perp_contracts)
 
-    print("querying ETH-PERP historical trades...")
-    eth_perp_trades = client.get_historical_trades("ETH-PERP_USDC", 2)
-    pprint(eth_perp_trades)
+    print("querying BTC-PERP historical trades...")
+    btc_perp_trades = client.get_historical_trades("BTC-PERP_USDC", 2)
+    pprint(btc_perp_trades)
 
     owner = Account.from_key(SIGNER_PRIVATE_KEY).address
     subaccount = subaccount_to_hex(
@@ -104,12 +104,12 @@ def run():
     print("btc-perp funding rate:", btc_perp_funding_rate.json(indent=2))
 
     print("querying multi perps funding rates...")
-    multi_perps_funding_rates = client.get_perp_funding_rates([2, 4])
+    multi_perps_funding_rates = client.get_perp_funding_rates([2])
     print("multi perps funding rates:", multi_perps_funding_rates)
 
     print("querying perp prices...")
-    eth_perp_prices = client.get_perp_prices(4)
-    print("eth-perp prices:", eth_perp_prices.json(indent=2))
+    btc_perp_prices = client.get_perp_prices(2)
+    print("btc-perp prices:", btc_perp_prices.json(indent=2))
 
     print("querying oracle prices...")
     oracle_prices = client.get_oracle_prices(product_ids=[1, 2])
