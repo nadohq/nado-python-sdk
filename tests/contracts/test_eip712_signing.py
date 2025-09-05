@@ -65,7 +65,7 @@ def test_build_eip712_domain(
                 {"name": "amount", "type": "int128"},
                 {"name": "expiration", "type": "uint64"},
                 {"name": "nonce", "type": "uint64"},
-                {"name": "appendix", "type": "int128"},
+                {"name": "appendix", "type": "uint128"},
             ],
         ),
         (

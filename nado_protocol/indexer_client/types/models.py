@@ -299,6 +299,10 @@ class IndexerLiquidatableAccount(NadoBaseModel):
 class IndexerSubaccount(NadoBaseModel):
     id: str
     subaccount: str
+    address: str
+    subaccount_name: str
+    created_at: str
+    isolated: bool
 
 
 class IndexerMerkleProof(NadoBaseModel):

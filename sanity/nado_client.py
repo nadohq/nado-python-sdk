@@ -31,57 +31,57 @@ def run():
     print("setting up nado client...")
     client: NadoClient = create_nado_client(CLIENT_MODE, SIGNER_PRIVATE_KEY)
 
-    print("chain_id:", client.context.engine_client.get_contracts().chain_id)
-
-    print("minting test tokens...")
-    mint_tx_hash = client.spot._mint_mock_erc20(0, to_pow_10(100000, 6))
-    print("mint tx hash:", mint_tx_hash)
-
-    time.sleep(5)
-
-    print("approving allowance...")
-    approve_allowance_tx_hash = client.spot.approve_allowance(0, to_pow_10(100000, 6))
-    print("approve allowance tx hash:", approve_allowance_tx_hash)
-
-    time.sleep(5)
-
-    print("querying my allowance...")
-    token_allowance = client.spot.get_token_allowance(0, client.context.signer.address)
-    print("token allowance:", token_allowance)
-
-    print("depositing collateral...")
-    deposit_tx_hash = client.spot.deposit(
-        DepositCollateralParams(
-            subaccount_name="default", product_id=0, amount=to_pow_10(100000, 6)
-        )
-    )
-    print("deposit collateral tx hash:", deposit_tx_hash)
-
-    time.sleep(5)
-
-    print("querying my token balance...")
-    token_balance = client.spot.get_token_wallet_balance(
-        0, client.context.signer.address
-    )
-
-    print("my token balance:", token_balance)
-
     subaccount = subaccount_to_hex(client.context.signer.address, "default")
     print("subaccount:", subaccount)
 
-    usdc_balance: SpotProductBalance = client.subaccount.get_engine_subaccount_summary(
-        subaccount
-    ).parse_subaccount_balance(0)
-    while int(usdc_balance.balance.amount) == 0:
-        print("waiting for deposit...")
-        usdc_balance: SpotProductBalance = (
-            client.subaccount.get_engine_subaccount_summary(
-                subaccount
-            ).parse_subaccount_balance(0)
-        )
-        time.sleep(1)
+    # print("chain_id:", client.context.engine_client.get_contracts().chain_id)
 
-    order_price = 95_000
+    # print("minting test tokens...")
+    # mint_tx_hash = client.spot._mint_mock_erc20(0, to_pow_10(100000, 6))
+    # print("mint tx hash:", mint_tx_hash)
+
+    # time.sleep(5)
+
+    # print("approving allowance...")
+    # approve_allowance_tx_hash = client.spot.approve_allowance(0, to_pow_10(100000, 6))
+    # print("approve allowance tx hash:", approve_allowance_tx_hash)
+
+    # time.sleep(5)
+
+    # print("querying my allowance...")
+    # token_allowance = client.spot.get_token_allowance(0, client.context.signer.address)
+    # print("token allowance:", token_allowance)
+
+    # print("depositing collateral...")
+    # deposit_tx_hash = client.spot.deposit(
+    #     DepositCollateralParams(
+    #         subaccount_name="default", product_id=0, amount=to_pow_10(100000, 6)
+    #     )
+    # )
+    # print("deposit collateral tx hash:", deposit_tx_hash)
+
+    # time.sleep(5)
+
+    # print("querying my token balance...")
+    # token_balance = client.spot.get_token_wallet_balance(
+    #     0, client.context.signer.address
+    # )
+
+    # print("my token balance:", token_balance)
+
+    # usdc_balance: SpotProductBalance = client.subaccount.get_engine_subaccount_summary(
+    #     subaccount
+    # ).parse_subaccount_balance(0)
+    # while int(usdc_balance.balance.amount) == 0:
+    #     print("waiting for deposit...")
+    #     usdc_balance: SpotProductBalance = (
+    #         client.subaccount.get_engine_subaccount_summary(
+    #             subaccount
+    #         ).parse_subaccount_balance(0)
+    #     )
+    #     time.sleep(1)
+
+    order_price = 90_000
 
     owner = client.context.engine_client.signer.address
     print("placing order...")
@@ -170,7 +170,7 @@ def run():
             subaccount_owner=owner,
             subaccount_name="default",
         ),
-        priceX18=to_x18(order_price + 10_000),
+        priceX18=to_x18(order_price + 40_000),
         amount=-to_pow_10(1, 17),
         expiration=get_expiration_timestamp(40),
         appendix=build_appendix(OrderType.POST_ONLY),
@@ -265,7 +265,7 @@ def run():
         appendix=build_appendix(OrderType.IOC),
         nonce=gen_order_nonce(),
     )
-    res = client.market.place_order({"product_id": 4, "order": order})
+    res = client.market.place_order({"product_id": btc_perp.product_id, "order": order})
     print("order result:", res.json(indent=2))
 
     btc_perp_balance = [
@@ -373,8 +373,9 @@ def run():
         ),
         quoteAmount=to_x18(2000),
     )
-    res = client.market.mint_nlp(mint_nlp_params)
-    print("mint nlp results:", res.json(indent=2))
+    # TODO: enable once NLP goes live for all
+    # res = client.market.mint_nlp(mint_nlp_params)
+    # print("mint nlp results:", res.json(indent=2))
 
     print("burning nlp...")
     burn_nlp_params = BurnNlpParams(
@@ -392,8 +393,9 @@ def run():
             )
         ),
     )
-    res = client.market.burn_nlp(burn_nlp_params)
-    print("burn nlp result:", res.json(indent=2))
+    # TODO: enable once nlp goes live for all
+    # res = client.market.burn_nlp(burn_nlp_params)
+    # print("burn nlp result:", res.json(indent=2))
 
     print("querying subaccount fee rates...")
     fee_rates = client.subaccount.get_subaccount_fee_rates(sender)
