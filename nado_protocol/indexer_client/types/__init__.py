@@ -115,7 +115,6 @@ __all__ = [
     "IndexerTickerInfo",
     "IndexerPerpContractInfo",
     "IndexerTradeInfo",
-    "VrtxTokenQueryType",
     "IndexerTickersData",
     "IndexerPerpContractsData",
     "IndexerHistoricalTradesData",

@@ -22,7 +22,6 @@ from nado_protocol.utils.order import (
     order_is_trigger_order,
     order_isolated_margin,
     order_reduce_only,
-    order_reserved_bits,
     order_trigger_type,
     order_twap_data,
     order_version,
@@ -313,6 +312,21 @@ def test_custom_version():
 def test_reserved_bits_extraction():
     """Test reserved bits extraction."""
     appendix = build_appendix(OrderType.DEFAULT)
+
+    def order_reserved_bits(appendix: int) -> int:
+        """
+        Extracts the reserved bits from the appendix value.
+
+        Args:
+            appendix (int): The order appendix value.
+
+        Returns:
+            int: The reserved bits (bits 31..14).
+        """
+        return (
+            appendix >> AppendixBitFields.RESERVED_SHIFT
+        ) & AppendixBitFields.RESERVED_MASK
+
     reserved = order_reserved_bits(appendix)
     assert reserved == 0
 

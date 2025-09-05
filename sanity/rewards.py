@@ -34,7 +34,7 @@ def run():
 
     print("claim and stake params:", claim_and_stake_contract_params)
 
-    print("claiming and staking vrtx...")
+    print("claiming and staking tokens...")
     tx = client.rewards.claim_and_stake(ClaimTokensParams(epoch=10, amount=to_x18(100)))
     print("tx:", tx)
 

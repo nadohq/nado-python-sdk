@@ -285,21 +285,6 @@ def order_isolated_margin(appendix: int) -> Optional[int]:
     return None
 
 
-def order_reserved_bits(appendix: int) -> int:
-    """
-    Extracts the reserved bits from the appendix value.
-
-    Args:
-        appendix (int): The order appendix value.
-
-    Returns:
-        int: The reserved bits (bits 31..14).
-    """
-    return (
-        appendix >> AppendixBitFields.RESERVED_SHIFT
-    ) & AppendixBitFields.RESERVED_MASK
-
-
 def order_version(appendix: int) -> int:
     """
     Extracts the version from the appendix value.

@@ -47,7 +47,6 @@ __all__ = [
     "order_is_trigger_order",
     "order_is_isolated",
     "order_isolated_margin",
-    "order_reserved_bits",
     "order_version",
     "order_trigger_type",
     "order_twap_data",
