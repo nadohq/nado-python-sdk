@@ -31,34 +31,40 @@ def run():
     print("setting up nado client...")
     client: NadoClient = create_nado_client(CLIENT_MODE, SIGNER_PRIVATE_KEY)
 
-    print("chain_id:", client.context.engine_client.get_contracts().chain_id)
+    # print("chain_id:", client.context.engine_client.get_contracts().chain_id)
 
-    print("minting test tokens...")
-    mint_tx_hash = client.spot._mint_mock_erc20(0, to_pow_10(100000, 6))
-    print("mint tx hash:", mint_tx_hash)
+    # print("minting test tokens...")
+    # mint_tx_hash = client.spot._mint_mock_erc20(0, to_pow_10(100000, 6))
+    # print("mint tx hash:", mint_tx_hash)
 
-    print("approving allowance...")
-    approve_allowance_tx_hash = client.spot.approve_allowance(0, to_pow_10(100000, 6))
-    print("approve allowance tx hash:", approve_allowance_tx_hash)
+    # time.sleep(5)
 
-    print("querying my allowance...")
-    token_allowance = client.spot.get_token_allowance(0, client.context.signer.address)
-    print("token allowance:", token_allowance)
+    # print("approving allowance...")
+    # approve_allowance_tx_hash = client.spot.approve_allowance(0, to_pow_10(100000, 6))
+    # print("approve allowance tx hash:", approve_allowance_tx_hash)
 
-    print("depositing collateral...")
-    deposit_tx_hash = client.spot.deposit(
-        DepositCollateralParams(
-            subaccount_name="default", product_id=0, amount=to_pow_10(100000, 6)
-        )
-    )
-    print("deposit collateral tx hash:", deposit_tx_hash)
+    # time.sleep(5)
 
-    print("querying my token balance...")
-    token_balance = client.spot.get_token_wallet_balance(
-        0, client.context.signer.address
-    )
+    # print("querying my allowance...")
+    # token_allowance = client.spot.get_token_allowance(0, client.context.signer.address)
+    # print("token allowance:", token_allowance)
 
-    print("my token balance:", token_balance)
+    # print("depositing collateral...")
+    # deposit_tx_hash = client.spot.deposit(
+    #     DepositCollateralParams(
+    #         subaccount_name="default", product_id=0, amount=to_pow_10(100000, 6)
+    #     )
+    # )
+    # print("deposit collateral tx hash:", deposit_tx_hash)
+
+    # time.sleep(5)
+
+    # print("querying my token balance...")
+    # token_balance = client.spot.get_token_wallet_balance(
+    #     0, client.context.signer.address
+    # )
+
+    # print("my token balance:", token_balance)
 
     subaccount = subaccount_to_hex(client.context.signer.address, "default")
 
@@ -319,10 +325,10 @@ def run():
     )
     print("max order size:", max_order_size.json(indent=2))
 
-    print("querying max lp mintable...")
+    print("querying max nlp mintable...")
     try:
-        max_lp_mintable = client.market.get_max_lp_mintable(1, sender)
-        print("max lp mintable:", max_lp_mintable.json(indent=2))
+        max_nlp_mintable = client.market.get_max_nlp_mintable(1, sender)
+        print("max nlp mintable:", max_nlp_mintable.json(indent=2))
     except Exception as e:
         print("querying lp mintable failed with error:", e)
 
@@ -431,6 +437,6 @@ def run():
 
     print("getting interest and funding payments...")
     payments = client.subaccount.get_interest_and_funding_payments(
-        subaccount, [1, 2, 3, 4, 5, 6], 10
+        subaccount, [1, 2], 10
     )
     print("interest and funding payments:", payments.json(indent=2))

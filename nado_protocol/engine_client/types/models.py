@@ -32,24 +32,13 @@ class SubaccountHealth(NadoBaseModel):
     health: str
 
 
-class SpotLpBalance(NadoBaseModel):
-    amount: str
-
-
 class SpotBalance(NadoBaseModel):
     amount: str
-    last_cumulative_multiplier_x18: str
 
 
 class SpotProductBalance(NadoBaseModel):
     product_id: int
-    lp_balance: SpotLpBalance
     balance: SpotBalance
-
-
-class PerpLpBalance(NadoBaseModel):
-    amount: str
-    last_cumulative_funding_x18: str
 
 
 class PerpBalance(NadoBaseModel):
@@ -60,7 +49,6 @@ class PerpBalance(NadoBaseModel):
 
 class PerpProductBalance(NadoBaseModel):
     product_id: int
-    lp_balance: PerpLpBalance
     balance: PerpBalance
 
 
@@ -69,7 +57,7 @@ class ProductRisk(NadoBaseModel):
     short_weight_initial_x18: str
     long_weight_maintenance_x18: str
     short_weight_maintenance_x18: str
-    large_position_penalty_x18: str
+    price_x18: str
 
 
 class ProductBookInfo(NadoBaseModel):
@@ -77,7 +65,6 @@ class ProductBookInfo(NadoBaseModel):
     price_increment_x18: str
     min_size: str
     collected_fees: str
-    lp_spread_x18: str
 
 
 class BaseProduct(NadoBaseModel):
@@ -87,16 +74,14 @@ class BaseProduct(NadoBaseModel):
     book_info: ProductBookInfo
 
 
-class BaseProductLpState(NadoBaseModel):
-    supply: str
-
-
 class SpotProductConfig(NadoBaseModel):
     token: str
     interest_inflection_util_x18: str
     interest_floor_x18: str
     interest_small_cap_x18: str
     interest_large_cap_x18: str
+    withdraw_fee_x18: str
+    min_deposit_rate_x18: str
 
 
 class SpotProductState(NadoBaseModel):
@@ -106,20 +91,9 @@ class SpotProductState(NadoBaseModel):
     total_borrows_normalized: str
 
 
-class SpotProductLpAmount(NadoBaseModel):
-    amount: str
-    last_cumulative_multiplier_x18: str
-
-
-class SpotProductLpState(BaseProductLpState):
-    quote: SpotProductLpAmount
-    base: SpotProductLpAmount
-
-
 class SpotProduct(BaseProduct):
     config: SpotProductConfig
     state: SpotProductState
-    lp_state: SpotProductLpState
 
 
 class PerpProductState(NadoBaseModel):
@@ -129,16 +103,8 @@ class PerpProductState(NadoBaseModel):
     open_interest: str
 
 
-class PerpProductLpState(BaseProductLpState):
-    last_cumulative_funding_x18: str
-    cumulative_funding_per_lp_x18: str
-    base: str
-    quote: str
-
-
 class PerpProduct(BaseProduct):
     state: PerpProductState
-    lp_state: PerpProductLpState
 
 
 class MaxOrderSizeDirection(StrEnum):

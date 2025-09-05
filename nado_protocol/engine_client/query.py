@@ -356,7 +356,7 @@ class EngineQueryClient:
             MaxWithdrawableData,
         )
 
-    def get_max_lp_mintable(
+    def get_max_nlp_mintable(
         self, product_id: int, sender: str, spot_leverage: Optional[bool] = None
     ) -> MaxLpMintableData:
         """

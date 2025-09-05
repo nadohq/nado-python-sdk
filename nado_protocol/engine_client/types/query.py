@@ -40,7 +40,7 @@ class EngineQueryType(StrEnum):
     MARKET_PRICE = "market_price"
     MAX_ORDER_SIZE = "max_order_size"
     MAX_WITHDRAWABLE = "max_withdrawable"
-    MAX_LP_MINTABLE = "max_lp_mintable"
+    MAX_NLP_MINTABLE = "max_nlp_mintable"
     SUBACCOUNT_INFO = "subaccount_info"
     SUBACCOUNT_ORDERS = "subaccount_orders"
     ORDERS = "orders"
@@ -200,7 +200,7 @@ class QueryMaxLpMintableParams(SpotLeverageSerializerMixin):
     Parameters for querying the maximum liquidity that can be minted by a specified sender for a specific product.
     """
 
-    type = EngineQueryType.MAX_LP_MINTABLE.value
+    type = EngineQueryType.MAX_NLP_MINTABLE.value
     sender: str
     product_id: int
 

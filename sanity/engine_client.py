@@ -181,12 +181,12 @@ def run():
     max_withdrawable = client.get_max_withdrawable(product_id, sender)
     print("max withdrawable:", max_withdrawable.json(indent=2))
 
-    print("querying max lp mintable...")
-    max_lp_mintable = client.get_max_lp_mintable(
+    print("querying max nlp mintable...")
+    max_nlp_mintable = client.get_max_nlp_mintable(
         product_id=1,
         sender=sender,
     )
-    print("max lp mintable:", max_lp_mintable.json(indent=2))
+    print("max nlp mintable:", max_nlp_mintable.json(indent=2))
 
     print("querying fee rates...")
     fee_rates = client.get_fee_rates(sender=sender)
