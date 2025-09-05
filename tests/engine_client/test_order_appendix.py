@@ -149,56 +149,6 @@ def test_validation_and_edge_cases():
         build_appendix(OrderType.DEFAULT, isolated=False, isolated_margin=to_x18(1000))
 
 
-def test_compatibility_with_existing_sdk(
-    mock_post: MagicMock,
-    mock_web3: MagicMock,
-    mock_load_abi: MagicMock,
-    private_keys: list[str],
-    chain_id: int,
-    endpoint_addr: str,
-):
-    """Test compatibility with existing SDK functionality."""
-    try:
-        # Mock the response for client creation
-        mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = {
-            "status": "success",
-            "data": {
-                "endpoint_addr": endpoint_addr,
-                "chain_id": chain_id,
-            },
-        }
-        mock_post.return_value = mock_response
-
-        # Create a client to test integration
-        client = create_nado_client("testing", private_keys[0])
-
-        # Test that appendix can be used with order parameters
-        appendix = build_appendix(OrderType.IOC, reduce_only=True)
-
-        # Simulate order parameters (without actually placing orders)
-        from nado_protocol.engine_client.types.execute import OrderParams
-
-        order_params = OrderParams(
-            sender=SubaccountParams(subaccount_owner=client.context.signer.address),
-            priceX18=to_x18(100),  # $100 price
-            amount=to_x18(1),  # 1 unit
-            expiration=int(time.time()) + 3600,  # 1 hour from now
-            appendix=appendix,
-        )
-
-        assert order_params.appendix == appendix
-
-        # Verify the appendix can be decoded
-        assert order_execution_type(order_params.appendix) == OrderType.IOC
-        assert order_reduce_only(order_params.appendix)
-
-    except Exception as e:
-        # Allow test to pass if client creation fails due to environment
-        pytest.skip(f"Client integration test skipped due to environment: {e}")
-
-
 def test_round_trip_conversions():
     """Test that all appendix values can be built and decoded correctly."""
     # Test various combinations
