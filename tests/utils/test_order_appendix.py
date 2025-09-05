@@ -351,21 +351,6 @@ def test_isolated_and_twap_mutual_exclusion():
         )
 
 
-def test_isolated_margin_too_large():
-    """Test that isolated margin values that are too large are rejected."""
-    max_margin = AppendixBitFields.VALUE_MASK
-    # This test is invalid since the function doesn't validate range
-    # build_appendix(OrderType.DEFAULT, isolated=True, isolated_margin=max_margin + 1)
-    pass
-
-
-def test_negative_isolated_margin():
-    """Test that negative isolated margin values are rejected."""
-    # This test is invalid since the function doesn't validate range
-    # build_appendix(OrderType.DEFAULT, isolated=True, isolated_margin=-1)
-    pass
-
-
 def test_typescript_basic_appendix_compatibility():
     """Test that our values match TypeScript SDK for basic appendix."""
     appendix = build_appendix(
