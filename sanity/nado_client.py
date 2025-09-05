@@ -31,42 +31,43 @@ def run():
     print("setting up nado client...")
     client: NadoClient = create_nado_client(CLIENT_MODE, SIGNER_PRIVATE_KEY)
 
-    # print("chain_id:", client.context.engine_client.get_contracts().chain_id)
+    print("chain_id:", client.context.engine_client.get_contracts().chain_id)
 
-    # print("minting test tokens...")
-    # mint_tx_hash = client.spot._mint_mock_erc20(0, to_pow_10(100000, 6))
-    # print("mint tx hash:", mint_tx_hash)
+    print("minting test tokens...")
+    mint_tx_hash = client.spot._mint_mock_erc20(0, to_pow_10(100000, 6))
+    print("mint tx hash:", mint_tx_hash)
 
-    # time.sleep(5)
+    time.sleep(5)
 
-    # print("approving allowance...")
-    # approve_allowance_tx_hash = client.spot.approve_allowance(0, to_pow_10(100000, 6))
-    # print("approve allowance tx hash:", approve_allowance_tx_hash)
+    print("approving allowance...")
+    approve_allowance_tx_hash = client.spot.approve_allowance(0, to_pow_10(100000, 6))
+    print("approve allowance tx hash:", approve_allowance_tx_hash)
 
-    # time.sleep(5)
+    time.sleep(5)
 
-    # print("querying my allowance...")
-    # token_allowance = client.spot.get_token_allowance(0, client.context.signer.address)
-    # print("token allowance:", token_allowance)
+    print("querying my allowance...")
+    token_allowance = client.spot.get_token_allowance(0, client.context.signer.address)
+    print("token allowance:", token_allowance)
 
-    # print("depositing collateral...")
-    # deposit_tx_hash = client.spot.deposit(
-    #     DepositCollateralParams(
-    #         subaccount_name="default", product_id=0, amount=to_pow_10(100000, 6)
-    #     )
-    # )
-    # print("deposit collateral tx hash:", deposit_tx_hash)
+    print("depositing collateral...")
+    deposit_tx_hash = client.spot.deposit(
+        DepositCollateralParams(
+            subaccount_name="default", product_id=0, amount=to_pow_10(100000, 6)
+        )
+    )
+    print("deposit collateral tx hash:", deposit_tx_hash)
 
-    # time.sleep(5)
+    time.sleep(5)
 
-    # print("querying my token balance...")
-    # token_balance = client.spot.get_token_wallet_balance(
-    #     0, client.context.signer.address
-    # )
+    print("querying my token balance...")
+    token_balance = client.spot.get_token_wallet_balance(
+        0, client.context.signer.address
+    )
 
-    # print("my token balance:", token_balance)
+    print("my token balance:", token_balance)
 
     subaccount = subaccount_to_hex(client.context.signer.address, "default")
+    print("subaccount:", subaccount)
 
     usdc_balance: SpotProductBalance = client.subaccount.get_engine_subaccount_summary(
         subaccount

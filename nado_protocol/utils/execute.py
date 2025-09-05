@@ -340,10 +340,9 @@ class NadoBaseExecute:
         Returns:
             str: The generated EIP-712 signature.
         """
+        typed_data = build_eip712_typed_data(execute, msg, verifying_contract, chain_id)
         return sign_eip712_typed_data(
-            typed_data=build_eip712_typed_data(
-                execute, msg, verifying_contract, chain_id
-            ),
+            typed_data=typed_data,
             signer=signer,
         )
 
