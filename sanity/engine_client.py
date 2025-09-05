@@ -78,9 +78,9 @@ def run():
     spots_apr = client.get_spots_apr()
     pprint(spots_apr)
 
-    print("querying orderbook for ETH-PERP pair...")
-    eth_perp_book = client.get_orderbook("ETH-PERP_USDC", 10)
-    pprint(eth_perp_book)
+    print("querying orderbook for BTC-PERP pair...")
+    btc_perp_book = client.get_orderbook("BTC-PERP_USDC", 10)
+    pprint(btc_perp_book)
 
     order_price = 100_000
 
@@ -181,12 +181,13 @@ def run():
     max_withdrawable = client.get_max_withdrawable(product_id, sender)
     print("max withdrawable:", max_withdrawable.json(indent=2))
 
-    print("querying max lp mintable...")
-    max_lp_mintable = client.get_max_lp_mintable(
-        product_id=1,
-        sender=sender,
-    )
-    print("max lp mintable:", max_lp_mintable.json(indent=2))
+    # TODO: enable once max nlp mintable works
+    # print("querying max nlp mintable...")
+    # max_nlp_mintable = client.get_max_nlp_mintable(
+    #     product_id=1,
+    #     sender=sender,
+    # )
+    # print("max nlp mintable:", max_nlp_mintable.json(indent=2))
 
     print("querying fee rates...")
     fee_rates = client.get_fee_rates(sender=sender)
@@ -207,8 +208,9 @@ def run():
         ),
         quoteAmount=to_x18(2000),
     )
-    res = client.mint_nlp(mint_nlp_params)
-    print("mint nlp results:", res.json(indent=2))
+    # TODO: enable once NLP goes live for all
+    # res = client.mint_nlp(mint_nlp_params)
+    # print("mint nlp results:", res.json(indent=2))
 
     print("burning nlp...")
     burn_nlp_params = BurnNlpParams(
@@ -224,8 +226,9 @@ def run():
             )
         ),
     )
-    res = client.burn_nlp(burn_nlp_params)
-    print("burn lp result:", res.json(indent=2))
+    # TODO: enable once NLP goes live for all
+    # res = client.burn_nlp(burn_nlp_params)
+    # print("burn lp result:", res.json(indent=2))
 
     print("liquidating subaccount...")
     liquidate_subaccount_params = LiquidateSubaccountParams(

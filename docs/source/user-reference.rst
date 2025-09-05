@@ -113,7 +113,7 @@ You also have available the following queries:
 .. code-block:: python
 
     >>> sender = "0xe526299d13c956ed6b9b3e03086a152c6396947364656661756c740000000000"
-    >>> client.market.get_max_lp_mintable(1, sender)
+    >>> client.market.get_max_nlp_mintable(1, sender)
 
 - `Retrieves candlesticks for a product <TODO>`_:
 

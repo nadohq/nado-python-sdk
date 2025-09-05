@@ -79,16 +79,10 @@ class MarketOrderParams(BaseParams):
     Attributes:
         amount (int): The amount of the asset to be bought or sold in the order. Positive for a `long` position and negative for a `short`.
 
-        expiration (int): The unix timestamp at which the order will expire.
-
         nonce (Optional[int]): A unique number used to prevent replay attacks.
-
-        appendix (int): Additional data or instructions related to the order. Use to encode order type and other related data.
     """
 
     amount: int
-    expiration: int
-    appendix: int
 
 
 class OrderParams(MarketOrderParams):
@@ -108,6 +102,8 @@ class OrderParams(MarketOrderParams):
     """
 
     priceX18: int
+    expiration: int
+    appendix: int
 
 
 class NadoBaseExecute:
@@ -340,10 +336,9 @@ class NadoBaseExecute:
         Returns:
             str: The generated EIP-712 signature.
         """
+        typed_data = build_eip712_typed_data(execute, msg, verifying_contract, chain_id)
         return sign_eip712_typed_data(
-            typed_data=build_eip712_typed_data(
-                execute, msg, verifying_contract, chain_id
-            ),
+            typed_data=typed_data,
             signer=signer,
         )
 

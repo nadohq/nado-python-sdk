@@ -31,15 +31,22 @@ def run():
     print("setting up nado client...")
     client: NadoClient = create_nado_client(CLIENT_MODE, SIGNER_PRIVATE_KEY)
 
+    subaccount = subaccount_to_hex(client.context.signer.address, "default")
+    print("subaccount:", subaccount)
+
     print("chain_id:", client.context.engine_client.get_contracts().chain_id)
 
     print("minting test tokens...")
     mint_tx_hash = client.spot._mint_mock_erc20(0, to_pow_10(100000, 6))
     print("mint tx hash:", mint_tx_hash)
 
+    time.sleep(5)
+
     print("approving allowance...")
     approve_allowance_tx_hash = client.spot.approve_allowance(0, to_pow_10(100000, 6))
     print("approve allowance tx hash:", approve_allowance_tx_hash)
+
+    time.sleep(5)
 
     print("querying my allowance...")
     token_allowance = client.spot.get_token_allowance(0, client.context.signer.address)
@@ -53,14 +60,14 @@ def run():
     )
     print("deposit collateral tx hash:", deposit_tx_hash)
 
+    time.sleep(5)
+
     print("querying my token balance...")
     token_balance = client.spot.get_token_wallet_balance(
         0, client.context.signer.address
     )
 
     print("my token balance:", token_balance)
-
-    subaccount = subaccount_to_hex(client.context.signer.address, "default")
 
     usdc_balance: SpotProductBalance = client.subaccount.get_engine_subaccount_summary(
         subaccount
@@ -74,7 +81,7 @@ def run():
         )
         time.sleep(1)
 
-    order_price = 95_000
+    order_price = 90_000
 
     owner = client.context.engine_client.signer.address
     print("placing order...")
@@ -163,7 +170,7 @@ def run():
             subaccount_owner=owner,
             subaccount_name="default",
         ),
-        priceX18=to_x18(order_price + 10_000),
+        priceX18=to_x18(order_price + 40_000),
         amount=-to_pow_10(1, 17),
         expiration=get_expiration_timestamp(40),
         appendix=build_appendix(OrderType.POST_ONLY),
@@ -242,15 +249,15 @@ def run():
     print("subaccount historical orders:", historical_orders.json(indent=2))
 
     print("opening perp position...")
-    eth_perp = [
+    btc_perp = [
         product
         for product in subaccount_summary.perp_products
-        if product.product_id == 4
+        if product.product_id == 2
     ][0]
     order = OrderParams(
         sender=subaccount,
         priceX18=round_x18(
-            eth_perp.oracle_price_x18, eth_perp.book_info.price_increment_x18
+            btc_perp.oracle_price_x18, btc_perp.book_info.price_increment_x18
         )
         + to_x18(100),
         amount=to_pow_10(1, 17),
@@ -258,24 +265,24 @@ def run():
         appendix=build_appendix(OrderType.IOC),
         nonce=gen_order_nonce(),
     )
-    res = client.market.place_order({"product_id": 4, "order": order})
+    res = client.market.place_order({"product_id": btc_perp.product_id, "order": order})
     print("order result:", res.json(indent=2))
 
-    eth_perp_balance = [
+    btc_perp_balance = [
         balance
         for balance in client.subaccount.get_engine_subaccount_summary(
             subaccount
         ).perp_balances
-        if balance.product_id == 4
+        if balance.product_id == 2
     ][0]
-    print("perp balance:", eth_perp_balance.json(indent=2))
+    print("perp balance:", btc_perp_balance.json(indent=2))
 
     print("closing perp position...")
     res = client.market.close_position(
         subaccount=SubaccountParams(
             subaccount_owner=client.context.signer.address, subaccount_name="default"
         ),
-        product_id=4,
+        product_id=2,
     )
     print("position close result:", res.json(indent=2))
 
@@ -299,7 +306,7 @@ def run():
     print("latest market price:", latest_market_price.json(indent=2))
 
     print("querying oracle prices...")
-    oracle_prices = client.context.indexer_client.get_oracle_prices([1, 2, 3, 4])
+    oracle_prices = client.context.indexer_client.get_oracle_prices([1, 2])
     print("oracle prices:", oracle_prices.json(indent=2))
 
     oracle_price = [
@@ -319,10 +326,10 @@ def run():
     )
     print("max order size:", max_order_size.json(indent=2))
 
-    print("querying max lp mintable...")
+    print("querying max nlp mintable...")
     try:
-        max_lp_mintable = client.market.get_max_lp_mintable(1, sender)
-        print("max lp mintable:", max_lp_mintable.json(indent=2))
+        max_nlp_mintable = client.market.get_max_nlp_mintable(1, sender)
+        print("max nlp mintable:", max_nlp_mintable.json(indent=2))
     except Exception as e:
         print("querying lp mintable failed with error:", e)
 
@@ -366,8 +373,9 @@ def run():
         ),
         quoteAmount=to_x18(2000),
     )
-    res = client.market.mint_nlp(mint_nlp_params)
-    print("mint nlp results:", res.json(indent=2))
+    # TODO: enable once NLP goes live for all
+    # res = client.market.mint_nlp(mint_nlp_params)
+    # print("mint nlp results:", res.json(indent=2))
 
     print("burning nlp...")
     burn_nlp_params = BurnNlpParams(
@@ -385,8 +393,9 @@ def run():
             )
         ),
     )
-    res = client.market.burn_nlp(burn_nlp_params)
-    print("burn nlp result:", res.json(indent=2))
+    # TODO: enable once nlp goes live for all
+    # res = client.market.burn_nlp(burn_nlp_params)
+    # print("burn nlp result:", res.json(indent=2))
 
     print("querying subaccount fee rates...")
     fee_rates = client.subaccount.get_subaccount_fee_rates(sender)
@@ -431,6 +440,6 @@ def run():
 
     print("getting interest and funding payments...")
     payments = client.subaccount.get_interest_and_funding_payments(
-        subaccount, [1, 2, 3, 4, 5, 6], 10
+        subaccount, [1, 2], 10
     )
     print("interest and funding payments:", payments.json(indent=2))

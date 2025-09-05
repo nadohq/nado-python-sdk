@@ -193,7 +193,7 @@ class MarketQueryAPI(NadoBaseAPI):
         """
         return self.context.engine_client.get_max_order_size(params)
 
-    def get_max_lp_mintable(
+    def get_max_nlp_mintable(
         self, product_id: int, sender: str, spot_leverage: Optional[bool] = None
     ) -> MaxLpMintableData:
         """
@@ -209,7 +209,7 @@ class MarketQueryAPI(NadoBaseAPI):
         Returns:
             MaxLpMintableData: Maximum base amount that can be contributed for minting LPs, in string format.
         """
-        return self.context.engine_client.get_max_lp_mintable(
+        return self.context.engine_client.get_max_nlp_mintable(
             product_id, sender, spot_leverage
         )
 

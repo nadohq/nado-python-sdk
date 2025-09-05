@@ -182,8 +182,6 @@ class IndexerEventTrackedData(NadoBaseModel):
     net_funding_cumulative: str
     net_entry_unrealized: str
     net_entry_cumulative: str
-    net_entry_lp_unrealized: str
-    net_entry_lp_cumulative: str
 
 
 class IndexerEvent(IndexerBaseModel, IndexerEventTrackedData):
@@ -299,6 +297,10 @@ class IndexerLiquidatableAccount(NadoBaseModel):
 class IndexerSubaccount(NadoBaseModel):
     id: str
     subaccount: str
+    address: str
+    subaccount_name: str
+    created_at: str
+    isolated: bool
 
 
 class IndexerMerkleProof(NadoBaseModel):

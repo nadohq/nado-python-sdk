@@ -60,7 +60,7 @@ The following object is generated and can be signed via :mod:`nado_protocol.cont
                 {'name': 'amount', 'type': 'int128'},
                 {'name': 'expiration', 'type': 'uint64'},
                 {'name': 'nonce', 'type': 'uint64'},
-                {'name': 'appendix', 'type': 'int128'}
+                {'name': 'appendix', 'type': 'uint128'}
             ]
         },
         'primaryType': 'Order',
