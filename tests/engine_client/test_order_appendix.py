@@ -1,10 +1,3 @@
-"""
-Integration tests for order appendix functionality.
-
-Tests the appendix functions work correctly in realistic scenarios
-and are compatible with the backend systems.
-"""
-
 import time
 import pytest
 from unittest.mock import MagicMock
