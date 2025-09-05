@@ -22,18 +22,3 @@ def get_expiration_timestamp(seconds_from_now: int) -> int:
         int: The expiration timestamp.
     """
     return int(time.time()) + seconds_from_now
-
-
-def decode_expiration(expiration: int) -> tuple[OrderType, int]:
-    """
-    Decodes the expiration timestamp to retrieve the order type and original expiration timestamp.
-
-    Args:
-        expiration (int): The encoded expiration timestamp.
-
-    Returns:
-        Tuple[OrderType, int]: The decoded order type and the original expiration timestamp.
-    """
-    order_type: OrderType = OrderType(expiration >> 62)
-    exp_timestamp = expiration & ((1 << 62) - 1)
-    return order_type, exp_timestamp

@@ -290,7 +290,7 @@ def test_custom_version():
     custom_version = 5
     appendix = build_appendix(OrderType.DEFAULT, _version=custom_version)
     assert order_version(appendix) == custom_version
-    
+
     # Test that other functionality works with custom version
     appendix = build_appendix(OrderType.IOC, reduce_only=True, _version=custom_version)
     assert order_version(appendix) == custom_version

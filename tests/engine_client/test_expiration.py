@@ -1,6 +1,5 @@
 from nado_protocol.utils.expiration import (
     OrderType,
-    decode_expiration,
     get_expiration_timestamp,
 )
 from nado_protocol.utils.order import (

@@ -118,7 +118,7 @@ def build_appendix(
     isolated_margin: Optional[int] = None,
     twap_num_orders: Optional[int] = None,
     twap_slippage_frac: Optional[float] = None,
-    _version: Optional[int] = APPENDIX_VERSION
+    _version: Optional[int] = APPENDIX_VERSION,
 ) -> int:
     """
     Builds an appendix value with the specified parameters.

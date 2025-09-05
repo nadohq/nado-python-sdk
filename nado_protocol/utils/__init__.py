@@ -25,7 +25,6 @@ __all__ = [
     "OrderType",
     "get_expiration_timestamp",
     "gen_order_nonce",
-    "decode_expiration",
     "to_pow_10",
     "to_x18",
     "from_pow_10",
