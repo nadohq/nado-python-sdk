@@ -3,11 +3,15 @@ from enum import IntEnum
 from nado_protocol.utils.expiration import OrderType
 
 
-# Order appendix version - hardcoded to 0 for now, will be updated in future versions
+# Order appendix version
 APPENDIX_VERSION = 0
 
 
 class AppendixBitFields:
+    # | value   | reserved | trigger | reduce only | order type| isolated | version |
+    # | 96 bits | 18 bits  | 2 bits  | 1 bit       | 2 bits    | 1 bit    | 8 bits  |
+    # | 127..32 | 31..14   | 13..12  | 11          | 10..9     | 8        | 7..0    |
+
     # Bit positions (from LSB to MSB)
     VERSION_BITS = 8  # bits 7..0
     ISOLATED_BITS = 1  # bit 8
@@ -57,9 +61,10 @@ class TWAPBitFields:
     # Bit masks
     TIMES_MASK = (1 << TIMES_BITS) - 1
     SLIPPAGE_MASK = (1 << SLIPPAGE_BITS) - 1
+    RESERVED_MASK = (1 << TWAP_RESERVED_BITS) - 1
 
     # Bit shift positions (within the 96-bit value field)
-    TWAP_RESERVED_SHIFT = 0
+    RESERVED_SHIFT = 0
     SLIPPAGE_SHIFT = 32
     TIMES_SHIFT = 64
 
@@ -76,20 +81,14 @@ def pack_twap_appendix_value(num_orders: int, slippage_frac: float) -> int:
     |-----------|-------------|----------|
     | 95..64    | 63..32      | 31..0    |
     | 32 bits   | 32 bits     | 32 bits  |
-
-    Args:
-        num_orders (int): Number of TWAP orders to place.
-        slippage_frac (float): Maximum slippage fraction (e.g., 0.01 for 1%).
-
-    Returns:
-        int: The packed 96-bit value.
     """
     slippage_x6 = int(slippage_frac * TWAPBitFields.SLIPPAGE_SCALE)
+    reserved = 0  # reserved 32-bit field (currently unused)
 
     return (
         ((num_orders & TWAPBitFields.TIMES_MASK) << TWAPBitFields.TIMES_SHIFT)
         | ((slippage_x6 & TWAPBitFields.SLIPPAGE_MASK) << TWAPBitFields.SLIPPAGE_SHIFT)
-        | 0
+        | ((reserved & TWAPBitFields.RESERVED_MASK) << TWAPBitFields.RESERVED_SHIFT)
     )
 
 
@@ -206,19 +205,6 @@ def build_appendix(
         ) << AppendixBitFields.VALUE_SHIFT
 
     return appendix
-
-
-def order_type_appendix_bit(order_type: OrderType) -> int:
-    """
-    Gets the appendix bits for a given order type.
-
-    Args:
-        order_type (OrderType): The order type.
-
-    Returns:
-        int: The appendix bits for the order type.
-    """
-    return int(order_type) << AppendixBitFields.ORDER_TYPE_SHIFT
 
 
 def gen_order_verifying_contract(product_id: int) -> str:

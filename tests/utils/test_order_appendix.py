@@ -25,13 +25,25 @@ from nado_protocol.utils.order import (
     order_reserved_bits,
     order_trigger_type,
     order_twap_data,
-    order_type_appendix_bit,
     order_version,
     pack_twap_appendix_value,
     unpack_twap_appendix_value,
 )
 from nado_protocol.utils.expiration import OrderType
 from nado_protocol.utils.math import to_x18
+
+
+def order_type_appendix_bit(order_type: OrderType) -> int:
+    """
+    Gets the appendix bits for a given order type.
+
+    Args:
+        order_type (OrderType): The order type.
+
+    Returns:
+        int: The appendix bits for the order type.
+    """
+    return int(order_type) << AppendixBitFields.ORDER_TYPE_SHIFT
 
 
 def test_appendix_bit_field_sizes():

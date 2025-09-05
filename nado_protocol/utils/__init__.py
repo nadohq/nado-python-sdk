@@ -40,7 +40,6 @@ __all__ = [
     "AppendixBitFields",
     "TWAPBitFields",
     "gen_order_verifying_contract",
-    "order_type_appendix_bit",
     "pack_twap_appendix_value",
     "unpack_twap_appendix_value",
     "build_appendix",
