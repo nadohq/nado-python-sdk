@@ -1,15 +1,3 @@
-"""
-Comprehensive tests for order appendix functionality.
-
-This module tests all aspects of order appendix manipulation including:
-- Basic bit manipulation and extraction
-- Order type encoding/decoding
-- Isolated position support
-- TWAP order support
-- Edge cases and error conditions
-- Compatibility with existing implementations
-"""
-
 import pytest
 from nado_protocol.utils.order import (
     APPENDIX_VERSION,
