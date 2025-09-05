@@ -23,7 +23,7 @@ Nado executes are signed using `EIP-712 <https://eips.ethereum.org/EIPS/eip-712>
 
 You can build the expected EIP-712 typed data for each execute via :mod:`nado_protocol.contracts.eip712.build_eip712_typed_data()`
 
-**Example:**
+**Place Order Example:**
 
 .. code-block:: python
 
@@ -31,16 +31,33 @@ You can build the expected EIP-712 typed data for each execute via :mod:`nado_pr
     >>> from nado_protocol.contracts.types import NadoExecuteType
     >>> from nado_protocol.engine_client.types import OrderParams, SubaccountParams
     >>> from nado_protocol.utils import subaccount_to_bytes32, to_x18, to_pow_10, get_expiration_timestamp, gen_order_nonce, OrderType
-    >>> from nado_protocol.utils.order import build_appendix
+    >>> from nado_protocol.utils.order import build_appendix, gen_order_verifying_contract
     >>> from nado_protocol.contracts.eip712 import build_eip712_typed_data
-    >>> verifying_contract = "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6"
+    >>> 
+    >>> # For place orders, use product-specific verifying contract
+    >>> product_id = 1
+    >>> verifying_contract = gen_order_verifying_contract(product_id)  # "0x0000000000000000000000000000000000000001"
     >>> chain_id = 421613
     >>> sender = SubaccountParams(subaccount_owner="0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", subaccount_name="default")
     >>> order_nonce = gen_order_nonce()
     >>> order_expiration = get_expiration_timestamp(40)
-    >>> appendix = build_appendix(OrderType.DEFAULT)
-    >>> order =  OrderParams(amount=to_x18(20000), priceX18=to_pow_10(1, 17), expiration=order_expiration, nonce=order_nonce, sender=sender, appendix=appendix)
+    >>> appendix = build_appendix(OrderType.POST_ONLY)
+    >>> order = OrderParams(amount=to_x18(20000), priceX18=to_pow_10(1, 17), expiration=order_expiration, nonce=order_nonce, sender=sender, appendix=appendix)
     >>> order_typed_data = build_eip712_typed_data(NadoExecuteType.PLACE_ORDER, order.dict(), verifying_contract, chain_id)
+
+**Other Execute Types Example:**
+
+.. code-block:: python
+
+    >>> from nado_protocol.contracts.types import NadoExecuteType
+    >>> from nado_protocol.engine_client.types import CancelOrdersParams
+    >>> from nado_protocol.contracts.eip712 import build_eip712_typed_data
+    >>> 
+    >>> # For non-place-order executes, use main endpoint verifying contract
+    >>> endpoint_verifying_contract = "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6"  # from get_contracts()
+    >>> chain_id = 421613
+    >>> cancel_params = CancelOrdersParams(sender=sender, productIds=[1], digests=["0x..."], nonce=1)
+    >>> cancel_typed_data = build_eip712_typed_data(NadoExecuteType.CANCEL_ORDERS, cancel_params.dict(), endpoint_verifying_contract, chain_id)
 
 The following object is generated and can be signed via :mod:`nado_protocol.contracts.eip712.sign_eip712_typed_data()`:
 
@@ -68,7 +85,7 @@ The following object is generated and can be signed via :mod:`nado_protocol.cont
             'name': 'Nado',
             'version': '0.0.1',
             'chainId': 421613,
-            'verifyingContract': '0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6'
+            'verifyingContract': '0x0000000000000000000000000000000000000001'  # Product-specific for place orders
         },
         'message': {
             'sender': b'\xf3\x9f\xd6\xe5\x1a\xad\x88\xf6\xf4\xcej\xb8\x82ry\xcf\xff\xb9"fdefault\x00\x00\x00\x00\x00',
@@ -80,7 +97,26 @@ The following object is generated and can be signed via :mod:`nado_protocol.cont
         }
     }
 
+Verifying Contracts
+^^^^^^^^^^^^^^^^^^^^
+
+**Important**: Different execute types use different verifying contracts for signatures:
+
+- **Place Order (`PLACE_ORDER`)**: Uses a product-specific verifying contract generated via :mod:`nado_protocol.utils.order.gen_order_verifying_contract(product_id)`
+
+  .. code-block:: python
+  
+      from nado_protocol.utils.order import gen_order_verifying_contract
+      verifying_contract = gen_order_verifying_contract(1)  # "0x0000000000000000000000000000000000000001"
+
+- **All other executes** (`CANCEL_ORDERS`, `WITHDRAW_COLLATERAL`, etc.): Use the main endpoint verifying contract from :mod:`nado_protocol.engine_client.EngineQueryClient.get_contracts()`
+
+  .. code-block:: python
+  
+      contracts = client.context.engine_client.get_contracts()
+      verifying_contract = contracts.engine
+
 .. note::
 
-    - You can retrieve the verifying contracts using :mod:`nado_protocol.engine_client.EngineQueryClient.get_contracts()`. Provided via **client.context.engine_client.get_contracts()** on a `NadoClient` instance.
+    - You can retrieve the main endpoint verifying contracts using :mod:`nado_protocol.engine_client.EngineQueryClient.get_contracts()`. Provided via **client.context.engine_client.get_contracts()** on a `NadoClient` instance.
     - You can also just use the engine client's sign utility :mod:`nado_protocol.engine_client.EngineExecuteClient.sign()`. Provided via **client.context.engine_client.sign()** on a `NadoClient` instance.
