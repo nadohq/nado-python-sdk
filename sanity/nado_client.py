@@ -242,15 +242,15 @@ def run():
     print("subaccount historical orders:", historical_orders.json(indent=2))
 
     print("opening perp position...")
-    eth_perp = [
+    btc_perp = [
         product
         for product in subaccount_summary.perp_products
-        if product.product_id == 4
+        if product.product_id == 2
     ][0]
     order = OrderParams(
         sender=subaccount,
         priceX18=round_x18(
-            eth_perp.oracle_price_x18, eth_perp.book_info.price_increment_x18
+            btc_perp.oracle_price_x18, btc_perp.book_info.price_increment_x18
         )
         + to_x18(100),
         amount=to_pow_10(1, 17),
@@ -261,21 +261,21 @@ def run():
     res = client.market.place_order({"product_id": 4, "order": order})
     print("order result:", res.json(indent=2))
 
-    eth_perp_balance = [
+    btc_perp_balance = [
         balance
         for balance in client.subaccount.get_engine_subaccount_summary(
             subaccount
         ).perp_balances
-        if balance.product_id == 4
+        if balance.product_id == 2
     ][0]
-    print("perp balance:", eth_perp_balance.json(indent=2))
+    print("perp balance:", btc_perp_balance.json(indent=2))
 
     print("closing perp position...")
     res = client.market.close_position(
         subaccount=SubaccountParams(
             subaccount_owner=client.context.signer.address, subaccount_name="default"
         ),
-        product_id=4,
+        product_id=2,
     )
     print("position close result:", res.json(indent=2))
 
@@ -299,7 +299,7 @@ def run():
     print("latest market price:", latest_market_price.json(indent=2))
 
     print("querying oracle prices...")
-    oracle_prices = client.context.indexer_client.get_oracle_prices([1, 2, 3, 4])
+    oracle_prices = client.context.indexer_client.get_oracle_prices([1, 2])
     print("oracle prices:", oracle_prices.json(indent=2))
 
     oracle_price = [
