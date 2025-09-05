@@ -155,12 +155,6 @@ def test_validation_and_edge_cases():
     ):
         build_appendix(OrderType.DEFAULT, isolated=False, isolated_margin=to_x18(1000))
 
-    # Test margin too large - this test is invalid since function doesn't validate range
-    # with pytest.raises(ValueError, match="isolated_margin must be between 0"):
-    #     max_margin = (1 << 96) - 1
-    #     build_appendix(OrderType.DEFAULT, isolated=True, isolated_margin=max_margin + 1)
-    pass
-
 
 def test_compatibility_with_existing_sdk(
     mock_post: MagicMock,
