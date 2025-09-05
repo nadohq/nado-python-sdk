@@ -112,7 +112,6 @@ class SubaccountQueryAPI(NadoBaseAPI):
         Returns:
             IndexerSubaccountsData: A data class object containing the list of subaccounts found.
         """
-        print("address:", address)
         return self.context.indexer_client.get_subaccounts(
             IndexerSubaccountsParams(address=address, start=start_idx, limit=limit)
         )
