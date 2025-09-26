@@ -4,7 +4,7 @@ from nado_protocol.utils.order import (
     OrderAppendixTriggerType,
 )
 from nado_protocol.utils.expiration import OrderType
-from nado_protocol.engine_client.types.execute import PlaceOrderParams
+from nado_protocol.utils.execute import OrderParams
 
 
 def create_twap_order(
@@ -77,18 +77,13 @@ def create_twap_order(
     )
     
     # Create the base order
-    order = PlaceOrderParams(
-        product_id=product_id,
-        order={
-            "sender": sender,
-            "priceX18": price_x18,
-            "amount": total_amount_x18,
-            "expiration": expiration,
-            "nonce": nonce,
-            "appendix": appendix,
-        },
-        spot_leverage=spot_leverage,
-        id=id,
+    order_params = OrderParams(
+        sender=sender,
+        priceX18=int(price_x18),
+        amount=int(total_amount_x18),
+        expiration=expiration,
+        nonce=nonce,
+        appendix=appendix,
     )
     
     # Create trigger criteria
@@ -98,8 +93,13 @@ def create_twap_order(
     )
     
     return PlaceTriggerOrderParams(
-        **order.dict(),
+        product_id=product_id,
+        order=order_params,
         trigger=trigger,
+        signature=None,  # Will be filled by client
+        digest=None,     # Will be filled by client  
+        spot_leverage=spot_leverage,
+        id=id,
     )
 
 

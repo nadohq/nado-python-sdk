@@ -16,7 +16,7 @@ from nado_protocol.utils.exceptions import (
     BadStatusCodeException,
     ExecuteFailedException,
 )
-from nado_protocol.utils.execute import NadoBaseExecute
+from nado_protocol.utils.execute import NadoBaseExecute, OrderParams
 from nado_protocol.utils.model import NadoBaseModel, is_instance_of_union
 from nado_protocol.utils.twap import create_twap_order
 from nado_protocol.trigger_client.types.models import (
@@ -26,7 +26,8 @@ from nado_protocol.trigger_client.types.models import (
     OraclePriceAbove,
     OraclePriceBelow,
     MidPriceAbove,
-    MidPriceBelow
+    MidPriceBelow,
+    PriceRequirement
 )
 
 
@@ -203,35 +204,42 @@ class TriggerExecuteClient(NadoBaseExecute):
             ValueError: If trigger_type is not supported.
         """
         # Create the appropriate price requirement based on trigger type
-        price_requirement_mapping = {
-            "last_price_above": LastPriceAbove(last_price_above=trigger_price_x18),
-            "last_price_below": LastPriceBelow(last_price_below=trigger_price_x18),
-            "oracle_price_above": OraclePriceAbove(oracle_price_above=trigger_price_x18),
-            "oracle_price_below": OraclePriceBelow(oracle_price_below=trigger_price_x18),
-            "mid_price_above": MidPriceAbove(mid_price_above=trigger_price_x18),
-            "mid_price_below": MidPriceBelow(mid_price_below=trigger_price_x18),
-        }
-        
-        if trigger_type not in price_requirement_mapping:
+        price_requirement: PriceRequirement
+        if trigger_type == "last_price_above":
+            price_requirement = LastPriceAbove(last_price_above=trigger_price_x18)
+        elif trigger_type == "last_price_below":
+            price_requirement = LastPriceBelow(last_price_below=trigger_price_x18)
+        elif trigger_type == "oracle_price_above":
+            price_requirement = OraclePriceAbove(oracle_price_above=trigger_price_x18)
+        elif trigger_type == "oracle_price_below":
+            price_requirement = OraclePriceBelow(oracle_price_below=trigger_price_x18)
+        elif trigger_type == "mid_price_above":
+            price_requirement = MidPriceAbove(mid_price_above=trigger_price_x18)
+        elif trigger_type == "mid_price_below":
+            price_requirement = MidPriceBelow(mid_price_below=trigger_price_x18)
+        else:
             raise ValueError(
                 f"Unsupported trigger_type: {trigger_type}. "
-                f"Supported types: {list(price_requirement_mapping.keys())}"
+                f"Supported types: ['last_price_above', 'last_price_below', 'oracle_price_above', 'oracle_price_below', 'mid_price_above', 'mid_price_below']"
             )
         
-        price_requirement = price_requirement_mapping[trigger_type]
         trigger = PriceTrigger(price_requirement=price_requirement)
+        
+        order_params = OrderParams(
+            sender=sender,
+            priceX18=int(price_x18),
+            amount=int(amount_x18),
+            expiration=expiration,
+            nonce=nonce,
+            appendix=0,  # Will be built by the order preparation
+        )
         
         params = PlaceTriggerOrderParams(
             product_id=product_id,
-            order={
-                "sender": sender,
-                "priceX18": price_x18,
-                "amount": amount_x18,
-                "expiration": expiration,
-                "nonce": nonce,
-                "appendix": 0,  # Will be built by the order preparation
-            },
+            order=order_params,
             trigger=trigger,
+            signature=None,  # Will be filled by client
+            digest=None,     # Will be filled by client
             spot_leverage=spot_leverage,
             id=id,
         )
