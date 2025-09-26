@@ -4,9 +4,7 @@ from nado_protocol.utils.order import (
     OrderAppendixTriggerType,
 )
 from nado_protocol.utils.expiration import OrderType
-from nado_protocol.trigger_client.types.models import TimeTrigger
 from nado_protocol.engine_client.types.execute import PlaceOrderParams
-from nado_protocol.trigger_client.types.execute import PlaceTriggerOrderParams
 
 
 def create_twap_order(
@@ -23,7 +21,7 @@ def create_twap_order(
     reduce_only: bool = False,
     spot_leverage: Optional[bool] = None,
     id: Optional[int] = None,
-) -> PlaceTriggerOrderParams:
+):
     """
     Create a TWAP (Time-Weighted Average Price) order.
     
@@ -49,6 +47,10 @@ def create_twap_order(
     Raises:
         ValueError: If parameters are invalid.
     """
+    # Import here to avoid circular imports
+    from nado_protocol.trigger_client.types.models import TimeTrigger
+    from nado_protocol.trigger_client.types.execute import PlaceTriggerOrderParams
+    
     if times < 1 or times > 500:
         raise ValueError(f"TWAP times must be between 1 and 500, got {times}")
     

@@ -120,3 +120,181 @@ Verifying Contracts
 
     - You can retrieve the main endpoint verifying contracts using :mod:`nado_protocol.engine_client.EngineQueryClient.get_contracts()`. Provided via **client.context.engine_client.get_contracts()** on a `NadoClient` instance.
     - You can also just use the engine client's sign utility :mod:`nado_protocol.engine_client.EngineExecuteClient.sign()`. Provided via **client.context.engine_client.sign()** on a `NadoClient` instance.
+
+TWAP and Trigger Orders
+-----------------------
+
+The SDK provides comprehensive support for Time-Weighted Average Price (TWAP) orders and conditional price trigger orders through the :mod:`nado_protocol.trigger_client` module.
+
+TWAP Orders
+^^^^^^^^^^^
+
+TWAP (Time-Weighted Average Price) orders allow you to execute large trades over time with controlled slippage and timing. This is particularly useful for:
+
+- **Dollar Cost Averaging (DCA)**: Building positions gradually over time
+- **Large Order Execution**: Minimizing market impact when trading large amounts
+- **Automated Trading**: Setting up systematic trading strategies
+
+**Basic TWAP Order:**
+
+.. code-block:: python
+
+    from nado_protocol.trigger_client import TriggerClient
+    from nado_protocol.trigger_client.types import TriggerClientOpts
+    from nado_protocol.utils.math import to_x18
+    from nado_protocol.utils.expiration import get_expiration_timestamp
+
+    # Create trigger client
+    trigger_client = TriggerClient(
+        opts=TriggerClientOpts(url=TRIGGER_BACKEND_URL, signer=private_key)
+    )
+
+    # Place a TWAP order to buy 5 BTC over 2 hours
+    twap_result = trigger_client.place_twap_order(
+        product_id=1,
+        sender=client.signer.address,
+        price_x18=str(to_x18(50_000)),        # Max $50k per execution
+        total_amount_x18=str(to_x18(5)),      # Buy 5 BTC total
+        expiration=get_expiration_timestamp(60 * 24),  # 24 hours
+        nonce=client.order_nonce(),
+        times=10,                             # Split into 10 executions
+        slippage_frac=0.005,                  # 0.5% slippage tolerance
+        interval_seconds=720,                 # 12 minutes between executions
+    )
+
+**TWAP with Custom Amounts:**
+
+For advanced strategies, you can specify custom amounts for each execution:
+
+.. code-block:: python
+
+    # Decreasing size strategy: larger amounts first
+    custom_amounts = [
+        str(to_x18(2)),      # 2 BTC first
+        str(to_x18(1.5)),    # 1.5 BTC second
+        str(to_x18(1)),      # 1 BTC third
+        str(to_x18(0.5)),    # 0.5 BTC last
+    ]
+
+    custom_twap_result = trigger_client.place_twap_order(
+        product_id=1,
+        sender=client.signer.address,
+        price_x18=str(to_x18(51_000)),
+        total_amount_x18=str(to_x18(5)),      # 5 BTC total
+        expiration=get_expiration_timestamp(60 * 12),
+        nonce=client.order_nonce(),
+        times=4,                              # 4 executions
+        slippage_frac=0.01,                   # 1% slippage
+        interval_seconds=1800,                # 30 minutes
+        custom_amounts_x18=custom_amounts,
+        reduce_only=False,                    # Can increase position
+    )
+
+Price Trigger Orders
+^^^^^^^^^^^^^^^^^^^^
+
+Price trigger orders are conditional orders that execute when specific price conditions are met. Common use cases include:
+
+- **Stop-Loss Orders**: Automatically close positions to limit losses
+- **Take-Profit Orders**: Automatically realize gains at target prices  
+- **Breakout Trading**: Enter positions when price breaks key levels
+- **Automated Risk Management**: Set up protective orders
+
+**Supported Trigger Types:**
+
+- ``"last_price_above"``: Trigger when last traded price goes above threshold
+- ``"last_price_below"``: Trigger when last traded price goes below threshold  
+- ``"oracle_price_above"``: Trigger when oracle price goes above threshold
+- ``"oracle_price_below"``: Trigger when oracle price goes below threshold
+- ``"mid_price_above"``: Trigger when mid price (bid+ask)/2 goes above threshold
+- ``"mid_price_below"``: Trigger when mid price (bid+ask)/2 goes below threshold
+
+**Stop-Loss Example:**
+
+.. code-block:: python
+
+    # Stop-loss order: sell if price drops below $45k
+    stop_loss = trigger_client.place_price_trigger_order(
+        product_id=1,
+        sender=client.signer.address,
+        price_x18=str(to_x18(44_000)),        # Sell at $44k
+        amount_x18=str(-to_x18(1)),           # Sell 1 BTC (negative for sell)
+        expiration=get_expiration_timestamp(60 * 24 * 7),  # 1 week
+        nonce=client.order_nonce(),
+        trigger_price_x18=str(to_x18(45_000)), # Trigger below $45k
+        trigger_type="last_price_below",
+        reduce_only=True,                     # Only reduce existing position
+    )
+
+**Take-Profit Example:**
+
+.. code-block:: python
+
+    # Take-profit order: sell if price rises above $55k
+    take_profit = trigger_client.place_price_trigger_order(
+        product_id=1,
+        sender=client.signer.address,
+        price_x18=str(to_x18(56_000)),        # Sell at $56k
+        amount_x18=str(-to_x18(1)),           # Sell 1 BTC
+        expiration=get_expiration_timestamp(60 * 24 * 7),  # 1 week
+        nonce=client.order_nonce(),
+        trigger_price_x18=str(to_x18(55_000)), # Trigger above $55k
+        trigger_type="last_price_above",
+        reduce_only=True,                     # Only reduce position
+    )
+
+Complete Trading Strategy
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Here's how to implement a complete automated trading strategy combining multiple order types:
+
+.. code-block:: python
+
+    # 1. Protective stop-loss
+    stop_loss = trigger_client.place_price_trigger_order(
+        product_id=1,
+        sender=client.signer.address,
+        price_x18=str(to_x18(44_000)),
+        amount_x18=str(-to_x18(2)),           # Close 2 BTC position
+        expiration=get_expiration_timestamp(60 * 24 * 30),  # 30 days
+        nonce=client.order_nonce(),
+        trigger_price_x18=str(to_x18(45_000)),
+        trigger_type="last_price_below",
+        reduce_only=True,
+    )
+
+    # 2. Profit-taking target
+    take_profit = trigger_client.place_price_trigger_order(
+        product_id=1,
+        sender=client.signer.address,
+        price_x18=str(to_x18(58_000)),
+        amount_x18=str(-to_x18(2)),           # Close 2 BTC position
+        expiration=get_expiration_timestamp(60 * 24 * 30),  # 30 days
+        nonce=client.order_nonce(),
+        trigger_price_x18=str(to_x18(57_000)),
+        trigger_type="last_price_above", 
+        reduce_only=True,
+    )
+
+    # 3. Gradual position building with TWAP
+    dca_strategy = trigger_client.place_twap_order(
+        product_id=1,
+        sender=client.signer.address,
+        price_x18=str(to_x18(52_000)),        # Max $52k per buy
+        total_amount_x18=str(to_x18(10)),     # Buy 10 BTC over time
+        expiration=get_expiration_timestamp(60 * 24 * 7),  # 1 week
+        nonce=client.order_nonce(),
+        times=20,                             # 20 executions
+        slippage_frac=0.005,                  # 0.5% slippage tolerance
+        interval_seconds=1800,                # 30 minutes between buys
+    )
+
+.. note::
+
+    **Best Practices for TWAP and Trigger Orders:**
+    
+    - Use ``reduce_only=True`` for risk management orders (stop-loss, take-profit)
+    - Set appropriate ``slippage_frac`` values (0.5-1% is common for liquid markets)
+    - Consider market hours and liquidity when setting ``interval_seconds``
+    - Always set reasonable ``expiration`` times to avoid stale orders
+    - Test strategies with small amounts before scaling up
