@@ -13,15 +13,16 @@ from nado_protocol.utils.order import (
     order_reduce_only,
 )
 from nado_protocol.utils.expiration import OrderType
+from nado_protocol.utils.bytes32 import hex_to_bytes32
 
 
-def test_create_basic_twap_order():
+def test_create_basic_twap_order(senders):
     """Test creating a basic TWAP order with equal amounts."""
     order = create_twap_order(
         product_id=1,
-        sender="0x" + "1" * 64,
+        sender=senders[0],
         price_x18="50000000000000000000000",
-        total_amount="1000000000000000000",
+        total_amount_x18="1000000000000000000",
         expiration=1700000000,
         nonce=123456,
         times=5,
@@ -30,13 +31,13 @@ def test_create_basic_twap_order():
     )
     
     assert order.product_id == 1
-    assert order.order["sender"] == "0x" + "1" * 64
-    assert order.order["amount"] == "1000000000000000000"
+    assert order.order.sender == hex_to_bytes32(senders[0])
+    assert order.order.amount == 1000000000000000000
     assert order.trigger.interval == 300
     assert order.trigger.amounts is None
     
     # Check appendix encoding
-    appendix = int(order.order["appendix"])
+    appendix = int(order.order.appendix)
     
     # Should be TWAP trigger type (2)
     trigger_type = order_trigger_type(appendix)
@@ -44,7 +45,7 @@ def test_create_basic_twap_order():
     
     # Should be IOC execution type
     execution_type = order_execution_type(appendix)
-    assert execution_type == OrderType.IMMEDIATE_OR_CANCEL
+    assert execution_type == OrderType.IOC
     
     # Check TWAP data
     times, slippage = order_twap_data(appendix)
@@ -54,26 +55,26 @@ def test_create_basic_twap_order():
 
 def test_create_custom_amounts_twap_order():
     """Test creating a TWAP order with custom amounts."""
-    custom_amounts = ["400", "300", "200", "100"]
-    total_amount = "1000"
+    custom_amounts_x18 = ["400", "300", "200", "100"]
+    total_amount_x18 = "1000"
     
     order = create_twap_order(
         product_id=2,
         sender="0x" + "2" * 64,
         price_x18="25000000000000000000000",
-        total_amount=total_amount,
+        total_amount_x18=total_amount_x18,
         expiration=1700000000,
         nonce=789012,
         times=4,
         slippage_frac=0.005,
         interval_seconds=600,
-        custom_amounts=custom_amounts,
+        custom_amounts_x18=custom_amounts_x18,
     )
     
-    assert order.trigger.amounts == custom_amounts
+    assert order.trigger.amounts == custom_amounts_x18
     
     # Should be TWAP_CUSTOM_AMOUNTS trigger type (3)
-    appendix = int(order.order["appendix"])
+    appendix = int(order.order.appendix)
     trigger_type = order_trigger_type(appendix)
     assert trigger_type == OrderAppendixTriggerType.TWAP_CUSTOM_AMOUNTS
 
@@ -127,13 +128,13 @@ def test_calculate_equal_amounts():
         calculate_equal_amounts("1001", 5)
 
 
-def test_twap_order_validation_errors():
+def test_twap_order_validation_errors(senders):
     """Test TWAP order creation validation errors."""
     base_params = {
         "product_id": 1,
-        "sender": "0x" + "1" * 64,
+        "sender": senders[0],
         "price_x18": "50000000000000000000000",
-        "total_amount": "1000000000000000000",
+        "total_amount_x18": "1000000000000000000",
         "expiration": 1700000000,
         "nonce": 123456,
         "interval_seconds": 300,
@@ -148,24 +149,29 @@ def test_twap_order_validation_errors():
         create_twap_order(**base_params, times=501)
     
     # Invalid slippage
+    invalid_slippage_params = base_params.copy()
+    invalid_slippage_params["slippage_frac"] = -0.1
     with pytest.raises(ValueError, match="must be between 0 and 1"):
-        create_twap_order(**base_params, times=5, slippage_frac=-0.1)
+        create_twap_order(**invalid_slippage_params, times=5)
     
+    invalid_slippage_params["slippage_frac"] = 1.1
     with pytest.raises(ValueError, match="must be between 0 and 1"):
-        create_twap_order(**base_params, times=5, slippage_frac=1.1)
+        create_twap_order(**invalid_slippage_params, times=5)
     
     # Invalid interval
+    invalid_interval_params = base_params.copy()
+    invalid_interval_params["interval_seconds"] = 0
     with pytest.raises(ValueError, match="must be positive"):
-        create_twap_order(**base_params, times=5, interval_seconds=0)
+        create_twap_order(**invalid_interval_params, times=5)
 
 
-def test_twap_with_reduce_only():
+def test_twap_with_reduce_only(senders):
     """Test creating TWAP order with reduce_only flag."""
     order = create_twap_order(
         product_id=1,
-        sender="0x" + "1" * 64,
+        sender=senders[0],
         price_x18="50000000000000000000000",
-        total_amount="-500000000000000000",  # Sell order
+        total_amount_x18="-500000000000000000",  # Sell order
         expiration=1700000000,
         nonce=123456,
         times=2,
@@ -175,18 +181,18 @@ def test_twap_with_reduce_only():
     )
     
     # Check that reduce_only is encoded in appendix
-    appendix = int(order.order["appendix"])
+    appendix = int(order.order.appendix)
     assert order_reduce_only(appendix) is True
 
 
-def test_twap_edge_cases():
+def test_twap_edge_cases(senders):
     """Test TWAP creation with edge case values."""
     # Maximum times
     order = create_twap_order(
         product_id=1,
-        sender="0x" + "1" * 64,
+        sender=senders[0],
         price_x18="1000000000000000000000",
-        total_amount="50000000000000000000000",  # Large amount
+        total_amount_x18="50000000000000000000000",  # Large amount
         expiration=1700000000,
         nonce=123456,
         times=500,
@@ -194,19 +200,19 @@ def test_twap_edge_cases():
         interval_seconds=1,  # Minimum interval
     )
     
-    appendix = int(order.order["appendix"])
+    appendix = int(order.order.appendix)
     times, slippage = order_twap_data(appendix)
     assert times == 500
     assert abs(slippage - 0.999999) < 1e-6
 
 
-def test_negative_amount_twap():
+def test_negative_amount_twap(senders):
     """Test TWAP order with negative amount (sell order)."""
     order = create_twap_order(
         product_id=1,
-        sender="0x" + "1" * 64,
+        sender=senders[0],
         price_x18="50000000000000000000000",
-        total_amount="-2000000000000000000",  # -2 BTC
+        total_amount_x18="-2000000000000000000",  # -2 BTC
         expiration=1700000000,
         nonce=123456,
         times=4,
@@ -214,5 +220,5 @@ def test_negative_amount_twap():
         interval_seconds=900,
     )
     
-    assert order.order["amount"] == "-2000000000000000000"
+    assert order.order.amount == -2000000000000000000
     assert order.trigger.interval == 900
