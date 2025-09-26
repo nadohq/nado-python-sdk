@@ -4,7 +4,11 @@ from nado_protocol.trigger_client.types import TriggerClientOpts
 from nado_protocol.trigger_client.types.query import (
     ListTriggerOrdersParams,
     ListTriggerOrdersRequest,
+    ListTwapExecutionsParams,
+    ListTwapExecutionsRequest,
     TriggerQueryResponse,
+    TriggerQueryParams,
+    TriggerQueryRequest,
 )
 from nado_protocol.utils.exceptions import (
     BadStatusCodeException,
@@ -59,3 +63,18 @@ class TriggerQueryClient(NadoBaseExecute):
             NadoTxType.LIST_TRIGGER_ORDERS, params.tx.dict()
         )
         return self.query(ListTriggerOrdersRequest.parse_obj(params).dict())
+
+    def list_twap_executions(
+        self, params: ListTwapExecutionsParams
+    ) -> TriggerQueryResponse:
+        """
+        List TWAP executions for a specific order digest.
+
+        Args:
+            params (ListTwapExecutionsParams): Parameters containing the order digest.
+
+        Returns:
+            TriggerQueryResponse: Response containing TWAP execution details.
+        """
+        params = ListTwapExecutionsParams.parse_obj(params)
+        return self.query(ListTwapExecutionsRequest.parse_obj(params).dict())

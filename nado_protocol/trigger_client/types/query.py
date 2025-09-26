@@ -1,4 +1,5 @@
-from typing import Optional
+from typing import Optional, List, Union
+from enum import Enum
 
 from pydantic import validator
 
@@ -7,6 +8,22 @@ from nado_protocol.trigger_client.types.models import TriggerOrderData
 from nado_protocol.utils.bytes32 import bytes32_to_hex
 from nado_protocol.utils.execute import BaseParams, SignatureParams
 from nado_protocol.utils.model import NadoBaseModel
+
+
+class TriggerType(str, Enum):
+    PRICE_TRIGGER = "price_trigger"
+    TIME_TRIGGER = "time_trigger"
+
+
+class TriggerOrderStatusType(str, Enum):
+    CANCELLED = "cancelled"
+    TRIGGERED = "triggered"
+    INTERNAL_ERROR = "internal_error"
+    TRIGGERING = "triggering"
+    WAITING_PRICE = "waiting_price"
+    WAITING_DEPENDENCY = "waiting_dependency"
+    TWAP_EXECUTING = "twap_executing"
+    TWAP_COMPLETED = "twap_completed"
 
 
 class ListTriggerOrdersTx(BaseParams):
@@ -20,13 +37,59 @@ class ListTriggerOrdersParams(NadoBaseModel):
 
     type = "list_trigger_orders"
     tx: ListTriggerOrdersTx
-    product_id: Optional[int]
-    pending: bool
-    max_update_time: Optional[str]
-    max_digest: Optional[str]
-    digests: Optional[list[str]]
-    limit: Optional[int]
-    signature: Optional[str]
+    product_ids: Optional[List[int]] = None
+    trigger_types: Optional[List[TriggerType]] = None
+    status_types: Optional[List[TriggerOrderStatusType]] = None
+    max_update_time: Optional[int] = None
+    max_digest: Optional[str] = None
+    digests: Optional[List[str]] = None
+    reduce_only: Optional[bool] = None
+    limit: Optional[int] = None
+    signature: Optional[str] = None
+
+
+class ListTwapExecutionsParams(NadoBaseModel):
+    """
+    Parameters for listing TWAP executions for a specific order
+    """
+
+    type = "list_twap_executions"
+    digest: str
+
+
+class TwapExecutionStatusData(NadoBaseModel):
+    """Status data for TWAP execution"""
+    pass
+
+
+class PendingStatus(TwapExecutionStatusData):
+    pending: bool = True
+
+
+class ExecutedStatus(TwapExecutionStatusData):
+    executed_time: int
+    execute_response: dict  # ExecuteResponse from engine
+
+
+class FailedStatus(TwapExecutionStatusData):
+    failed: str
+
+
+class CancelledStatus(TwapExecutionStatusData):
+    cancelled: str
+
+
+class TwapExecutionDetail(NadoBaseModel):
+    """Detail of a single TWAP execution"""
+    execution_id: int
+    scheduled_time: int
+    status: Union[PendingStatus, ExecutedStatus, FailedStatus, CancelledStatus]
+    updated_at: int
+
+
+class TwapExecutionsData(NadoBaseModel):
+    """Data model for TWAP executions"""
+    executions: List[TwapExecutionDetail]
 
 
 class TriggerOrder(NadoBaseModel):
@@ -40,7 +103,7 @@ class TriggerOrdersData(NadoBaseModel):
     Data model for trigger orders
     """
 
-    orders: list[TriggerOrder]
+    orders: List[TriggerOrder]
 
 
 class ListTriggerOrdersRequest(ListTriggerOrdersParams):
@@ -54,6 +117,15 @@ class ListTriggerOrdersRequest(ListTriggerOrdersParams):
         return v
 
 
+class ListTwapExecutionsRequest(ListTwapExecutionsParams):
+    pass
+
+
+TriggerQueryParams = Union[ListTriggerOrdersParams, ListTwapExecutionsParams]
+TriggerQueryRequest = Union[ListTriggerOrdersRequest, ListTwapExecutionsRequest]
+TriggerQueryData = Union[TriggerOrdersData, TwapExecutionsData]
+
+
 class TriggerQueryResponse(NadoBaseModel):
     """
     Represents a response to a query request.
@@ -61,7 +133,7 @@ class TriggerQueryResponse(NadoBaseModel):
     Attributes:
         status (ResponseStatus): The status of the query response.
 
-        data (Optional[QueryResponseData]): The data returned from the query, or an error message if the query failed.
+        data (Optional[TriggerQueryData]): The data returned from the query, or an error message if the query failed.
 
         error (Optional[str]): The error message, if any error occurred during the query.
 
@@ -71,7 +143,7 @@ class TriggerQueryResponse(NadoBaseModel):
     """
 
     status: ResponseStatus
-    data: Optional[TriggerOrdersData]
-    error: Optional[str]
-    error_code: Optional[int]
-    request_type: Optional[str]
+    data: Optional[TriggerQueryData] = None
+    error: Optional[str] = None
+    error_code: Optional[int] = None
+    request_type: Optional[str] = None

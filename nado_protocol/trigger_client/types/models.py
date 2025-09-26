@@ -1,26 +1,58 @@
-from typing import Optional, Union
+from typing import Optional, Union, List
 from nado_protocol.utils.model import NadoBaseModel
 
 
-class PriceAboveTrigger(NadoBaseModel):
-    price_above: str
+class OraclePriceAbove(NadoBaseModel):
+    oracle_price_above: str
 
 
-class PriceBelowTrigger(NadoBaseModel):
-    price_below: str
+class OraclePriceBelow(NadoBaseModel):
+    oracle_price_below: str
 
 
-class LastPriceAboveTrigger(NadoBaseModel):
+class LastPriceAbove(NadoBaseModel):
     last_price_above: str
 
 
-class LastPriceBelowTrigger(NadoBaseModel):
+class LastPriceBelow(NadoBaseModel):
     last_price_below: str
 
 
-TriggerCriteria = Union[
-    PriceAboveTrigger, PriceBelowTrigger, LastPriceAboveTrigger, LastPriceBelowTrigger
+class MidPriceAbove(NadoBaseModel):
+    mid_price_above: str
+
+
+class MidPriceBelow(NadoBaseModel):
+    mid_price_below: str
+
+
+PriceRequirement = Union[
+    OraclePriceAbove,
+    OraclePriceBelow,
+    LastPriceAbove,
+    LastPriceBelow,
+    MidPriceAbove,
+    MidPriceBelow
 ]
+
+
+class Dependency(NadoBaseModel):
+    digest: str
+    on_partial_fill: bool
+
+
+class PriceTrigger(NadoBaseModel):
+    price_requirement: PriceRequirement
+    dependency: Optional[Dependency] = None
+
+
+class TimeTrigger(NadoBaseModel):
+    """Time-based trigger for TWAP orders."""
+    interval: int  # interval in seconds between executions
+    amounts: Optional[List[str]] = None  # optional custom amounts per execution
+
+
+TriggerCriteria = Union[PriceTrigger, TimeTrigger]
 
 
 class OrderData(NadoBaseModel):

@@ -473,3 +473,95 @@ def test_all_combinations_work():
     assert order_execution_type(appendix) == OrderType.POST_ONLY
     assert order_reduce_only(appendix)
     assert not order_is_trigger_order(appendix)
+
+
+def test_twap_ioc_requirement():
+    """Test that TWAP orders must use IOC execution type."""
+    # TWAP orders should work with IOC
+    appendix = build_appendix(
+        OrderType.IOC,
+        trigger_type=OrderAppendixTriggerType.TWAP,
+        twap_times=5,
+        twap_slippage_frac=0.01,
+    )
+    
+    assert order_execution_type(appendix) == OrderType.IOC
+    assert order_trigger_type(appendix) == OrderAppendixTriggerType.TWAP
+    twap_data = order_twap_data(appendix)
+    assert twap_data == (5, 0.01)
+
+
+def test_twap_custom_amounts_trigger():
+    """Test TWAP_CUSTOM_AMOUNTS trigger type."""
+    times = 3
+    slippage = 0.02
+    
+    appendix = build_appendix(
+        OrderType.IOC,
+        trigger_type=OrderAppendixTriggerType.TWAP_CUSTOM_AMOUNTS,
+        twap_times=times,
+        twap_slippage_frac=slippage,
+    )
+    
+    assert order_trigger_type(appendix) == OrderAppendixTriggerType.TWAP_CUSTOM_AMOUNTS
+    assert order_execution_type(appendix) == OrderType.IOC
+    assert order_is_trigger_order(appendix)
+    
+    twap_data = order_twap_data(appendix)
+    assert twap_data is not None
+    extracted_times, extracted_slippage = twap_data
+    assert extracted_times == times
+    assert abs(extracted_slippage - slippage) < 1e-6
+
+
+def test_twap_reduce_only_combination():
+    """Test TWAP orders with reduce_only flag."""
+    appendix = build_appendix(
+        OrderType.IOC,
+        reduce_only=True,
+        trigger_type=OrderAppendixTriggerType.TWAP,
+        twap_times=10,
+        twap_slippage_frac=0.005,
+    )
+    
+    assert order_reduce_only(appendix)
+    assert order_trigger_type(appendix) == OrderAppendixTriggerType.TWAP
+    assert order_execution_type(appendix) == OrderType.IOC
+
+
+def test_twap_large_values():
+    """Test TWAP with large times and precise slippage."""
+    times = 500  # Maximum allowed
+    slippage = 0.123456  # Precise slippage
+    
+    appendix = build_appendix(
+        OrderType.IOC,
+        trigger_type=OrderAppendixTriggerType.TWAP,
+        twap_times=times,
+        twap_slippage_frac=slippage,
+    )
+    
+    twap_data = order_twap_data(appendix)
+    assert twap_data is not None
+    extracted_times, extracted_slippage = twap_data
+    assert extracted_times == times
+    assert abs(extracted_slippage - slippage) < 1e-6
+
+
+def test_twap_minimum_values():
+    """Test TWAP with minimum valid values."""
+    times = 1
+    slippage = 0.000001
+    
+    appendix = build_appendix(
+        OrderType.IOC,
+        trigger_type=OrderAppendixTriggerType.TWAP,
+        twap_times=times,
+        twap_slippage_frac=slippage,
+    )
+    
+    twap_data = order_twap_data(appendix)
+    assert twap_data is not None
+    extracted_times, extracted_slippage = twap_data
+    assert extracted_times == times
+    assert abs(extracted_slippage - slippage) < 1e-6
