@@ -621,17 +621,16 @@ def test_place_twap_order_entry_point(
     }
     mock_post.return_value = mock_response
 
-    # Test basic TWAP order
+    # Test basic TWAP order - using defaults for subaccount_owner and subaccount_name
     res = trigger_client.place_twap_order(
         product_id=1,
-        sender=senders[0],
         price_x18="50000000000000000000000",  # $50,000
         total_amount_x18="1000000000000000000",  # 1 BTC
-        expiration=1700000000,
-        nonce=123456,
         times=5,
         slippage_frac=0.01,
         interval_seconds=300,
+        expiration=1700000000,
+        nonce=123456,
     )
 
     assert res.status == "success"
@@ -677,15 +676,14 @@ def test_place_twap_order_with_custom_amounts(
 
     res = trigger_client.place_twap_order(
         product_id=2,
-        sender=senders[0],
         price_x18="25000000000000000000000",
         total_amount_x18=total_amount_x18,
-        expiration=1700000000,
-        nonce=789012,
         times=3,
         slippage_frac=0.005,
         interval_seconds=600,
         custom_amounts_x18=custom_amounts_x18,
+        expiration=1700000000,
+        nonce=789012,
     )
 
     assert res.status == "success"
@@ -711,15 +709,14 @@ def test_place_twap_order_with_reduce_only(
 
     res = trigger_client.place_twap_order(
         product_id=1,
-        sender=senders[0],
         price_x18="48000000000000000000000",
         total_amount_x18="-500000000000000000",  # Sell order
-        expiration=1700000000,
-        nonce=123456,
         times=2,
         slippage_frac=0.01,
         interval_seconds=300,
         reduce_only=True,
+        expiration=1700000000,
+        nonce=123456,
     )
 
     assert res.status == "success"
@@ -745,16 +742,15 @@ def test_place_price_trigger_order_entry_point(
     }
     mock_post.return_value = mock_response
 
-    # Test last_price_above trigger
+    # Test last_price_above trigger - using defaults
     res = trigger_client.place_price_trigger_order(
         product_id=1,
-        sender=senders[0],
         price_x18="52000000000000000000000",  # $52,000 limit price
         amount_x18="500000000000000000",  # 0.5 BTC
-        expiration=1700000000,
-        nonce=123456,
         trigger_price_x18="51000000000000000000000",  # $51,000 trigger price
         trigger_type="last_price_above",
+        expiration=1700000000,
+        nonce=123456,
     )
 
     assert res.status == "success"

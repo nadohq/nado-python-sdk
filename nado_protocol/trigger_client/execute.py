@@ -20,7 +20,9 @@ from nado_protocol.utils.execute import NadoBaseExecute, OrderParams
 from nado_protocol.utils.model import NadoBaseModel, is_instance_of_union
 from nado_protocol.utils.twap import create_twap_order
 from nado_protocol.utils.order import build_appendix, OrderAppendixTriggerType
-from nado_protocol.utils.expiration import OrderType
+from nado_protocol.utils.expiration import OrderType, get_expiration_timestamp
+from nado_protocol.utils.nonce import gen_order_nonce
+from nado_protocol.utils.subaccount import SubaccountParams
 from nado_protocol.trigger_client.types.models import (
     PriceTrigger,
     LastPriceAbove,
@@ -111,14 +113,16 @@ class TriggerExecuteClient(NadoBaseExecute):
     def place_twap_order(
         self,
         product_id: int,
-        sender: str,
         price_x18: str,
         total_amount_x18: str,
-        expiration: int,
-        nonce: int,
         times: int,
         slippage_frac: float,
         interval_seconds: int,
+        sender: Optional[str] = None,
+        subaccount_owner: Optional[str] = None,
+        subaccount_name: str = "default",
+        expiration: Optional[int] = None,
+        nonce: Optional[int] = None,
         custom_amounts_x18: Optional[List[str]] = None,
         reduce_only: bool = False,
         spot_leverage: Optional[bool] = None,
@@ -126,34 +130,51 @@ class TriggerExecuteClient(NadoBaseExecute):
     ) -> ExecuteResponse:
         """
         Place a TWAP (Time-Weighted Average Price) order.
-        
+
         This is a convenience method that creates a TWAP trigger order with the specified parameters.
-        
+
         Args:
             product_id (int): The product ID for the order.
-            sender (str): The sender address (32 bytes hex).
             price_x18 (str): The limit price multiplied by 1e18.
             total_amount_x18 (str): The total amount to trade multiplied by 1e18 (signed, negative for sell).
-            expiration (int): Order expiration timestamp.
-            nonce (int): Order nonce.
             times (int): Number of TWAP executions (1-500).
             slippage_frac (float): Slippage tolerance as a fraction (e.g., 0.01 for 1%).
             interval_seconds (int): Time interval between executions in seconds.
+            sender (Optional[str]): The sender address (32 bytes hex or SubaccountParams). If provided, takes precedence over subaccount_owner/subaccount_name.
+            subaccount_owner (Optional[str]): The subaccount owner address. If not provided, uses client's signer address. Ignored if sender is provided.
+            subaccount_name (str): The subaccount name. Defaults to "default". Ignored if sender is provided.
+            expiration (Optional[int]): Order expiration timestamp. If not provided, calculated as ((times - 1) * interval_seconds) + 24 hours from now.
+            nonce (Optional[int]): Order nonce. If not provided, will be auto-generated.
             custom_amounts_x18 (Optional[List[str]]): Custom amounts for each execution multiplied by 1e18.
-            reduce_only (bool): Whether this is a reduce-only order.
+            reduce_only (bool): Whether this is a reduce-only order. Defaults to False.
             spot_leverage (Optional[bool]): Whether to use spot leverage.
             id (Optional[int]): Optional order ID.
-        
+
         Returns:
             ExecuteResponse: The response from placing the TWAP order.
         """
+        # Calculate default expiration if not provided
+        # Backend requires: min_expiration <= expiration <= timestamp + 25 hours
+        # Where min_expiration = ((times - 1) * interval) + now
+        if expiration is None:
+            min_duration = (times - 1) * interval_seconds
+            # Set expiration to minimum + 24 hours buffer
+            expiration = get_expiration_timestamp(min_duration + 60 * 60 * 24)
+
+        # Build sender from subaccount parameters if not directly provided
+        if sender is None:
+            sender = SubaccountParams(
+                subaccount_owner=subaccount_owner or self.signer.address,
+                subaccount_name=subaccount_name,
+            )
+
         params = create_twap_order(
             product_id=product_id,
             sender=sender,
             price_x18=price_x18,
             total_amount_x18=total_amount_x18,
             expiration=expiration,
-            nonce=nonce,
+            nonce=nonce if nonce is not None else gen_order_nonce(),
             times=times,
             slippage_frac=slippage_frac,
             interval_seconds=interval_seconds,
@@ -167,13 +188,15 @@ class TriggerExecuteClient(NadoBaseExecute):
     def place_price_trigger_order(
         self,
         product_id: int,
-        sender: str,
         price_x18: str,
         amount_x18: str,
-        expiration: int,
-        nonce: int,
         trigger_price_x18: str,
         trigger_type: str = "last_price_above",
+        sender: Optional[str] = None,
+        subaccount_owner: Optional[str] = None,
+        subaccount_name: str = "default",
+        expiration: Optional[int] = None,
+        nonce: Optional[int] = None,
         reduce_only: bool = False,
         order_type: OrderType = OrderType.DEFAULT,
         spot_leverage: Optional[bool] = None,
@@ -186,18 +209,20 @@ class TriggerExecuteClient(NadoBaseExecute):
 
         Args:
             product_id (int): The product ID for the order.
-            sender (str): The sender address (32 bytes hex).
             price_x18 (str): The limit price multiplied by 1e18.
             amount_x18 (str): The amount to trade multiplied by 1e18 (signed, negative for sell).
-            expiration (int): Order expiration timestamp.
-            nonce (int): Order nonce.
             trigger_price_x18 (str): The trigger price multiplied by 1e18.
             trigger_type (str): Type of price trigger - one of:
                 "last_price_above", "last_price_below",
                 "oracle_price_above", "oracle_price_below",
-                "mid_price_above", "mid_price_below"
-            reduce_only (bool): Whether this is a reduce-only order.
-            order_type (OrderType): Order execution type (DEFAULT, IOC, FOK, POST_ONLY).
+                "mid_price_above", "mid_price_below". Defaults to "last_price_above".
+            sender (Optional[str]): The sender address (32 bytes hex or SubaccountParams). If provided, takes precedence over subaccount_owner/subaccount_name.
+            subaccount_owner (Optional[str]): The subaccount owner address. If not provided, uses client's signer address. Ignored if sender is provided.
+            subaccount_name (str): The subaccount name. Defaults to "default". Ignored if sender is provided.
+            expiration (Optional[int]): Order expiration timestamp. If not provided, defaults to 7 days from now.
+            nonce (Optional[int]): Order nonce. If not provided, will be auto-generated.
+            reduce_only (bool): Whether this is a reduce-only order. Defaults to False.
+            order_type (OrderType): Order execution type (DEFAULT, IOC, FOK, POST_ONLY). Defaults to DEFAULT.
             spot_leverage (Optional[bool]): Whether to use spot leverage.
             id (Optional[int]): Optional order ID.
 
@@ -236,12 +261,23 @@ class TriggerExecuteClient(NadoBaseExecute):
             trigger_type=OrderAppendixTriggerType.PRICE,
         )
 
+        # Default expiration to 7 days if not provided
+        if expiration is None:
+            expiration = get_expiration_timestamp(60 * 60 * 24 * 7)
+
+        # Build sender from subaccount parameters if not directly provided
+        if sender is None:
+            sender = SubaccountParams(
+                subaccount_owner=subaccount_owner or self.signer.address,
+                subaccount_name=subaccount_name,
+            )
+
         order_params = OrderParams(
             sender=sender,
             priceX18=int(price_x18),
             amount=int(amount_x18),
             expiration=expiration,
-            nonce=nonce,
+            nonce=nonce if nonce is not None else gen_order_nonce(),
             appendix=appendix,
         )
 

@@ -117,65 +117,56 @@ def run():
     print("TWAP ORDER EXAMPLES")
     print("="*50)
 
-    # Example 1: Basic TWAP order using convenience method
-    print("\n1. Basic TWAP order (DCA strategy)")
+    # Example 1: Basic TWAP order using convenience method (with defaults)
+    print("\n1. Basic TWAP order (DCA strategy) - using defaults")
     print("-" * 40)
-    
+
     twap_res = client.place_twap_order(
         product_id=1,
-        sender=client.signer.address,
-        price_x18=str(to_x18(52_000)),  # Max $52k per execution
-        total_amount_x18=str(to_pow_10(5, 18)),  # Buy 5 BTC total
-        expiration=get_expiration_timestamp(60 * 60 * 24),  # 24 hours
-        nonce=client.order_nonce(),
-        times=10,  # Split into 10 executions
-        slippage_frac=0.005,  # 0.5% slippage tolerance
-        interval_seconds=3600,  # 1 hour intervals
+        price_x18=str(to_x18(52_000)),
+        total_amount_x18=str(to_pow_10(5, 18)),
+        times=10,
+        slippage_frac=0.005,
+        interval_seconds=3600,
     )
     print(f"TWAP order result: {twap_res.json(indent=2)}")
 
-    # Example 2: TWAP order with custom amounts
-    print("\n2. TWAP order with custom amounts (decreasing size)")
+    # Example 2: TWAP order with custom amounts and subaccount parameters
+    print("\n2. TWAP order with custom amounts (using subaccount parameters)")
     print("-" * 55)
-    
-    # Custom amounts that decrease over time: 2 BTC, 1.5 BTC, 1 BTC, 0.5 BTC
+
     custom_amounts = [
-        str(to_pow_10(2, 18)),    # 2 BTC
-        str(to_pow_10(15, 17)),   # 1.5 BTC  
-        str(to_pow_10(1, 18)),    # 1 BTC
-        str(to_pow_10(5, 17)),    # 0.5 BTC
+        str(to_pow_10(2, 18)),
+        str(to_pow_10(15, 17)),
+        str(to_pow_10(1, 18)),
+        str(to_pow_10(5, 17)),
     ]
-    total_amount = str(to_pow_10(5, 18))  # 5 BTC total
-    
+    total_amount = str(to_pow_10(5, 18))
+
     custom_twap_res = client.place_twap_order(
         product_id=1,
-        sender=client.signer.address,
-        price_x18=str(to_x18(51_000)),  # Max $51k per execution
+        price_x18=str(to_x18(51_000)),
         total_amount_x18=total_amount,
-        expiration=get_expiration_timestamp(60 * 60 * 12),  # 12 hours
-        nonce=client.order_nonce(),
-        times=4,  # 4 executions
-        slippage_frac=0.01,  # 1% slippage tolerance
-        interval_seconds=2700,  # 45 minute intervals
+        times=4,
+        slippage_frac=0.01,
+        interval_seconds=2700,
         custom_amounts_x18=custom_amounts,
+        subaccount_name="default",
     )
     print(f"Custom TWAP order result: {custom_twap_res.json(indent=2)}")
 
     # Example 3: TWAP sell order with reduce_only
     print("\n3. TWAP sell order (reduce-only position closing)")
     print("-" * 50)
-    
+
     reduce_twap_res = client.place_twap_order(
         product_id=1,
-        sender=client.signer.address,
-        price_x18=str(to_x18(48_000)),  # Min $48k per execution
-        total_amount_x18=str(-to_pow_10(3, 18)),  # Sell 3 BTC total (negative)
-        expiration=get_expiration_timestamp(60 * 60 * 6),  # 6 hours
-        nonce=client.order_nonce(),
-        times=6,  # Split into 6 executions
-        slippage_frac=0.0075,  # 0.75% slippage tolerance
-        interval_seconds=1800,  # 30 minute intervals
-        reduce_only=True,  # Only reduce existing position
+        price_x18=str(to_x18(48_000)),
+        total_amount_x18=str(-to_pow_10(3, 18)),
+        times=6,
+        slippage_frac=0.0075,
+        interval_seconds=1800,
+        reduce_only=True,
     )
     print(f"Reduce-only TWAP result: {reduce_twap_res.json(indent=2)}")
 
@@ -183,18 +174,15 @@ def run():
     print("PRICE TRIGGER ORDER EXAMPLES")
     print("="*50)
 
-    # Example 4: Stop-loss order using convenience method
-    print("\n4. Stop-loss order (last price below)")
+    # Example 4: Stop-loss order using convenience method (with defaults)
+    print("\n4. Stop-loss order (last price below) - using defaults")
     print("-" * 40)
-    
+
     stop_loss_res = client.place_price_trigger_order(
         product_id=1,
-        sender=client.signer.address,
-        price_x18=str(to_x18(45_000)),  # Sell at $45k
-        amount_x18=str(-to_pow_10(1, 18)),  # Sell 1 BTC
-        expiration=get_expiration_timestamp(60 * 60 * 24 * 7),  # 1 week
-        nonce=client.order_nonce(),
-        trigger_price_x18=str(to_x18(46_000)),  # Trigger below $46k
+        price_x18=str(to_x18(45_000)),
+        amount_x18=str(-to_pow_10(1, 18)),
+        trigger_price_x18=str(to_x18(46_000)),
         trigger_type="last_price_below",
         reduce_only=True,
     )
@@ -203,15 +191,12 @@ def run():
     # Example 5: Take-profit order
     print("\n5. Take-profit order (last price above)")
     print("-" * 40)
-    
+
     take_profit_res = client.place_price_trigger_order(
         product_id=1,
-        sender=client.signer.address,
-        price_x18=str(to_x18(55_000)),  # Sell at $55k
-        amount_x18=str(-to_pow_10(1, 18)),  # Sell 1 BTC
-        expiration=get_expiration_timestamp(60 * 60 * 24 * 7),  # 1 week
-        nonce=client.order_nonce(),
-        trigger_price_x18=str(to_x18(54_000)),  # Trigger above $54k
+        price_x18=str(to_x18(55_000)),
+        amount_x18=str(-to_pow_10(1, 18)),
+        trigger_price_x18=str(to_x18(54_000)),
         trigger_type="last_price_above",
         reduce_only=True,
     )
@@ -220,15 +205,12 @@ def run():
     # Example 6: Oracle-based trigger order
     print("\n6. Oracle price trigger order")
     print("-" * 35)
-    
+
     oracle_trigger_res = client.place_price_trigger_order(
         product_id=1,
-        sender=client.signer.address,
-        price_x18=str(to_x18(50_500)),  # Buy at $50.5k
-        amount_x18=str(to_pow_10(1, 18)),  # Buy 1 BTC
-        expiration=get_expiration_timestamp(60 * 60 * 24),  # 24 hours
-        nonce=client.order_nonce(),
-        trigger_price_x18=str(to_x18(50_000)),  # Trigger above $50k oracle price
+        price_x18=str(to_x18(50_500)),
+        amount_x18=str(to_pow_10(1, 18)),
+        trigger_price_x18=str(to_x18(50_000)),
         trigger_type="oracle_price_above",
     )
     print(f"Oracle trigger order result: {oracle_trigger_res.json(indent=2)}")
@@ -236,15 +218,12 @@ def run():
     # Example 7: Mid price trigger order
     print("\n7. Mid price trigger order")
     print("-" * 30)
-    
+
     mid_price_trigger_res = client.place_price_trigger_order(
         product_id=1,
-        sender=client.signer.address,
-        price_x18=str(to_x18(49_500)),  # Buy at $49.5k
-        amount_x18=str(to_pow_10(5, 17)),  # Buy 0.5 BTC
-        expiration=get_expiration_timestamp(60 * 60 * 12),  # 12 hours
-        nonce=client.order_nonce(),
-        trigger_price_x18=str(to_x18(49_000)),  # Trigger below $49k mid price
+        price_x18=str(to_x18(49_500)),
+        amount_x18=str(to_pow_10(5, 17)),
+        trigger_price_x18=str(to_x18(49_000)),
         trigger_type="mid_price_below",
     )
     print(f"Mid price trigger result: {mid_price_trigger_res.json(indent=2)}")
@@ -257,46 +236,34 @@ def run():
     print("\n8. Complete trading strategy")
     print("-" * 30)
     print("Setting up: Stop-loss + Take-profit + DCA TWAP")
-    
-    # Stop-loss
+
     strategy_stop_loss = client.place_price_trigger_order(
         product_id=1,
-        sender=client.signer.address,
         price_x18=str(to_x18(44_000)),
-        amount_x18=str(-to_pow_10(2, 18)),  # Close 2 BTC
-        expiration=get_expiration_timestamp(60 * 60 * 24 * 30),  # 30 days
-        nonce=client.order_nonce(),
+        amount_x18=str(-to_pow_10(2, 18)),
         trigger_price_x18=str(to_x18(45_000)),
         trigger_type="last_price_below",
         reduce_only=True,
     )
     print(f"Strategy stop-loss: {strategy_stop_loss.status}")
-    
-    # Take-profit
+
     strategy_take_profit = client.place_price_trigger_order(
         product_id=1,
-        sender=client.signer.address,
         price_x18=str(to_x18(58_000)),
-        amount_x18=str(-to_pow_10(2, 18)),  # Close 2 BTC
-        expiration=get_expiration_timestamp(60 * 60 * 24 * 30),  # 30 days
-        nonce=client.order_nonce(),
+        amount_x18=str(-to_pow_10(2, 18)),
         trigger_price_x18=str(to_x18(57_000)),
         trigger_type="last_price_above",
         reduce_only=True,
     )
     print(f"Strategy take-profit: {strategy_take_profit.status}")
-    
-    # DCA TWAP
+
     strategy_dca = client.place_twap_order(
         product_id=1,
-        sender=client.signer.address,
         price_x18=str(to_x18(52_000)),
-        total_amount_x18=str(to_pow_10(10, 18)),  # Buy 10 BTC over time
-        expiration=get_expiration_timestamp(60 * 60 * 24 * 7),  # 1 week
-        nonce=client.order_nonce(),
-        times=20,  # 20 executions
+        total_amount_x18=str(to_pow_10(10, 18)),
+        times=20,
         slippage_frac=0.005,
-        interval_seconds=1800,  # 30 minutes
+        interval_seconds=1800,
     )
     print(f"Strategy DCA TWAP: {strategy_dca.status}")
     
