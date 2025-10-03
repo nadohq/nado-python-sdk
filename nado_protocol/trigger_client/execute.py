@@ -191,7 +191,7 @@ class TriggerExecuteClient(NadoBaseExecute):
         price_x18: str,
         amount_x18: str,
         trigger_price_x18: str,
-        trigger_type: str = "last_price_above",
+        trigger_type: str,
         sender: Optional[str] = None,
         subaccount_owner: Optional[str] = None,
         subaccount_name: str = "default",
@@ -215,7 +215,7 @@ class TriggerExecuteClient(NadoBaseExecute):
             trigger_type (str): Type of price trigger - one of:
                 "last_price_above", "last_price_below",
                 "oracle_price_above", "oracle_price_below",
-                "mid_price_above", "mid_price_below". Defaults to "last_price_above".
+                "mid_price_above", "mid_price_below".
             sender (Optional[str]): The sender address (32 bytes hex or SubaccountParams). If provided, takes precedence over subaccount_owner/subaccount_name.
             subaccount_owner (Optional[str]): The subaccount owner address. If not provided, uses client's signer address. Ignored if sender is provided.
             subaccount_name (str): The subaccount name. Defaults to "default". Ignored if sender is provided.
