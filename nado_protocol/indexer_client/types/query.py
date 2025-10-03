@@ -134,8 +134,8 @@ class IndexerSubaccountSummaryParams(NadoBaseModel):
     """
 
     subaccount: str
-    timestamp: Optional[int]
-    active: Optional[bool]
+    timestamp: Optional[int] = None
+    active: Optional[bool] = None
 
 
 class IndexerProductSnapshotsParams(IndexerBaseParams):
