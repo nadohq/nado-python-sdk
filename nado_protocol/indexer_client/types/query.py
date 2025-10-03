@@ -75,6 +75,7 @@ class IndexerSubaccountHistoricalOrdersParams(IndexerBaseParams):
 
     subaccount: str
     product_ids: Optional[list[int]]
+    trigger_types: Optional[list[str]]
     isolated: Optional[bool]
 
 
@@ -134,6 +135,7 @@ class IndexerSubaccountSummaryParams(NadoBaseModel):
 
     subaccount: str
     timestamp: Optional[int]
+    active: Optional[bool]
 
 
 class IndexerProductSnapshotsParams(IndexerBaseParams):

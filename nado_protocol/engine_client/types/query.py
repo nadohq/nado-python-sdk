@@ -179,10 +179,20 @@ class QueryMaxOrderSizeParams(SpotLeverageSerializerMixin):
     product_id: int
     price_x18: str
     direction: MaxOrderSizeDirection
+    reduce_only: Optional[bool]
+    isolated: Optional[bool]
 
     @validator("direction")
     def direction_to_str(cls, v: MaxOrderSizeDirection) -> str:
         return v.value
+
+    @validator("reduce_only")
+    def reduce_only_to_str(cls, v: Optional[bool]) -> Optional[str]:
+        return str(v).lower() if v is not None else v
+
+    @validator("isolated")
+    def isolated_to_str(cls, v: Optional[bool]) -> Optional[str]:
+        return str(v).lower() if v is not None else v
 
 
 class QueryMaxWithdrawableParams(SpotLeverageSerializerMixin):
