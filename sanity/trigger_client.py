@@ -126,7 +126,7 @@ def run():
         sender=client.signer.address,
         price_x18=str(to_x18(52_000)),  # Max $52k per execution
         total_amount_x18=str(to_pow_10(5, 18)),  # Buy 5 BTC total
-        expiration=get_expiration_timestamp(60 * 24),  # 24 hours
+        expiration=get_expiration_timestamp(60 * 60 * 24),  # 24 hours
         nonce=client.order_nonce(),
         times=10,  # Split into 10 executions
         slippage_frac=0.005,  # 0.5% slippage tolerance
@@ -152,7 +152,7 @@ def run():
         sender=client.signer.address,
         price_x18=str(to_x18(51_000)),  # Max $51k per execution
         total_amount_x18=total_amount,
-        expiration=get_expiration_timestamp(60 * 12),  # 12 hours
+        expiration=get_expiration_timestamp(60 * 60 * 12),  # 12 hours
         nonce=client.order_nonce(),
         times=4,  # 4 executions
         slippage_frac=0.01,  # 1% slippage tolerance
@@ -170,7 +170,7 @@ def run():
         sender=client.signer.address,
         price_x18=str(to_x18(48_000)),  # Min $48k per execution
         total_amount_x18=str(-to_pow_10(3, 18)),  # Sell 3 BTC total (negative)
-        expiration=get_expiration_timestamp(60 * 6),  # 6 hours
+        expiration=get_expiration_timestamp(60 * 60 * 6),  # 6 hours
         nonce=client.order_nonce(),
         times=6,  # Split into 6 executions
         slippage_frac=0.0075,  # 0.75% slippage tolerance
@@ -192,7 +192,7 @@ def run():
         sender=client.signer.address,
         price_x18=str(to_x18(45_000)),  # Sell at $45k
         amount_x18=str(-to_pow_10(1, 18)),  # Sell 1 BTC
-        expiration=get_expiration_timestamp(60 * 24 * 7),  # 1 week
+        expiration=get_expiration_timestamp(60 * 60 * 24 * 7),  # 1 week
         nonce=client.order_nonce(),
         trigger_price_x18=str(to_x18(46_000)),  # Trigger below $46k
         trigger_type="last_price_below",
@@ -209,7 +209,7 @@ def run():
         sender=client.signer.address,
         price_x18=str(to_x18(55_000)),  # Sell at $55k
         amount_x18=str(-to_pow_10(1, 18)),  # Sell 1 BTC
-        expiration=get_expiration_timestamp(60 * 24 * 7),  # 1 week
+        expiration=get_expiration_timestamp(60 * 60 * 24 * 7),  # 1 week
         nonce=client.order_nonce(),
         trigger_price_x18=str(to_x18(54_000)),  # Trigger above $54k
         trigger_type="last_price_above",
@@ -226,7 +226,7 @@ def run():
         sender=client.signer.address,
         price_x18=str(to_x18(50_500)),  # Buy at $50.5k
         amount_x18=str(to_pow_10(1, 18)),  # Buy 1 BTC
-        expiration=get_expiration_timestamp(60 * 24),  # 24 hours
+        expiration=get_expiration_timestamp(60 * 60 * 24),  # 24 hours
         nonce=client.order_nonce(),
         trigger_price_x18=str(to_x18(50_000)),  # Trigger above $50k oracle price
         trigger_type="oracle_price_above",
@@ -242,7 +242,7 @@ def run():
         sender=client.signer.address,
         price_x18=str(to_x18(49_500)),  # Buy at $49.5k
         amount_x18=str(to_pow_10(5, 17)),  # Buy 0.5 BTC
-        expiration=get_expiration_timestamp(60 * 12),  # 12 hours
+        expiration=get_expiration_timestamp(60 * 60 * 12),  # 12 hours
         nonce=client.order_nonce(),
         trigger_price_x18=str(to_x18(49_000)),  # Trigger below $49k mid price
         trigger_type="mid_price_below",
@@ -264,7 +264,7 @@ def run():
         sender=client.signer.address,
         price_x18=str(to_x18(44_000)),
         amount_x18=str(-to_pow_10(2, 18)),  # Close 2 BTC
-        expiration=get_expiration_timestamp(60 * 24 * 30),  # 30 days
+        expiration=get_expiration_timestamp(60 * 60 * 24 * 30),  # 30 days
         nonce=client.order_nonce(),
         trigger_price_x18=str(to_x18(45_000)),
         trigger_type="last_price_below",
@@ -278,7 +278,7 @@ def run():
         sender=client.signer.address,
         price_x18=str(to_x18(58_000)),
         amount_x18=str(-to_pow_10(2, 18)),  # Close 2 BTC
-        expiration=get_expiration_timestamp(60 * 24 * 30),  # 30 days
+        expiration=get_expiration_timestamp(60 * 60 * 24 * 30),  # 30 days
         nonce=client.order_nonce(),
         trigger_price_x18=str(to_x18(57_000)),
         trigger_type="last_price_above",
@@ -292,7 +292,7 @@ def run():
         sender=client.signer.address,
         price_x18=str(to_x18(52_000)),
         total_amount_x18=str(to_pow_10(10, 18)),  # Buy 10 BTC over time
-        expiration=get_expiration_timestamp(60 * 24 * 7),  # 1 week
+        expiration=get_expiration_timestamp(60 * 60 * 24 * 7),  # 1 week
         nonce=client.order_nonce(),
         times=20,  # 20 executions
         slippage_frac=0.005,

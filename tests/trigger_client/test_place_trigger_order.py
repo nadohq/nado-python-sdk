@@ -993,3 +993,87 @@ def test_entry_points_integration_flow(
 
     # Verify all orders were placed successfully
     assert mock_post.call_count == 3
+
+
+def test_place_price_trigger_order_appendix_validation(
+    trigger_client: TriggerClient, mock_post: MagicMock, senders: list[str]
+):
+    """Test that place_price_trigger_order correctly builds the appendix with PRICE trigger type."""
+    from nado_protocol.utils.order import (
+        order_trigger_type,
+        order_reduce_only,
+        order_execution_type,
+        OrderAppendixTriggerType,
+    )
+    from nado_protocol.utils.expiration import OrderType
+
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {
+        "status": "success",
+        "signature": "test_signature",
+    }
+    mock_post.return_value = mock_response
+
+    # Test with DEFAULT order type and reduce_only=False
+    res = trigger_client.place_price_trigger_order(
+        product_id=1,
+        sender=senders[0],
+        price_x18="50000000000000000000000",
+        amount_x18="1000000000000000000",
+        expiration=1700000000,
+        nonce=123456,
+        trigger_price_x18="51000000000000000000000",
+        trigger_type="last_price_above",
+        reduce_only=False,
+        order_type=OrderType.DEFAULT,
+    )
+
+    # Extract the appendix from the request
+    req_data = res.req
+    appendix = int(req_data["place_order"]["order"]["appendix"])
+
+    # Validate trigger type is PRICE
+    assert order_trigger_type(appendix) == OrderAppendixTriggerType.PRICE
+    assert order_execution_type(appendix) == OrderType.DEFAULT
+    assert order_reduce_only(appendix) is False
+
+    # Test with IOC order type and reduce_only=True
+    res = trigger_client.place_price_trigger_order(
+        product_id=1,
+        sender=senders[0],
+        price_x18="50000000000000000000000",
+        amount_x18="-1000000000000000000",
+        expiration=1700000000,
+        nonce=123457,
+        trigger_price_x18="45000000000000000000000",
+        trigger_type="last_price_below",
+        reduce_only=True,
+        order_type=OrderType.IOC,
+    )
+
+    req_data = res.req
+    appendix = int(req_data["place_order"]["order"]["appendix"])
+
+    assert order_trigger_type(appendix) == OrderAppendixTriggerType.PRICE
+    assert order_execution_type(appendix) == OrderType.IOC
+    assert order_reduce_only(appendix) is True
+
+    # Test with POST_ONLY order type
+    res = trigger_client.place_price_trigger_order(
+        product_id=1,
+        sender=senders[0],
+        price_x18="50000000000000000000000",
+        amount_x18="1000000000000000000",
+        expiration=1700000000,
+        nonce=123458,
+        trigger_price_x18="49000000000000000000000",
+        trigger_type="oracle_price_below",
+        order_type=OrderType.POST_ONLY,
+    )
+
+    req_data = res.req
+    appendix = int(req_data["place_order"]["order"]["appendix"])
+
+    assert order_trigger_type(appendix) == OrderAppendixTriggerType.PRICE
+    assert order_execution_type(appendix) == OrderType.POST_ONLY

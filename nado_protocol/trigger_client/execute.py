@@ -19,9 +19,11 @@ from nado_protocol.utils.exceptions import (
 from nado_protocol.utils.execute import NadoBaseExecute, OrderParams
 from nado_protocol.utils.model import NadoBaseModel, is_instance_of_union
 from nado_protocol.utils.twap import create_twap_order
+from nado_protocol.utils.order import build_appendix, OrderAppendixTriggerType
+from nado_protocol.utils.expiration import OrderType
 from nado_protocol.trigger_client.types.models import (
-    PriceTrigger, 
-    LastPriceAbove, 
+    PriceTrigger,
+    LastPriceAbove,
     LastPriceBelow,
     OraclePriceAbove,
     OraclePriceBelow,
@@ -173,14 +175,15 @@ class TriggerExecuteClient(NadoBaseExecute):
         trigger_price_x18: str,
         trigger_type: str = "last_price_above",
         reduce_only: bool = False,
+        order_type: OrderType = OrderType.DEFAULT,
         spot_leverage: Optional[bool] = None,
         id: Optional[int] = None,
     ) -> ExecuteResponse:
         """
         Place a price trigger order.
-        
+
         This is a convenience method that creates a price trigger order with the specified parameters.
-        
+
         Args:
             product_id (int): The product ID for the order.
             sender (str): The sender address (32 bytes hex).
@@ -190,16 +193,17 @@ class TriggerExecuteClient(NadoBaseExecute):
             nonce (int): Order nonce.
             trigger_price_x18 (str): The trigger price multiplied by 1e18.
             trigger_type (str): Type of price trigger - one of:
-                "last_price_above", "last_price_below", 
+                "last_price_above", "last_price_below",
                 "oracle_price_above", "oracle_price_below",
                 "mid_price_above", "mid_price_below"
             reduce_only (bool): Whether this is a reduce-only order.
+            order_type (OrderType): Order execution type (DEFAULT, IOC, FOK, POST_ONLY).
             spot_leverage (Optional[bool]): Whether to use spot leverage.
             id (Optional[int]): Optional order ID.
-        
+
         Returns:
             ExecuteResponse: The response from placing the price trigger order.
-        
+
         Raises:
             ValueError: If trigger_type is not supported.
         """
@@ -222,28 +226,35 @@ class TriggerExecuteClient(NadoBaseExecute):
                 f"Unsupported trigger_type: {trigger_type}. "
                 f"Supported types: ['last_price_above', 'last_price_below', 'oracle_price_above', 'oracle_price_below', 'mid_price_above', 'mid_price_below']"
             )
-        
+
         trigger = PriceTrigger(price_requirement=price_requirement)
-        
+
+        # Build appendix with PRICE trigger type
+        appendix = build_appendix(
+            order_type=order_type,
+            reduce_only=reduce_only,
+            trigger_type=OrderAppendixTriggerType.PRICE,
+        )
+
         order_params = OrderParams(
             sender=sender,
             priceX18=int(price_x18),
             amount=int(amount_x18),
             expiration=expiration,
             nonce=nonce,
-            appendix=0,  # Will be built by the order preparation
+            appendix=appendix,
         )
-        
+
         params = PlaceTriggerOrderParams(
             product_id=product_id,
             order=order_params,
             trigger=trigger,
-            signature=None,  # Will be filled by client
-            digest=None,     # Will be filled by client
+            signature=None,
+            digest=None,
             spot_leverage=spot_leverage,
             id=id,
         )
-        
+
         return self.place_trigger_order(params)
 
     def cancel_trigger_orders(
