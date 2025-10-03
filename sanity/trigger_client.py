@@ -62,7 +62,9 @@ def run():
     place_order = PlaceTriggerOrderParams(
         product_id=product_id,
         order=order,
-        trigger=PriceTrigger(price_requirement=LastPriceAbove(last_price_above=str(to_x18(120_000)))),
+        trigger=PriceTrigger(
+            price_requirement=LastPriceAbove(last_price_above=str(to_x18(120_000)))
+        ),
     )
     res = client.place_trigger_order(place_order)
     print("trigger order result:", res.json(indent=2))
@@ -94,7 +96,9 @@ def run():
     place_order = PlaceTriggerOrderParams(
         product_id=product_id,
         order=order,
-        trigger=PriceTrigger(price_requirement=LastPriceAbove(last_price_above=str(to_x18(120_000)))),
+        trigger=PriceTrigger(
+            price_requirement=LastPriceAbove(last_price_above=str(to_x18(120_000)))
+        ),
     )
     res = client.place_trigger_order(place_order)
 
@@ -113,9 +117,9 @@ def run():
     )
     print("trigger orders:", trigger_orders.json(indent=2))
 
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print("TWAP ORDER EXAMPLES")
-    print("="*50)
+    print("=" * 50)
 
     # Example 1: Basic TWAP order using convenience method (with defaults)
     print("\n1. Basic TWAP order (DCA strategy) - using defaults")
@@ -170,9 +174,9 @@ def run():
     )
     print(f"Reduce-only TWAP result: {reduce_twap_res.json(indent=2)}")
 
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print("PRICE TRIGGER ORDER EXAMPLES")
-    print("="*50)
+    print("=" * 50)
 
     # Example 4: Stop-loss order using convenience method (with defaults)
     print("\n4. Stop-loss order (last price below) - using defaults")
@@ -228,9 +232,9 @@ def run():
     )
     print(f"Mid price trigger result: {mid_price_trigger_res.json(indent=2)}")
 
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print("ADVANCED INTEGRATION SCENARIOS")
-    print("="*50)
+    print("=" * 50)
 
     # Example 8: Complete trading strategy - stop loss + take profit + DCA
     print("\n8. Complete trading strategy")
@@ -266,12 +270,12 @@ def run():
         interval_seconds=1800,
     )
     print(f"Strategy DCA TWAP: {strategy_dca.status}")
-    
+
     print("\nComplete trading strategy deployed successfully!")
     print("- Stop-loss at $45k (protects downside)")
-    print("- Take-profit at $57k (captures upside)")  
+    print("- Take-profit at $57k (captures upside)")
     print("- DCA TWAP over 1 week (builds position gradually)")
 
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print("TWAP AND PRICE TRIGGER EXAMPLES COMPLETED")
-    print("="*50)
+    print("=" * 50)

@@ -31,7 +31,7 @@ from nado_protocol.trigger_client.types.models import (
     OraclePriceBelow,
     MidPriceAbove,
     MidPriceBelow,
-    PriceRequirement
+    PriceRequirement,
 )
 
 

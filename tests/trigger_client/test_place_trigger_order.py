@@ -124,7 +124,10 @@ def test_place_trigger_order_params(
     assert params_from_dict.order.priceX18 == order_params["priceX18"]
     assert params_from_dict.order.expiration == order_params["expiration"]
     assert params_from_dict.order.appendix == order_params["appendix"]
-    assert params_from_dict.trigger.price_requirement.last_price_below == "9900000000000000000000"
+    assert (
+        params_from_dict.trigger.price_requirement.last_price_below
+        == "9900000000000000000000"
+    )
     assert params_from_dict.signature is None
 
     params_from_dict.signature = (
@@ -359,9 +362,7 @@ def test_place_order_execute_provide_full_params(
             "product_id": product_id,
             "order": order_params,
             "signature": signature,
-            "trigger": {
-                "price_requirement": {"last_price_above": "100"}
-            },
+            "trigger": {"price_requirement": {"last_price_above": "100"}},
         }
     )
     req = PlaceTriggerOrderRequest(**res.req)
@@ -394,7 +395,9 @@ def test_place_trigger_order_with_basic_appendix(senders: list[str]):
             expiration=4611687701117784255,
             appendix=ioc_appendix,
         ),
-        trigger=PriceTrigger(price_requirement=LastPriceAbove(last_price_above="30000000000000000000000")),
+        trigger=PriceTrigger(
+            price_requirement=LastPriceAbove(last_price_above="30000000000000000000000")
+        ),
     )
 
     assert params.order.appendix == ioc_appendix
@@ -414,7 +417,9 @@ def test_place_trigger_order_with_basic_appendix(senders: list[str]):
             expiration=4611687701117784255,
             appendix=reduce_only_appendix,
         ),
-        trigger=PriceTrigger(price_requirement=LastPriceBelow(last_price_below="28000000000000000000000")),
+        trigger=PriceTrigger(
+            price_requirement=LastPriceBelow(last_price_below="28000000000000000000000")
+        ),
     )
 
     assert params_reduce.order.appendix == reduce_only_appendix
@@ -440,7 +445,9 @@ def test_place_trigger_order_with_price_trigger_appendix(senders: list[str]):
             expiration=4611687701117784255,
             appendix=trigger_appendix,
         ),
-        trigger=PriceTrigger(price_requirement=LastPriceAbove(last_price_above="29000000000000000000000")),
+        trigger=PriceTrigger(
+            price_requirement=LastPriceAbove(last_price_above="29000000000000000000000")
+        ),
     )
 
     assert params.order.appendix == trigger_appendix
@@ -469,7 +476,9 @@ def test_place_trigger_order_with_isolated_position_appendix(senders: list[str])
             expiration=4611687701117784255,
             appendix=isolated_appendix,
         ),
-        trigger=PriceTrigger(price_requirement=LastPriceBelow(last_price_below="28000000000000000000000")),  # Buy the dip
+        trigger=PriceTrigger(
+            price_requirement=LastPriceBelow(last_price_below="28000000000000000000000")
+        ),  # Buy the dip
     )
 
     assert params.order.appendix == isolated_appendix
@@ -497,7 +506,11 @@ def test_place_trigger_order_appendix_combinations(senders: list[str]):
                 expiration=4611687701117784255,
                 appendix=appendix,
             ),
-            trigger=PriceTrigger(price_requirement=LastPriceAbove(last_price_above="29500000000000000000000")),
+            trigger=PriceTrigger(
+                price_requirement=LastPriceAbove(
+                    last_price_above="29500000000000000000000"
+                )
+            ),
         )
 
         assert params.order.appendix == appendix
@@ -512,9 +525,13 @@ def test_place_trigger_order_appendix_combinations(senders: list[str]):
         )
 
         trigger = (
-            PriceTrigger(price_requirement=LastPriceBelow(last_price_below=trigger_price))
+            PriceTrigger(
+                price_requirement=LastPriceBelow(last_price_below=trigger_price)
+            )
             if trigger_price.startswith("27")
-            else PriceTrigger(price_requirement=LastPriceAbove(last_price_above=trigger_price))
+            else PriceTrigger(
+                price_requirement=LastPriceAbove(last_price_above=trigger_price)
+            )
         )
 
         params = PlaceTriggerOrderParams(
@@ -671,7 +688,11 @@ def test_place_twap_order_with_custom_amounts(
     }
     mock_post.return_value = mock_response
 
-    custom_amounts_x18 = ["400000000000000000", "300000000000000000", "300000000000000000"]
+    custom_amounts_x18 = [
+        "400000000000000000",
+        "300000000000000000",
+        "300000000000000000",
+    ]
     total_amount_x18 = "1000000000000000000"
 
     res = trigger_client.place_twap_order(
@@ -704,7 +725,10 @@ def test_place_twap_order_with_reduce_only(
     """Test TWAP order with reduce_only flag."""
     mock_response = MagicMock()
     mock_response.status_code = 200
-    mock_response.json.return_value = {"status": "success", "signature": "test_signature"}
+    mock_response.json.return_value = {
+        "status": "success",
+        "signature": "test_signature",
+    }
     mock_post.return_value = mock_response
 
     res = trigger_client.place_twap_order(
@@ -724,8 +748,9 @@ def test_place_twap_order_with_reduce_only(
     # Verify reduce_only is encoded in appendix
     req_data = res.req
     appendix = int(req_data["place_order"]["order"]["appendix"])
-    
+
     from nado_protocol.utils.order import order_reduce_only
+
     assert order_reduce_only(appendix) is True
 
 
@@ -761,7 +786,7 @@ def test_place_price_trigger_order_entry_point(
     assert req_data["place_order"]["product_id"] == 1
     assert req_data["place_order"]["order"]["amount"] == "500000000000000000"
     assert req_data["place_order"]["order"]["priceX18"] == "52000000000000000000000"
-    
+
     # Check trigger structure
     trigger = req_data["place_order"]["trigger"]
     assert "price_requirement" in trigger
@@ -783,7 +808,7 @@ def test_place_price_trigger_order_all_trigger_types(
 
     trigger_types = [
         "last_price_above",
-        "last_price_below", 
+        "last_price_below",
         "oracle_price_above",
         "oracle_price_below",
         "mid_price_above",
@@ -808,7 +833,9 @@ def test_place_price_trigger_order_all_trigger_types(
         req_data = res.req
         trigger = req_data["place_order"]["trigger"]
         assert "price_requirement" in trigger
-        assert trigger_type.replace("_price_", "_price_") in trigger["price_requirement"]
+        assert (
+            trigger_type.replace("_price_", "_price_") in trigger["price_requirement"]
+        )
 
 
 def test_place_price_trigger_order_with_reduce_only(
@@ -817,7 +844,10 @@ def test_place_price_trigger_order_with_reduce_only(
     """Test price trigger order with reduce_only flag."""
     mock_response = MagicMock()
     mock_response.status_code = 200
-    mock_response.json.return_value = {"status": "success", "signature": "test_signature"}
+    mock_response.json.return_value = {
+        "status": "success",
+        "signature": "test_signature",
+    }
     mock_post.return_value = mock_response
 
     res = trigger_client.place_price_trigger_order(
@@ -845,7 +875,10 @@ def test_place_price_trigger_order_with_spot_leverage(
     """Test price trigger order with spot_leverage option."""
     mock_response = MagicMock()
     mock_response.status_code = 200
-    mock_response.json.return_value = {"status": "success", "signature": "test_signature"}
+    mock_response.json.return_value = {
+        "status": "success",
+        "signature": "test_signature",
+    }
     mock_post.return_value = mock_response
 
     res = trigger_client.place_price_trigger_order(
@@ -944,7 +977,7 @@ def test_entry_points_integration_flow(
     mock_post.return_value = mock_response
 
     # Scenario: Set up stop-loss and take-profit, then DCA with TWAP
-    
+
     # 1. Stop-loss order using price trigger
     stop_loss_res = trigger_client.place_price_trigger_order(
         product_id=1,

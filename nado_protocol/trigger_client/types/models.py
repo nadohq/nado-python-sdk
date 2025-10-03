@@ -32,7 +32,7 @@ PriceRequirement = Union[
     LastPriceAbove,
     LastPriceBelow,
     MidPriceAbove,
-    MidPriceBelow
+    MidPriceBelow,
 ]
 
 
@@ -48,6 +48,7 @@ class PriceTrigger(NadoBaseModel):
 
 class TimeTrigger(NadoBaseModel):
     """Time-based trigger for TWAP orders."""
+
     interval: int  # interval in seconds between executions
     amounts: Optional[List[str]] = None  # optional custom amounts per execution
 

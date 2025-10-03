@@ -59,6 +59,7 @@ class ListTwapExecutionsParams(NadoBaseModel):
 
 class TwapExecutionStatusData(NadoBaseModel):
     """Status data for TWAP execution"""
+
     pass
 
 
@@ -81,6 +82,7 @@ class CancelledStatus(TwapExecutionStatusData):
 
 class TwapExecutionDetail(NadoBaseModel):
     """Detail of a single TWAP execution"""
+
     execution_id: int
     scheduled_time: int
     status: Union[PendingStatus, ExecutedStatus, FailedStatus, CancelledStatus]
@@ -89,6 +91,7 @@ class TwapExecutionDetail(NadoBaseModel):
 
 class TwapExecutionsData(NadoBaseModel):
     """Data model for TWAP executions"""
+
     executions: List[TwapExecutionDetail]
 
 
