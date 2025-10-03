@@ -161,3 +161,35 @@ def test_cancel_product_orders(
     assert cancelled_order.product_id == 1
     assert cancelled_order.amount == str(-10000000000000000)
     assert cancelled_order.nonce == str(1)
+
+
+def test_place_twap_order(
+    nado_client_with_trigger: NadoClient,
+    mock_place_trigger_order_response: MagicMock,
+):
+    mock_place_trigger_order_response()
+    res = nado_client_with_trigger.market.place_twap_order(
+        product_id=1,
+        price_x18="50000000000000000000000",
+        total_amount_x18="5000000000000000000",
+        times=10,
+        slippage_frac=0.005,
+        interval_seconds=3600,
+    )
+    assert res.status == "success"
+
+
+def test_place_price_trigger_order(
+    nado_client_with_trigger: NadoClient,
+    mock_place_trigger_order_response: MagicMock,
+):
+    mock_place_trigger_order_response()
+    res = nado_client_with_trigger.market.place_price_trigger_order(
+        product_id=1,
+        price_x18="45000000000000000000000",
+        amount_x18="-1000000000000000000",
+        trigger_price_x18="46000000000000000000000",
+        trigger_type="last_price_below",
+        reduce_only=True,
+    )
+    assert res.status == "success"

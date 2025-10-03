@@ -443,3 +443,37 @@ def run():
         subaccount, [1, 2], 10
     )
     print("interest and funding payments:", payments.json(indent=2))
+
+    print("\n" + "=" * 50)
+    print("CLIENT CONVENIENCE METHODS - TWAP & TRIGGERS")
+    print("=" * 50)
+
+    print("\nPlacing TWAP order via client.market.place_twap_order()...")
+    try:
+        twap_res = client.market.place_twap_order(
+            product_id=1,
+            price_x18=str(to_x18(52_000)),
+            total_amount_x18=str(to_pow_10(5, 17)),
+            times=5,
+            slippage_frac=0.005,
+            interval_seconds=1800,
+        )
+        print("TWAP order result:", twap_res.json(indent=2))
+    except Exception as e:
+        print("TWAP order failed (trigger client may not be configured):", e)
+
+    print(
+        "\nPlacing price trigger order via client.market.place_price_trigger_order()..."
+    )
+    try:
+        trigger_res = client.market.place_price_trigger_order(
+            product_id=1,
+            price_x18=str(to_x18(45_000)),
+            amount_x18=str(-to_pow_10(1, 18)),
+            trigger_price_x18=str(to_x18(46_000)),
+            trigger_type="last_price_below",
+            reduce_only=True,
+        )
+        print("Price trigger order result:", trigger_res.json(indent=2))
+    except Exception as e:
+        print("Price trigger order failed (trigger client may not be configured):", e)

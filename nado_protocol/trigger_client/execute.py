@@ -1,6 +1,6 @@
 import requests
 from functools import singledispatchmethod
-from typing import Union, Optional, List
+from typing import Union, Optional, List, cast
 from nado_protocol.contracts.types import NadoExecuteType
 from nado_protocol.trigger_client.types.execute import (
     TriggerExecuteParams,
@@ -23,6 +23,7 @@ from nado_protocol.utils.order import build_appendix, OrderAppendixTriggerType
 from nado_protocol.utils.expiration import OrderType, get_expiration_timestamp
 from nado_protocol.utils.nonce import gen_order_nonce
 from nado_protocol.utils.subaccount import SubaccountParams
+from nado_protocol.utils.bytes32 import subaccount_to_hex
 from nado_protocol.trigger_client.types.models import (
     PriceTrigger,
     LastPriceAbove,
@@ -118,7 +119,7 @@ class TriggerExecuteClient(NadoBaseExecute):
         times: int,
         slippage_frac: float,
         interval_seconds: int,
-        sender: Optional[str] = None,
+        sender: Optional[Union[str, SubaccountParams]] = None,
         subaccount_owner: Optional[str] = None,
         subaccount_name: str = "default",
         expiration: Optional[int] = None,
@@ -162,15 +163,25 @@ class TriggerExecuteClient(NadoBaseExecute):
             expiration = get_expiration_timestamp(min_duration + 60 * 60 * 24)
 
         # Build sender from subaccount parameters if not directly provided
+        sender_value: Union[str, SubaccountParams]
         if sender is None:
-            sender = SubaccountParams(
+            sender_value = SubaccountParams(
                 subaccount_owner=subaccount_owner or self.signer.address,
                 subaccount_name=subaccount_name,
             )
+        else:
+            sender_value = sender
+
+        # Convert sender to hex string if it's SubaccountParams
+        sender_hex: str
+        if isinstance(sender_value, SubaccountParams):
+            sender_hex = subaccount_to_hex(sender_value)
+        else:
+            sender_hex = sender_value
 
         params = create_twap_order(
             product_id=product_id,
-            sender=sender,
+            sender=sender_hex,
             price_x18=price_x18,
             total_amount_x18=total_amount_x18,
             expiration=expiration,
@@ -192,7 +203,7 @@ class TriggerExecuteClient(NadoBaseExecute):
         amount_x18: str,
         trigger_price_x18: str,
         trigger_type: str,
-        sender: Optional[str] = None,
+        sender: Optional[Union[str, SubaccountParams]] = None,
         subaccount_owner: Optional[str] = None,
         subaccount_name: str = "default",
         expiration: Optional[int] = None,
@@ -266,14 +277,17 @@ class TriggerExecuteClient(NadoBaseExecute):
             expiration = get_expiration_timestamp(60 * 60 * 24 * 7)
 
         # Build sender from subaccount parameters if not directly provided
+        sender_value: Union[str, SubaccountParams]
         if sender is None:
-            sender = SubaccountParams(
+            sender_value = SubaccountParams(
                 subaccount_owner=subaccount_owner or self.signer.address,
                 subaccount_name=subaccount_name,
             )
+        else:
+            sender_value = sender
 
         order_params = OrderParams(
-            sender=sender,
+            sender=sender_value,
             priceX18=int(price_x18),
             amount=int(amount_x18),
             expiration=expiration,

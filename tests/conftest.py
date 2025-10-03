@@ -138,6 +138,34 @@ def nado_client(
 
 
 @pytest.fixture
+def nado_client_with_trigger(
+    mock_post: MagicMock,
+    chain_id: int,
+    endpoint_addr: str,
+    private_keys: list[str],
+) -> NadoClient:
+    from nado_protocol.client.context import NadoClientContextOpts
+    from pydantic import parse_obj_as
+    from pydantic import AnyUrl
+
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {
+        "status": "success",
+        "data": {
+            "endpoint_addr": endpoint_addr,
+            "chain_id": chain_id,
+        },
+    }
+    mock_post.return_value = mock_response
+
+    context_opts = NadoClientContextOpts(
+        trigger_endpoint_url=parse_obj_as(AnyUrl, "http://trigger.example.com")
+    )
+    return create_nado_client("testing", private_keys[0], context_opts=context_opts)
+
+
+@pytest.fixture
 def order_params(senders: list[str]) -> dict:
     return {
         "sender": hex_to_bytes32(senders[0]),
@@ -336,3 +364,16 @@ def mock_tx_nonce():
 @pytest.fixture
 def contracts_context(endpoint_addr: str, querier_addr: str) -> NadoContractsContext:
     return NadoContractsContext(endpoint_addr=endpoint_addr, querier_addr=querier_addr)
+
+
+@pytest.fixture
+def mock_place_trigger_order_response(mock_post: MagicMock) -> MagicMock:
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {
+        "status": "success",
+        "error": None,
+        "data": {"digest": "0xabc"},
+    }
+    mock_post.return_value = mock_response
+    return mock_post
