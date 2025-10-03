@@ -11,12 +11,14 @@ from nado_protocol.trigger_client.types.execute import (
 )
 from nado_protocol.trigger_client.types.models import (
     PriceTrigger,
+    PriceTriggerData,
     LastPriceAbove,
     LastPriceBelow,
 )
 from nado_protocol.trigger_client.types.query import (
     ListTriggerOrdersParams,
     ListTriggerOrdersTx,
+    ListTwapExecutionsParams,
 )
 from nado_protocol.utils.bytes32 import subaccount_to_hex
 from nado_protocol.utils.expiration import OrderType, get_expiration_timestamp
@@ -63,7 +65,9 @@ def run():
         product_id=product_id,
         order=order,
         trigger=PriceTrigger(
-            price_requirement=LastPriceAbove(last_price_above=str(to_x18(120_000)))
+            price_trigger=PriceTriggerData(
+                price_requirement=LastPriceAbove(last_price_above=str(to_x18(120_000)))
+            )
         ),
     )
     res = client.place_trigger_order(place_order)
@@ -97,7 +101,9 @@ def run():
         product_id=product_id,
         order=order,
         trigger=PriceTrigger(
-            price_requirement=LastPriceAbove(last_price_above=str(to_x18(120_000)))
+            price_trigger=PriceTriggerData(
+                price_requirement=LastPriceAbove(last_price_above=str(to_x18(120_000)))
+            )
         ),
     )
     res = client.place_trigger_order(place_order)
@@ -134,6 +140,10 @@ def run():
         interval_seconds=3600,
     )
     print(f"TWAP order result: {twap_res.json(indent=2)}")
+
+    # Get the order digest to track executions
+    twap_order_digest = twap_res.data.digest
+    print(f"TWAP order digest: {twap_order_digest}")
 
     # Example 2: TWAP order with custom amounts and subaccount parameters
     print("\n2. TWAP order with custom amounts (using subaccount parameters)")
@@ -275,6 +285,34 @@ def run():
     print("- Stop-loss at $45k (protects downside)")
     print("- Take-profit at $57k (captures upside)")
     print("- DCA TWAP over 1 week (builds position gradually)")
+
+    print("\n" + "=" * 50)
+    print("QUERYING TWAP EXECUTIONS")
+    print("=" * 50)
+
+    print(f"\nQuerying TWAP order executions for digest: {twap_order_digest}")
+    try:
+        twap_executions = client.list_twap_executions(
+            ListTwapExecutionsParams(digest=twap_order_digest)
+        )
+        print(f"TWAP executions response: {twap_executions.json(indent=2)}")
+
+        if (
+            hasattr(twap_executions.data, "executions")
+            and twap_executions.data.executions
+        ):
+            executions = twap_executions.data.executions
+            print(f"\nFound {len(executions)} TWAP execution(s)")
+            for i, execution in enumerate(executions, 1):
+                print(f"  Execution {i}:")
+                print(f"    Execution ID: {execution.execution_id}")
+                print(f"    Scheduled time: {execution.scheduled_time}")
+                print(f"    Status: {execution.status}")
+                print(f"    Updated at: {execution.updated_at}")
+        else:
+            print("No TWAP executions found yet (executions happen at intervals)")
+    except Exception as e:
+        print(f"Failed to query TWAP executions: {e}")
 
     print("\n" + "=" * 50)
     print("TWAP AND PRICE TRIGGER EXAMPLES COMPLETED")

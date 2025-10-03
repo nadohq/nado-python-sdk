@@ -57,26 +57,28 @@ class ListTwapExecutionsParams(NadoBaseModel):
     digest: str
 
 
-class TwapExecutionStatusData(NadoBaseModel):
-    """Status data for TWAP execution"""
+class ExecutedStatusData(NadoBaseModel):
+    """Data for executed TWAP execution"""
 
-    pass
-
-
-class PendingStatus(TwapExecutionStatusData):
-    pending: bool = True
-
-
-class ExecutedStatus(TwapExecutionStatusData):
     executed_time: int
     execute_response: dict  # ExecuteResponse from engine
 
 
-class FailedStatus(TwapExecutionStatusData):
+class ExecutedStatus(NadoBaseModel):
+    """Status when TWAP execution has been executed"""
+
+    executed: ExecutedStatusData
+
+
+class FailedStatus(NadoBaseModel):
+    """Status when TWAP execution failed"""
+
     failed: str
 
 
-class CancelledStatus(TwapExecutionStatusData):
+class CancelledStatus(NadoBaseModel):
+    """Status when TWAP execution was cancelled"""
+
     cancelled: str
 
 
@@ -85,7 +87,9 @@ class TwapExecutionDetail(NadoBaseModel):
 
     execution_id: int
     scheduled_time: int
-    status: Union[PendingStatus, ExecutedStatus, FailedStatus, CancelledStatus]
+    status: Union[
+        ExecutedStatus, FailedStatus, CancelledStatus, str
+    ]  # str for "pending"
     updated_at: int
 
 
@@ -95,9 +99,52 @@ class TwapExecutionsData(NadoBaseModel):
     executions: List[TwapExecutionDetail]
 
 
+class TriggeredStatus(NadoBaseModel):
+    """Status when order has been triggered"""
+
+    triggered: dict  # Contains trigger execution details
+
+
+class TriggerCancelledStatus(NadoBaseModel):
+    """Status when order has been cancelled"""
+
+    cancelled: str  # Cancellation reason (e.g., "user_requested")
+
+
+class TriggerInternalErrorStatus(NadoBaseModel):
+    """Status when there was an internal error"""
+
+    internal_error: str  # Error description
+
+
+class TwapExecutingStatusObject(NadoBaseModel):
+    """Status when TWAP order is executing"""
+
+    twap_executing: dict  # Contains execution details
+
+
+class TwapCompletedStatusObject(NadoBaseModel):
+    """Status when TWAP order is completed"""
+
+    twap_completed: dict  # Contains completion details
+
+
+# Union type for trigger order status
+# Order matters: more specific types (with required fields) should come first
+TriggerOrderStatus = Union[
+    TriggeredStatus,
+    TriggerCancelledStatus,
+    TriggerInternalErrorStatus,
+    TwapExecutingStatusObject,
+    TwapCompletedStatusObject,
+    str,  # For simple status strings like "waiting_price", "waiting_dependency", etc.
+]
+
+
 class TriggerOrder(NadoBaseModel):
     order: TriggerOrderData
-    status: str
+    status: TriggerOrderStatus
+    placed_at: int
     updated_at: int
 
 

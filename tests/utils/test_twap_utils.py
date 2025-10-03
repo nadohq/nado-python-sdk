@@ -33,8 +33,8 @@ def test_create_basic_twap_order(senders):
     assert order.product_id == 1
     assert order.order.sender == hex_to_bytes32(senders[0])
     assert order.order.amount == 1000000000000000000
-    assert order.trigger.interval == 300
-    assert order.trigger.amounts is None
+    assert order.trigger.time_trigger.interval == 300
+    assert order.trigger.time_trigger.amounts is None
 
     # Check appendix encoding
     appendix = int(order.order.appendix)
@@ -71,7 +71,7 @@ def test_create_custom_amounts_twap_order():
         custom_amounts_x18=custom_amounts_x18,
     )
 
-    assert order.trigger.amounts == custom_amounts_x18
+    assert order.trigger.time_trigger.amounts == custom_amounts_x18
 
     # Should be TWAP_CUSTOM_AMOUNTS trigger type (3)
     appendix = int(order.order.appendix)
@@ -221,4 +221,4 @@ def test_negative_amount_twap(senders):
     )
 
     assert order.order.amount == -2000000000000000000
-    assert order.trigger.interval == 900
+    assert order.trigger.time_trigger.interval == 900

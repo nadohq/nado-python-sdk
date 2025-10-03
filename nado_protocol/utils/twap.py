@@ -89,9 +89,13 @@ def create_twap_order(
     )
 
     # Create trigger criteria
+    from nado_protocol.trigger_client.types.models import TimeTriggerData
+
     trigger = TimeTrigger(
-        interval=interval_seconds,
-        amounts=custom_amounts_x18,
+        time_trigger=TimeTriggerData(
+            interval=interval_seconds,
+            amounts=custom_amounts_x18,
+        )
     )
 
     return PlaceTriggerOrderParams(

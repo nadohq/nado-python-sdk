@@ -16,6 +16,7 @@ from nado_protocol.trigger_client.types.execute import (
     to_trigger_execute_request,
 )
 from nado_protocol.trigger_client.types.models import (
+    PriceTriggerData,
     PriceTrigger,
     LastPriceBelow,
     LastPriceAbove,
@@ -36,6 +37,7 @@ from nado_protocol.utils.subaccount import SubaccountParams
 from nado_protocol.utils.math import to_x18
 from nado_protocol.utils.expiration import OrderType
 from nado_protocol.trigger_client.types.models import (
+    PriceTriggerData,
     TimeTrigger,
     OraclePriceAbove,
     OraclePriceBelow,
@@ -65,7 +67,9 @@ def test_place_trigger_order_params(
                 "appendix": order_params["appendix"],
             },
             "trigger": {
-                "price_requirement": {"last_price_below": "9900000000000000000000"}
+                "price_trigger": {
+                    "price_requirement": {"last_price_below": "9900000000000000000000"}
+                }
             },
         }
     )
@@ -79,7 +83,11 @@ def test_place_trigger_order_params(
             appendix=order_params["appendix"],
         ),
         trigger=PriceTrigger(
-            price_requirement=LastPriceBelow(last_price_below="9900000000000000000000")
+            price_trigger=PriceTriggerData(
+                price_requirement=LastPriceBelow(
+                    last_price_below="9900000000000000000000"
+                )
+            )
         ),
     )
     bytes32_sender = PlaceTriggerOrderParams(
@@ -92,7 +100,11 @@ def test_place_trigger_order_params(
             appendix=order_params["appendix"],
         ),
         trigger=PriceTrigger(
-            price_requirement=LastPriceBelow(last_price_below="9900000000000000000000")
+            price_trigger=PriceTriggerData(
+                price_requirement=LastPriceBelow(
+                    last_price_below="9900000000000000000000"
+                )
+            )
         ),
     )
     subaccount_params_sender = PlaceTriggerOrderParams(
@@ -107,7 +119,11 @@ def test_place_trigger_order_params(
             appendix=order_params["appendix"],
         ),
         trigger=PriceTrigger(
-            price_requirement=LastPriceBelow(last_price_below="9900000000000000000000")
+            price_trigger=PriceTriggerData(
+                price_requirement=LastPriceBelow(
+                    last_price_below="9900000000000000000000"
+                )
+            )
         ),
     )
 
@@ -125,7 +141,7 @@ def test_place_trigger_order_params(
     assert params_from_dict.order.expiration == order_params["expiration"]
     assert params_from_dict.order.appendix == order_params["appendix"]
     assert (
-        params_from_dict.trigger.price_requirement.last_price_below
+        params_from_dict.trigger.price_trigger.price_requirement.last_price_below
         == "9900000000000000000000"
     )
     assert params_from_dict.signature is None
@@ -149,7 +165,9 @@ def test_place_trigger_order_params(
             },
             "signature": params_from_dict.signature,
             "trigger": {
-                "price_requirement": {"last_price_below": "9900000000000000000000"}
+                "price_trigger": {
+                    "price_requirement": {"last_price_below": "9900000000000000000000"}
+                }
             },
         }
     }
@@ -171,7 +189,9 @@ def test_place_trigger_order_params(
             },
             "signature": params_from_dict.signature,
             "trigger": {
-                "price_requirement": {"last_price_below": "9900000000000000000000"}
+                "price_trigger": {
+                    "price_requirement": {"last_price_below": "9900000000000000000000"}
+                }
             },
         }
     }
@@ -190,7 +210,9 @@ def test_place_order_execute_fails_incomplete_client(
         "product_id": 1,
         "order": order_params,
         "trigger": {
-            "price_requirement": {"last_price_below": "9900000000000000000000"}
+            "price_trigger": {
+                "price_requirement": {"last_price_below": "9900000000000000000000"}
+            }
         },
     }
 
@@ -234,7 +256,11 @@ def test_place_order_execute_success(
             nonce=1000,
             appendix=0,
         ),
-        trigger=PriceTrigger(price_requirement=LastPriceAbove(last_price_above=100)),
+        trigger=PriceTrigger(
+            price_trigger=PriceTriggerData(
+                price_requirement=LastPriceAbove(last_price_above=100)
+            )
+        ),
     )
 
     order = place_trigger_order_params.order.copy(deep=True)
@@ -362,7 +388,9 @@ def test_place_order_execute_provide_full_params(
             "product_id": product_id,
             "order": order_params,
             "signature": signature,
-            "trigger": {"price_requirement": {"last_price_above": "100"}},
+            "trigger": {
+                "price_trigger": {"price_requirement": {"last_price_above": "100"}}
+            },
         }
     )
     req = PlaceTriggerOrderRequest(**res.req)
@@ -374,7 +402,10 @@ def test_place_order_execute_provide_full_params(
     assert req.place_order.order.nonce == str(order_params["nonce"])
     assert req.place_order.order.expiration == str(order_params["expiration"])
     assert req.place_order.order.appendix == str(order_params["appendix"])
-    assert req.place_order.trigger.price_requirement.last_price_above == "100"
+    assert (
+        req.place_order.trigger.price_trigger.price_requirement.last_price_above
+        == "100"
+    )
 
 
 def test_place_trigger_order_with_basic_appendix(senders: list[str]):
@@ -396,7 +427,11 @@ def test_place_trigger_order_with_basic_appendix(senders: list[str]):
             appendix=ioc_appendix,
         ),
         trigger=PriceTrigger(
-            price_requirement=LastPriceAbove(last_price_above="30000000000000000000000")
+            price_trigger=PriceTriggerData(
+                price_requirement=LastPriceAbove(
+                    last_price_above="30000000000000000000000"
+                )
+            )
         ),
     )
 
@@ -418,7 +453,11 @@ def test_place_trigger_order_with_basic_appendix(senders: list[str]):
             appendix=reduce_only_appendix,
         ),
         trigger=PriceTrigger(
-            price_requirement=LastPriceBelow(last_price_below="28000000000000000000000")
+            price_trigger=PriceTriggerData(
+                price_requirement=LastPriceBelow(
+                    last_price_below="28000000000000000000000"
+                )
+            )
         ),
     )
 
@@ -446,7 +485,11 @@ def test_place_trigger_order_with_price_trigger_appendix(senders: list[str]):
             appendix=trigger_appendix,
         ),
         trigger=PriceTrigger(
-            price_requirement=LastPriceAbove(last_price_above="29000000000000000000000")
+            price_trigger=PriceTriggerData(
+                price_requirement=LastPriceAbove(
+                    last_price_above="29000000000000000000000"
+                )
+            )
         ),
     )
 
@@ -477,7 +520,11 @@ def test_place_trigger_order_with_isolated_position_appendix(senders: list[str])
             appendix=isolated_appendix,
         ),
         trigger=PriceTrigger(
-            price_requirement=LastPriceBelow(last_price_below="28000000000000000000000")
+            price_trigger=PriceTriggerData(
+                price_requirement=LastPriceBelow(
+                    last_price_below="28000000000000000000000"
+                )
+            )
         ),  # Buy the dip
     )
 
@@ -507,8 +554,10 @@ def test_place_trigger_order_appendix_combinations(senders: list[str]):
                 appendix=appendix,
             ),
             trigger=PriceTrigger(
-                price_requirement=LastPriceAbove(
-                    last_price_above="29500000000000000000000"
+                price_trigger=PriceTriggerData(
+                    price_requirement=LastPriceAbove(
+                        last_price_above="29500000000000000000000"
+                    )
                 )
             ),
         )
@@ -526,11 +575,15 @@ def test_place_trigger_order_appendix_combinations(senders: list[str]):
 
         trigger = (
             PriceTrigger(
-                price_requirement=LastPriceBelow(last_price_below=trigger_price)
+                price_trigger=PriceTriggerData(
+                    price_requirement=LastPriceBelow(last_price_below=trigger_price)
+                )
             )
             if trigger_price.startswith("27")
             else PriceTrigger(
-                price_requirement=LastPriceAbove(last_price_above=trigger_price)
+                price_trigger=PriceTriggerData(
+                    price_requirement=LastPriceAbove(last_price_above=trigger_price)
+                )
             )
         )
 
@@ -571,7 +624,11 @@ def test_place_trigger_order_complex_scenarios(senders: list[str]):
             appendix=stop_loss_appendix,
         ),
         trigger=PriceTrigger(
-            price_requirement=LastPriceBelow(last_price_below="27500000000000000000000")
+            price_trigger=PriceTriggerData(
+                price_requirement=LastPriceBelow(
+                    last_price_below="27500000000000000000000"
+                )
+            )
         ),  # Trigger below current
     )
 
@@ -594,7 +651,11 @@ def test_place_trigger_order_complex_scenarios(senders: list[str]):
             appendix=take_profit_appendix,
         ),
         trigger=PriceTrigger(
-            price_requirement=LastPriceAbove(last_price_above="31500000000000000000000")
+            price_trigger=PriceTriggerData(
+                price_requirement=LastPriceAbove(
+                    last_price_above="31500000000000000000000"
+                )
+            )
         ),  # Trigger above current
     )
 
@@ -618,7 +679,11 @@ def test_place_trigger_order_complex_scenarios(senders: list[str]):
             appendix=breakout_appendix,
         ),
         trigger=PriceTrigger(
-            price_requirement=LastPriceAbove(last_price_above="30500000000000000000000")
+            price_trigger=PriceTriggerData(
+                price_requirement=LastPriceAbove(
+                    last_price_above="30500000000000000000000"
+                )
+            )
         ),  # Breakout trigger
     )
 
@@ -657,9 +722,10 @@ def test_place_twap_order_entry_point(
     req_data = res.req
     assert req_data["place_order"]["product_id"] == 1
     assert req_data["place_order"]["order"]["amount"] == "1000000000000000000"
-    assert req_data["place_order"]["trigger"]["interval"] == 300
+    assert "time_trigger" in req_data["place_order"]["trigger"]
+    assert req_data["place_order"]["trigger"]["time_trigger"]["interval"] == 300
     # amounts is None, so it's not included in serialized JSON
-    assert "amounts" not in req_data["place_order"]["trigger"]
+    assert "amounts" not in req_data["place_order"]["trigger"]["time_trigger"]
 
     # Check that it's a TWAP trigger type in the appendix
     appendix = int(req_data["place_order"]["order"]["appendix"])
@@ -711,7 +777,11 @@ def test_place_twap_order_with_custom_amounts(
 
     # Verify custom amounts are included
     req_data = res.req
-    assert req_data["place_order"]["trigger"]["amounts"] == custom_amounts_x18
+    assert "time_trigger" in req_data["place_order"]["trigger"]
+    assert (
+        req_data["place_order"]["trigger"]["time_trigger"]["amounts"]
+        == custom_amounts_x18
+    )
 
     # Check that it's a TWAP_CUSTOM_AMOUNTS trigger type
     appendix = int(req_data["place_order"]["order"]["appendix"])
@@ -789,9 +859,13 @@ def test_place_price_trigger_order_entry_point(
 
     # Check trigger structure
     trigger = req_data["place_order"]["trigger"]
-    assert "price_requirement" in trigger
-    assert "last_price_above" in trigger["price_requirement"]
-    assert trigger["price_requirement"]["last_price_above"] == "51000000000000000000000"
+    assert "price_trigger" in trigger
+    assert "price_requirement" in trigger["price_trigger"]
+    assert "last_price_above" in trigger["price_trigger"]["price_requirement"]
+    assert (
+        trigger["price_trigger"]["price_requirement"]["last_price_above"]
+        == "51000000000000000000000"
+    )
 
 
 def test_place_price_trigger_order_all_trigger_types(
@@ -832,9 +906,11 @@ def test_place_price_trigger_order_all_trigger_types(
         # Verify correct trigger type is used
         req_data = res.req
         trigger = req_data["place_order"]["trigger"]
-        assert "price_requirement" in trigger
+        assert "price_trigger" in trigger
+        assert "price_requirement" in trigger["price_trigger"]
         assert (
-            trigger_type.replace("_price_", "_price_") in trigger["price_requirement"]
+            trigger_type.replace("_price_", "_price_")
+            in trigger["price_trigger"]["price_requirement"]
         )
 
 

@@ -41,16 +41,24 @@ class Dependency(NadoBaseModel):
     on_partial_fill: bool
 
 
-class PriceTrigger(NadoBaseModel):
+class PriceTriggerData(NadoBaseModel):
     price_requirement: PriceRequirement
     dependency: Optional[Dependency] = None
 
 
-class TimeTrigger(NadoBaseModel):
+class TimeTriggerData(NadoBaseModel):
     """Time-based trigger for TWAP orders."""
 
     interval: int  # interval in seconds between executions
     amounts: Optional[List[str]] = None  # optional custom amounts per execution
+
+
+class PriceTrigger(NadoBaseModel):
+    price_trigger: PriceTriggerData
+
+
+class TimeTrigger(NadoBaseModel):
+    time_trigger: TimeTriggerData
 
 
 TriggerCriteria = Union[PriceTrigger, TimeTrigger]

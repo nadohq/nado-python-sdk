@@ -210,7 +210,7 @@ class MarketExecuteAPI(NadoBaseAPI):
             sender (Optional[str]): The sender address (32 bytes hex or SubaccountParams). If provided, takes precedence over subaccount_owner/subaccount_name.
             subaccount_owner (Optional[str]): The subaccount owner address. If not provided, uses client's signer address. Ignored if sender is provided.
             subaccount_name (str): The subaccount name. Defaults to "default". Ignored if sender is provided.
-            expiration (Optional[int]): Order expiration timestamp. If not provided, calculated as ((times - 1) * interval_seconds) + 24 hours from now.
+            expiration (Optional[int]): Order expiration timestamp. If not provided, calculated as min(((times - 1) * interval_seconds) + 1 hour, 25 hours) from now.
             nonce (Optional[int]): Order nonce. If not provided, will be auto-generated.
             custom_amounts_x18 (Optional[List[str]]): Custom amounts for each execution multiplied by 1e18.
             reduce_only (bool): Whether this is a reduce-only order. Defaults to False.
@@ -259,6 +259,7 @@ class MarketExecuteAPI(NadoBaseAPI):
         order_type: OrderType = OrderType.DEFAULT,
         spot_leverage: Optional[bool] = None,
         id: Optional[int] = None,
+        dependency: Optional[dict] = None,
     ) -> ExecuteResponse:
         """
         Place a price trigger order.
@@ -283,6 +284,7 @@ class MarketExecuteAPI(NadoBaseAPI):
             order_type (OrderType): Order execution type (DEFAULT, IOC, FOK, POST_ONLY). Defaults to DEFAULT.
             spot_leverage (Optional[bool]): Whether to use spot leverage.
             id (Optional[int]): Optional order ID.
+            dependency (Optional[dict]): Optional dependency trigger dict with 'digest' and 'on_partial_fill' keys.
 
         Returns:
             ExecuteResponse: The response from placing the price trigger order.
@@ -293,6 +295,14 @@ class MarketExecuteAPI(NadoBaseAPI):
         """
         if self.context.trigger_client is None:
             raise MissingTriggerClient()
+
+        # Convert dict to Dependency if provided
+        dependency_obj = None
+        if dependency is not None:
+            from nado_protocol.trigger_client.types.models import Dependency
+
+            dependency_obj = Dependency.parse_obj(dependency)
+
         return self.context.trigger_client.place_price_trigger_order(
             product_id=product_id,
             price_x18=price_x18,
@@ -308,4 +318,5 @@ class MarketExecuteAPI(NadoBaseAPI):
             order_type=order_type,
             spot_leverage=spot_leverage,
             id=id,
+            dependency=dependency_obj,
         )

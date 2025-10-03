@@ -26,6 +26,7 @@ from nado_protocol.utils.subaccount import SubaccountParams
 from nado_protocol.utils.bytes32 import subaccount_to_hex
 from nado_protocol.trigger_client.types.models import (
     PriceTrigger,
+    PriceTriggerData,
     LastPriceAbove,
     LastPriceBelow,
     OraclePriceAbove,
@@ -33,6 +34,7 @@ from nado_protocol.trigger_client.types.models import (
     MidPriceAbove,
     MidPriceBelow,
     PriceRequirement,
+    Dependency,
 )
 
 
@@ -144,7 +146,7 @@ class TriggerExecuteClient(NadoBaseExecute):
             sender (Optional[str]): The sender address (32 bytes hex or SubaccountParams). If provided, takes precedence over subaccount_owner/subaccount_name.
             subaccount_owner (Optional[str]): The subaccount owner address. If not provided, uses client's signer address. Ignored if sender is provided.
             subaccount_name (str): The subaccount name. Defaults to "default". Ignored if sender is provided.
-            expiration (Optional[int]): Order expiration timestamp. If not provided, calculated as ((times - 1) * interval_seconds) + 24 hours from now.
+            expiration (Optional[int]): Order expiration timestamp. If not provided, calculated as min(((times - 1) * interval_seconds) + 1 hour, 25 hours) from now.
             nonce (Optional[int]): Order nonce. If not provided, will be auto-generated.
             custom_amounts_x18 (Optional[List[str]]): Custom amounts for each execution multiplied by 1e18.
             reduce_only (bool): Whether this is a reduce-only order. Defaults to False.
@@ -159,8 +161,10 @@ class TriggerExecuteClient(NadoBaseExecute):
         # Where min_expiration = ((times - 1) * interval) + now
         if expiration is None:
             min_duration = (times - 1) * interval_seconds
-            # Set expiration to minimum + 24 hours buffer
-            expiration = get_expiration_timestamp(min_duration + 60 * 60 * 24)
+            max_duration = 60 * 60 * 25  # 25 hours in seconds
+            # Set expiration to minimum duration + 1 hour buffer, capped at 25 hours
+            buffer_duration = min(min_duration + 60 * 60, max_duration)
+            expiration = get_expiration_timestamp(buffer_duration)
 
         # Build sender from subaccount parameters if not directly provided
         sender_value: Union[str, SubaccountParams]
@@ -212,6 +216,7 @@ class TriggerExecuteClient(NadoBaseExecute):
         order_type: OrderType = OrderType.DEFAULT,
         spot_leverage: Optional[bool] = None,
         id: Optional[int] = None,
+        dependency: Optional[Dependency] = None,
     ) -> ExecuteResponse:
         """
         Place a price trigger order.
@@ -236,6 +241,10 @@ class TriggerExecuteClient(NadoBaseExecute):
             order_type (OrderType): Order execution type (DEFAULT, IOC, FOK, POST_ONLY). Defaults to DEFAULT.
             spot_leverage (Optional[bool]): Whether to use spot leverage.
             id (Optional[int]): Optional order ID.
+            dependency (Optional[Dependency]): Optional dependency trigger. If provided, this order will trigger
+                when the specified order (by digest) is filled. The dependency includes:
+                - digest (str): The digest of the order to depend on
+                - on_partial_fill (bool): Whether to trigger on partial fill (True) or only on full fill (False)
 
         Returns:
             ExecuteResponse: The response from placing the price trigger order.
@@ -263,7 +272,11 @@ class TriggerExecuteClient(NadoBaseExecute):
                 f"Supported types: ['last_price_above', 'last_price_below', 'oracle_price_above', 'oracle_price_below', 'mid_price_above', 'mid_price_below']"
             )
 
-        trigger = PriceTrigger(price_requirement=price_requirement)
+        trigger = PriceTrigger(
+            price_trigger=PriceTriggerData(
+                price_requirement=price_requirement, dependency=dependency
+            )
+        )
 
         # Build appendix with PRICE trigger type
         appendix = build_appendix(
