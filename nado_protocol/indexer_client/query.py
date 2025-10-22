@@ -49,6 +49,8 @@ from nado_protocol.indexer_client.types.query import (
     IndexerMerkleProofsData,
     IndexerInterestAndFundingParams,
     IndexerInterestAndFundingData,
+    IndexerAccountSnapshotsParams,
+    IndexerAccountSnapshotsData,
     IndexerTickersData,
     IndexerPerpContractsData,
     IndexerHistoricalTradesData,
@@ -459,3 +461,24 @@ class IndexerQueryClient:
         if max_trade_id is not None:
             url += f"&max_trade_id={max_trade_id}"
         return ensure_data_type(self._query_v2(url), list)
+
+    def get_multi_subaccount_snapshots(
+        self, params: IndexerAccountSnapshotsParams
+    ) -> IndexerAccountSnapshotsData:
+        """
+        Retrieves subaccount snapshots at specified timestamps.
+        Each snapshot is a view of the subaccount's balances at that point in time,
+        with tracked variables for interest, funding, etc.
+
+        Args:
+            params (IndexerAccountSnapshotsParams): Parameters specifying subaccounts,
+                timestamps, and whether to include isolated positions.
+
+        Returns:
+            IndexerAccountSnapshotsData: Dict mapping subaccount hex -> timestamp -> snapshot data.
+                Each snapshot contains balances with trackedVars including netEntryUnrealized.
+        """
+        return ensure_data_type(
+            self.query(IndexerAccountSnapshotsParams.parse_obj(params)).data,
+            IndexerAccountSnapshotsData,
+        )

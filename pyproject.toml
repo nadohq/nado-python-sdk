@@ -39,6 +39,7 @@ contracts-sanity = "sanity.contracts:run"
 client-sanity = "sanity.nado_client:run"
 rewards-sanity = "sanity.rewards:run"
 signing-sanity = "sanity.signing:run"
+margin-sanity = "sanity.margin_manager:run"
 
 [[tool.poetry.source]]
 name = "private"
