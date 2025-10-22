@@ -79,7 +79,7 @@ def run():
     pprint(spots_apr)
 
     print("querying orderbook for BTC-PERP pair...")
-    btc_perp_book = client.get_orderbook("BTC-PERP_USDC", 10)
+    btc_perp_book = client.get_orderbook("BTC-PERP_USDT", 10)
     pprint(btc_perp_book)
 
     order_price = 100_000

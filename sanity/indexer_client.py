@@ -37,7 +37,7 @@ def run():
     pprint(perp_contracts)
 
     print("querying BTC-PERP historical trades...")
-    btc_perp_trades = client.get_historical_trades("BTC-PERP_USDC", 2)
+    btc_perp_trades = client.get_historical_trades("BTC-PERP_USDT", 2)
     pprint(btc_perp_trades)
 
     owner = Account.from_key(SIGNER_PRIVATE_KEY).address
