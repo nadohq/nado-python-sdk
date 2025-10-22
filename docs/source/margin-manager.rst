@@ -63,7 +63,7 @@ For the entire subaccount:
    liabilities = sum of negative health contributions (absolute value)
    health = assets - liabilities
 
-**Liquidation occurs when maintenance health ≤ 0.**
+**Liquidation occurs when maintenance health < 0.**
 
 Margin Modes
 ^^^^^^^^^^^^
@@ -528,9 +528,9 @@ CrossPositionMetrics Fields
    * - ``notional_value``
      - Absolute notional value (= abs(size × oracle_price)).
    * - ``est_pnl``
-     - Estimated PnL (unrealized PnL including funding).
+     - Estimated PnL from indexer (amount × oracle_price - netEntryUnrealized). Requires indexer data.
    * - ``unsettled``
-     - Unsettled quote balance (v_quote_balance).
+     - Full perp balance value (amount × oracle_price + v_quote_balance). This represents unrealized PnL.
    * - ``margin_used``
      - Margin consumed by position, excluding PnL impact.
    * - ``initial_health``
@@ -582,6 +582,21 @@ Evidence from the codebase:
 - ``calcPerpBalanceNotionalValue`` uses ``oraclePrice``
 - All health calculations use ``balance.oraclePrice``
 
+Do I need to convert USDT to USD?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**No conversion needed!** All values from the engine are already in the correct denomination.
+
+Oracle prices are denominated in the primary quote token (USDT), and all margin calculations work directly with these values. The UI displays dollar signs ($) as a convention, but no USDT→USD price conversion is applied.
+
+Key points:
+
+- **Perp tracked variables** (``netEntryUnrealized``, ``netFundingUnrealized``, etc.) are already in quote (USDT) terms
+- **No multiplication by USDT/USD rate** in any margin calculation
+- **The only oracle price multiplication** is for spot interest (converting from token units to USD)
+
+This was verified by systematically reviewing all margin manager calculations in the nado-web-monorepo. See ``margin-manager.md`` for detailed source file mappings.
+
 How do I calculate initial margin for a perp position?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -589,9 +604,16 @@ For a perp position, initial margin is:
 
 .. code-block:: text
 
-   initial_margin = abs(position_size × oracle_price) × (1 - long_weight_initial)
+   notional = abs(position_size × oracle_price)
+   initial_margin = notional × abs(1 - weight_initial)
+   maintenance_margin = notional × abs(1 - weight_maintenance)
 
-Example:
+**Important**: Use ``abs(1 - weight)`` to handle both long and short positions:
+
+- **Long positions**: weight < 1, so (1 - weight) > 0
+- **Short positions**: weight > 1, so (1 - weight) < 0, need abs()
+
+Example (Long):
 - Position: 10 BTC long
 - Oracle Price: $50,000
 - Long Weight Initial: 0.9 (allows 10x leverage)
@@ -601,7 +623,17 @@ Example:
    notional = abs(10 × 50,000) = $500,000
    initial_margin = 500,000 × (1 - 0.9) = 500,000 × 0.1 = $50,000
 
-The position requires $50,000 initial margin (10x leverage).
+Example (Short):
+- Position: -10 BTC short
+- Oracle Price: $50,000
+- Short Weight Initial: 1.1 (requires 10x leverage)
+
+.. code-block:: text
+
+   notional = abs(-10 × 50,000) = $500,000
+   initial_margin = 500,000 × abs(1 - 1.1) = 500,000 × 0.1 = $50,000
+
+Both positions require $50,000 initial margin (10x leverage).
 
 Why is my margin usage 0% even though I have positions?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
