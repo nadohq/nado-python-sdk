@@ -155,9 +155,16 @@ yourself:
            active=True,
        )
    )
-   indexer_events = snapshot_response.snapshots.get(subaccount, {}).get(
-       str(current_timestamp), []
-   )
+   snapshots_map = snapshot_response.snapshots
+   snapshot_events = []
+   if snapshots_map:
+       snapshots_for_subaccount = snapshots_map.get(subaccount) or next(
+           iter(snapshots_map.values())
+       )
+       if snapshots_for_subaccount:
+           latest_key = max(snapshots_for_subaccount.keys(), key=int)
+           snapshot_events = snapshots_for_subaccount.get(latest_key, [])
+   indexer_events = snapshot_events
 
    # Calculate all margin metrics
    margin_manager = MarginManager(

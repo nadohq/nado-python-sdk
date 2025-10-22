@@ -211,34 +211,53 @@ class MarginManager:
 
         indexer_events: list[IndexerEvent] = []
         if include_indexer_events:
-            timestamp = snapshot_timestamp or int(time())
-            try:
-                snapshot_response = (
-                    client.context.indexer_client.get_multi_subaccount_snapshots(
-                        IndexerAccountSnapshotsParams(
-                            subaccounts=[resolved_subaccount],
-                            timestamps=[timestamp],
-                            isolated=snapshot_isolated,
-                            active=snapshot_active_only,
-                        )
-                    )
-                )
-                snapshots_for_subaccount = snapshot_response.snapshots.get(
-                    resolved_subaccount, {}
-                )
-                events = snapshots_for_subaccount.get(str(timestamp))
-                if events is None and snapshots_for_subaccount:
-                    latest_key = max(snapshots_for_subaccount.keys(), key=int)
-                    events = snapshots_for_subaccount.get(latest_key)
-                indexer_events = events or []
-            except Exception:
-                indexer_events = []
+            requested_timestamp = snapshot_timestamp or int(time())
+            indexer_events = cls._fetch_snapshot_events(
+                client,
+                resolved_subaccount,
+                requested_timestamp,
+                snapshot_isolated,
+                snapshot_active_only,
+            )
 
         return cls(
             subaccount_info,
             isolated_positions,
             indexer_snapshot_events=indexer_events,
         )
+
+    @staticmethod
+    def _fetch_snapshot_events(
+        client: "NadoClient",
+        subaccount: str,
+        timestamp: int,
+        isolated: Optional[bool],
+        active_only: bool,
+    ) -> list[IndexerEvent]:
+        snapshot_response = (
+            client.context.indexer_client.get_multi_subaccount_snapshots(
+                IndexerAccountSnapshotsParams(
+                    subaccounts=[subaccount],
+                    timestamps=[timestamp],
+                    isolated=isolated,
+                    active=active_only,
+                )
+            )
+        )
+
+        snapshots_map = snapshot_response.snapshots or {}
+        if not snapshots_map:
+            return []
+
+        snapshots_for_subaccount = snapshots_map.get(subaccount) or next(
+            iter(snapshots_map.values())
+        )
+        if not snapshots_for_subaccount:
+            return []
+
+        latest_key = max(snapshots_for_subaccount.keys(), key=int)
+        events = snapshots_for_subaccount.get(latest_key, [])
+        return list(events) if events else []
 
     def calculate_account_summary(self) -> AccountSummary:
         """

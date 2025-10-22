@@ -57,6 +57,7 @@ def run():
         print(f"  ✓ Found {len(subaccount_info.spot_balances)} spot balances")
         print(f"  ✓ Found {len(subaccount_info.perp_balances)} perp balances")
         print(f"  ✓ Found {len(margin_manager.isolated_positions)} isolated positions")
+        print(f"  ✓ Retrieved {len(margin_manager.indexer_events)} indexer events")
     except Exception as e:
         print(f"  ✗ Error fetching margin data: {e}")
         import traceback
@@ -70,13 +71,8 @@ def run():
     if indexer_snapshot_events:
         print(f"  ✓ Retrieved {len(indexer_snapshot_events)} active balances")
         first_balance = indexer_snapshot_events[0]
-        print("\n[DEBUG] Indexer snapshot structure:")
         print(f"  Number of balances: {len(indexer_snapshot_events)}")
-        print(f"  First balance fields: {list(first_balance.__fields__.keys())}")
         print(f"  First balance product_id: {first_balance.product_id}")
-        print(
-            "  Tracked vars: net_entry_unrealized, net_entry_cumulative, net_funding_unrealized, net_funding_cumulative, net_interest_unrealized, net_interest_cumulative"
-        )
     else:
         print("  ⚠ Warning: No snapshot data found for requested timestamp")
 

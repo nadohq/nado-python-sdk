@@ -182,7 +182,7 @@ class IndexerEventTrackedData(NadoBaseModel):
     net_funding_cumulative: str
     net_entry_unrealized: str
     net_entry_cumulative: str
-    cumulative_volume: str
+    quote_volume_cumulative: str
 
 
 class IndexerEvent(IndexerBaseModel, IndexerEventTrackedData):
