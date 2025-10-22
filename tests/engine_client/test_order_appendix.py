@@ -17,7 +17,7 @@ from nado_protocol.utils.order import (
     order_version,
 )
 from nado_protocol.utils.expiration import OrderType
-from nado_protocol.utils.math import to_x18
+from nado_protocol.utils.math import to_x6
 from nado_protocol.utils.subaccount import SubaccountParams
 
 
@@ -45,11 +45,11 @@ def test_basic_appendix_functionality():
 
 def test_isolated_position_functionality():
     """Test isolated position appendix functionality."""
-    # Test isolated position with various margin amounts
-    test_margins = [1000, 500000, 1000000000]  # Different margin sizes
+    # Test isolated position with various margin amounts (must fit in 64 bits)
+    test_margins = [1, 5, 10]  # Different margin sizes that fit in 64-bit x18
 
     for margin in test_margins:
-        margin_x18 = to_x18(margin)
+        margin_x18 = to_x6(margin)
         appendix = build_appendix(
             OrderType.POST_ONLY, isolated=True, isolated_margin=margin_x18
         )
@@ -59,7 +59,7 @@ def test_isolated_position_functionality():
         assert order_execution_type(appendix) == OrderType.POST_ONLY
 
     # Test isolated position with maximum margin
-    max_margin = (1 << 96) - 1  # Maximum 96-bit value
+    max_margin = (1 << 64) - 1  # Maximum 64-bit value
     appendix = build_appendix(
         OrderType.DEFAULT, isolated=True, isolated_margin=max_margin
     )
@@ -130,7 +130,7 @@ def test_validation_and_edge_cases():
             OrderType.DEFAULT,
             isolated=True,
             trigger_type=OrderAppendixTriggerType.TWAP,
-            isolated_margin=to_x18(1000),
+            isolated_margin=to_x6(10),
             twap_times=5,
             twap_slippage_frac=0.01,
         )
@@ -146,7 +146,7 @@ def test_validation_and_edge_cases():
     with pytest.raises(
         ValueError, match="isolated_margin can only be set when isolated=True"
     ):
-        build_appendix(OrderType.DEFAULT, isolated=False, isolated_margin=to_x18(1000))
+        build_appendix(OrderType.DEFAULT, isolated=False, isolated_margin=to_x6(10))
 
 
 def test_round_trip_conversions():
@@ -180,12 +180,12 @@ def test_round_trip_conversions():
         {
             "order_type": OrderType.DEFAULT,
             "isolated": True,
-            "isolated_margin": to_x18(1000),
+            "isolated_margin": to_x6(1),
         },
         {
             "order_type": OrderType.POST_ONLY,
             "isolated": True,
-            "isolated_margin": to_x18(1000000),
+            "isolated_margin": to_x6(10),
             "reduce_only": True,
         },
     ]

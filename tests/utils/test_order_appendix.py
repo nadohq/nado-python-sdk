@@ -17,7 +17,7 @@ from nado_protocol.utils.order import (
     unpack_twap_appendix_value,
 )
 from nado_protocol.utils.expiration import OrderType
-from nado_protocol.utils.math import to_x18
+from nado_protocol.utils.math import to_x6
 
 
 def order_type_appendix_bit(order_type: OrderType) -> int:
@@ -40,8 +40,8 @@ def test_appendix_bit_field_sizes():
     assert AppendixBitFields.ORDER_TYPE_BITS == 2
     assert AppendixBitFields.REDUCE_ONLY_BITS == 1
     assert AppendixBitFields.TRIGGER_TYPE_BITS == 2
-    assert AppendixBitFields.RESERVED_BITS == 18
-    assert AppendixBitFields.VALUE_BITS == 96
+    assert AppendixBitFields.RESERVED_BITS == 50
+    assert AppendixBitFields.VALUE_BITS == 64
 
 
 def test_appendix_bit_masks():
@@ -51,8 +51,8 @@ def test_appendix_bit_masks():
     assert AppendixBitFields.ORDER_TYPE_MASK == 3
     assert AppendixBitFields.REDUCE_ONLY_MASK == 1
     assert AppendixBitFields.TRIGGER_TYPE_MASK == 3
-    assert AppendixBitFields.RESERVED_MASK == (1 << 18) - 1
-    assert AppendixBitFields.VALUE_MASK == (1 << 96) - 1
+    assert AppendixBitFields.RESERVED_MASK == (1 << 50) - 1
+    assert AppendixBitFields.VALUE_MASK == (1 << 64) - 1
 
 
 def test_appendix_bit_shift_positions():
@@ -63,7 +63,7 @@ def test_appendix_bit_shift_positions():
     assert AppendixBitFields.REDUCE_ONLY_SHIFT == 11
     assert AppendixBitFields.TRIGGER_TYPE_SHIFT == 12
     assert AppendixBitFields.RESERVED_SHIFT == 14
-    assert AppendixBitFields.VALUE_SHIFT == 32
+    assert AppendixBitFields.VALUE_SHIFT == 64
 
 
 def test_order_type_appendix_bits():
@@ -238,7 +238,7 @@ def test_non_twap_order_data_extraction():
 
 def test_isolated_order_basic():
     """Test basic isolated order functionality."""
-    margin = to_x18(1000000)
+    margin = to_x6(10)
     appendix = build_appendix(OrderType.DEFAULT, isolated=True, isolated_margin=margin)
 
     assert order_is_isolated(appendix)
@@ -247,7 +247,7 @@ def test_isolated_order_basic():
 
 def test_isolated_order_with_other_flags():
     """Test isolated order with other flags."""
-    margin = to_x18(500000)
+    margin = to_x6(5)
     appendix = build_appendix(
         OrderType.POST_ONLY, isolated=True, reduce_only=True, isolated_margin=margin
     )
@@ -324,7 +324,7 @@ def test_isolated_margin_without_isolated_flag():
     with pytest.raises(
         ValueError, match="isolated_margin can only be set when isolated=True"
     ):
-        build_appendix(OrderType.DEFAULT, isolated=False, isolated_margin=to_x18(1000))
+        build_appendix(OrderType.DEFAULT, isolated=False, isolated_margin=to_x6(1000))
 
 
 def test_twap_parameters_without_twap_trigger():
@@ -345,7 +345,7 @@ def test_isolated_and_twap_mutual_exclusion():
             OrderType.DEFAULT,
             isolated=True,
             trigger_type=OrderAppendixTriggerType.TWAP,
-            isolated_margin=to_x18(1000),
+            isolated_margin=to_x6(10),
             twap_times=5,
             twap_slippage_frac=0.01,
         )
@@ -356,7 +356,7 @@ def test_typescript_basic_appendix_compatibility():
     appendix = build_appendix(
         OrderType.DEFAULT, trigger_type=OrderAppendixTriggerType.PRICE
     )
-    assert appendix == 4096
+    assert appendix == 4097
 
 
 def test_typescript_reduce_only_compatibility():
@@ -364,7 +364,7 @@ def test_typescript_reduce_only_compatibility():
     appendix = build_appendix(
         OrderType.DEFAULT, reduce_only=True, trigger_type=OrderAppendixTriggerType.PRICE
     )
-    assert appendix == 6144
+    assert appendix == 6145
 
 
 def test_typescript_twap_compatibility():
@@ -375,7 +375,7 @@ def test_typescript_twap_compatibility():
         twap_times=10,
         twap_slippage_frac=0.005,
     )
-    assert appendix == 792281717376363744483197591552
+    assert appendix == 792281717376363744483197591553
 
 
 def test_basic_round_trip():
@@ -393,7 +393,7 @@ def test_basic_round_trip():
 
 def test_isolated_round_trip():
     """Test isolated order round-trip conversion."""
-    original_margin = to_x18(123456789)
+    original_margin = to_x6(12)
     original_appendix = build_appendix(
         OrderType.POST_ONLY, isolated=True, isolated_margin=original_margin
     )
@@ -447,7 +447,7 @@ def test_bit_field_isolation():
     base_appendix = build_appendix(OrderType.DEFAULT)
 
     isolated_appendix = build_appendix(
-        OrderType.DEFAULT, isolated=True, isolated_margin=to_x18(100)
+        OrderType.DEFAULT, isolated=True, isolated_margin=to_x6(1)
     )
     assert order_is_isolated(isolated_appendix)
     assert not order_is_isolated(base_appendix)
@@ -464,12 +464,12 @@ def test_all_combinations_work():
         OrderType.POST_ONLY,
         isolated=True,
         reduce_only=True,
-        isolated_margin=to_x18(1000000),
+        isolated_margin=to_x6(10),
     )
 
     assert order_version(appendix) == APPENDIX_VERSION
     assert order_is_isolated(appendix)
-    assert order_isolated_margin(appendix) == to_x18(1000000)
+    assert order_isolated_margin(appendix) == to_x6(10)
     assert order_execution_type(appendix) == OrderType.POST_ONLY
     assert order_reduce_only(appendix)
     assert not order_is_trigger_order(appendix)

@@ -11,18 +11,18 @@ The appendix is a 128-bit integer with the following bit layout (from MSB to LSB
 .. code-block::
 
     | value   | reserved | trigger | reduce only | order type| isolated | version |
-    | 96 bits | 18 bits  | 2 bits  | 1 bit       | 2 bits    | 1 bit    | 8 bits  |
-    | 127..32 | 31..14   | 13..12  | 11          | 10..9     | 8        | 7..0    |
+    | 64 bits | 50 bits  | 2 bits  | 1 bit       | 2 bits    | 1 bit    | 8 bits  |
+    | 127..64 | 63..14   | 13..12  | 11          | 10..9     | 8        | 7..0    |
 
 Fields (from LSB to MSB):
 
-- **Version** (bits 0-7): Protocol version for future compatibility
+- **Version** (bits 0-7): Protocol version for future compatibility (currently version 1)
 - **Isolated** (bit 8): Whether the order is for an isolated position
 - **Order Type** (bits 9-10): Execution type (DEFAULT, IOC, FOK, POST_ONLY)
 - **Reduce Only** (bit 11): Whether the order can only reduce existing positions
 - **Trigger Type** (bits 12-13): Type of trigger order (NONE, PRICE, TWAP, TWAP_CUSTOM_AMOUNTS)
-- **Reserved** (bits 14-31): Reserved for future use
-- **Value** (bits 32-127): Additional data (isolated margin or TWAP parameters)
+- **Reserved** (bits 14-63): Reserved for future use
+- **Value** (bits 64-127): Additional data (isolated margin or TWAP parameters)
 
 Building an Appendix
 --------------------
@@ -81,12 +81,13 @@ Isolated positions allow you to allocate specific margin to a trade, limiting yo
 
     from nado_protocol.utils.order import build_appendix
     from nado_protocol.utils.expiration import OrderType
-    from nado_protocol.utils.math import to_x18
+    from nado_protocol.utils.math import to_x6
 
-    # Create isolated position with 1M units of margin
+    # Create isolated position with 1000 USDC margin
+    # Note: isolated margin uses x6 precision and is limited to 64-bit values
     isolated_appendix = build_appendix(
         isolated=True,
-        isolated_margin=to_x18(1000000),
+        isolated_margin=to_x6(1000),
         order_type=OrderType.POST_ONLY
     )
 
@@ -153,11 +154,11 @@ You can extract information from an existing appendix:
         order_twap_data
     )
 
-    from nado_protocol.utils.math import to_x18
+    from nado_protocol.utils.math import to_x6
 
     appendix = build_appendix(
         isolated=True,
-        isolated_margin=to_x18(500000),
+        isolated_margin=to_x6(500),
         order_type=OrderType.IOC,
         reduce_only=True
     )
@@ -239,12 +240,13 @@ Here are examples of complex trading scenarios using appendix:
 
 .. code-block:: python
 
-    from nado_protocol.utils.math import to_x18
+    from nado_protocol.utils.math import to_x6
 
-    # Enter large position on breakout with dedicated margin
+    # Enter position on breakout with dedicated margin
+    # Note: isolated margin uses x6 precision and is limited to 64-bit values
     breakout_appendix = build_appendix(
         isolated=True,
-        isolated_margin=to_x18(5000000),  # 5M units dedicated margin
+        isolated_margin=to_x6(5000),  # 5000 USDC dedicated margin
         order_type=OrderType.IOC
     )
 
@@ -267,7 +269,7 @@ The appendix system enforces several validation rules:
 - **Isolated + TWAP Exclusion**: An order cannot be both isolated and a TWAP order
 - **TWAP Parameters**: TWAP orders require both `twap_times` and `twap_slippage_frac`
 - **Isolated Margin**: `isolated_margin` can only be set when `isolated=True`
-- **Margin Limits**: Isolated margin must be between 0 and 2^96 - 1
+- **Margin Limits**: Isolated margin uses x6 precision and must be between 0 and 2^64 - 1
 
 Error Handling
 --------------
@@ -276,9 +278,11 @@ The appendix functions will raise `ValueError` for invalid configurations:
 
 .. code-block:: python
 
+    from nado_protocol.utils.math import to_x6
+
     # This will raise ValueError: isolated_margin can only be set when isolated=True
     try:
-        build_appendix(isolated=False, isolated_margin=to_x18(1000))
+        build_appendix(isolated=False, isolated_margin=to_x6(1000))
     except ValueError as e:
         print(f"Error: {e}")
 
@@ -292,7 +296,7 @@ The appendix functions will raise `ValueError` for invalid configurations:
     try:
         build_appendix(
             isolated=True,
-            isolated_margin=to_x18(1000),
+            isolated_margin=to_x6(1000),
             trigger_type=OrderAppendixTriggerType.TWAP,
             twap_times=5,
             twap_slippage_frac=0.01
