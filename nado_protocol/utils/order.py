@@ -4,13 +4,13 @@ from nado_protocol.utils.expiration import OrderType
 
 
 # Order appendix version
-APPENDIX_VERSION = 0
+APPENDIX_VERSION = 1
 
 
 class AppendixBitFields:
     # | value   | reserved | trigger | reduce only | order type| isolated | version |
-    # | 96 bits | 18 bits  | 2 bits  | 1 bit       | 2 bits    | 1 bit    | 8 bits  |
-    # | 127..32 | 31..14   | 13..12  | 11          | 10..9     | 8        | 7..0    |
+    # | 64 bits | 50 bits  | 2 bits  | 1 bit       | 2 bits    | 1 bit    | 8 bits  |
+    # | 127..64 | 63..14   | 13..12  | 11          | 10..9     | 8        | 7..0    |
 
     # Bit positions (from LSB to MSB)
     VERSION_BITS = 8  # bits 7..0
@@ -18,8 +18,8 @@ class AppendixBitFields:
     ORDER_TYPE_BITS = 2  # bits 10..9
     REDUCE_ONLY_BITS = 1  # bit 11
     TRIGGER_TYPE_BITS = 2  # bits 13..12
-    RESERVED_BITS = 18  # bits 31..14
-    VALUE_BITS = 96  # bits 127..32 (for isolated margin or TWAP data)
+    RESERVED_BITS = 50  # bits 63..14
+    VALUE_BITS = 64  # bits 127..64 (for isolated margin or TWAP data)
 
     # Bit masks
     VERSION_MASK = (1 << VERSION_BITS) - 1
@@ -37,7 +37,7 @@ class AppendixBitFields:
     REDUCE_ONLY_SHIFT = 11
     TRIGGER_TYPE_SHIFT = 12
     RESERVED_SHIFT = 14
-    VALUE_SHIFT = 32
+    VALUE_SHIFT = 64
 
 
 class OrderAppendixTriggerType(IntEnum):
@@ -51,22 +51,19 @@ class OrderAppendixTriggerType(IntEnum):
 
 
 class TWAPBitFields:
-    """Bit field definitions for TWAP value packing within the 96-bit value field."""
+    """Bit field definitions for TWAP value packing within the 64-bit value field."""
 
-    # Bit layout (MSB → LSB): | times (32 bits) | slippage_x6 (32 bits) | reserved (32 bits) |
+    # Bit layout (MSB → LSB): | times (32 bits) | slippage_x6 (32 bits) |
     TIMES_BITS = 32
     SLIPPAGE_BITS = 32
-    RESERVED_BITS = 32
 
     # Bit masks
     TIMES_MASK = (1 << TIMES_BITS) - 1
     SLIPPAGE_MASK = (1 << SLIPPAGE_BITS) - 1
-    RESERVED_MASK = (1 << RESERVED_BITS) - 1
 
-    # Bit shift positions (within the 96-bit value field)
-    RESERVED_SHIFT = 0
-    SLIPPAGE_SHIFT = 32
-    TIMES_SHIFT = 64
+    # Bit shift positions (within the 64-bit value field)
+    SLIPPAGE_SHIFT = 0
+    TIMES_SHIFT = 32
 
     # Slippage scaling factor (6 decimal places)
     SLIPPAGE_SCALE = 1_000_000
@@ -74,30 +71,27 @@ class TWAPBitFields:
 
 def pack_twap_appendix_value(times: int, slippage_frac: float) -> int:
     """
-    Packs TWAP order fields into a 96-bit integer for the appendix.
+    Packs TWAP order fields into a 64-bit integer for the appendix.
 
     Bit layout (MSB → LSB):
-    |   times   | slippage_x6 | reserved |
-    |-----------|-------------|----------|
-    | 95..64    | 63..32      | 31..0    |
-    | 32 bits   | 32 bits     | 32 bits  |
+    |   times   | slippage_x6 |
+    |-----------|-------------|
+    | 63..32    | 31..0       |
+    | 32 bits   | 32 bits     |
     """
     slippage_x6 = int(slippage_frac * TWAPBitFields.SLIPPAGE_SCALE)
-    reserved = 0  # reserved 32-bit field (currently unused)
 
-    return (
-        ((times & TWAPBitFields.TIMES_MASK) << TWAPBitFields.TIMES_SHIFT)
-        | ((slippage_x6 & TWAPBitFields.SLIPPAGE_MASK) << TWAPBitFields.SLIPPAGE_SHIFT)
-        | ((reserved & TWAPBitFields.RESERVED_MASK) << TWAPBitFields.RESERVED_SHIFT)
+    return ((times & TWAPBitFields.TIMES_MASK) << TWAPBitFields.TIMES_SHIFT) | (
+        (slippage_x6 & TWAPBitFields.SLIPPAGE_MASK) << TWAPBitFields.SLIPPAGE_SHIFT
     )
 
 
 def unpack_twap_appendix_value(value: int) -> tuple[int, float]:
     """
-    Unpacks a 96-bit integer into TWAP order fields.
+    Unpacks a 64-bit integer into TWAP order fields.
 
     Args:
-        value (int): The 96-bit value to unpack.
+        value (int): The 64-bit value to unpack.
 
     Returns:
         tuple[int, float]: Number of TWAP executions and slippage fraction.
@@ -185,9 +179,9 @@ def build_appendix(
         trigger_value & AppendixBitFields.TRIGGER_TYPE_MASK
     ) << AppendixBitFields.TRIGGER_TYPE_SHIFT
 
-    # Handle upper bits (127..32) based on order type
+    # Handle upper bits (127..64) based on order type
     if isolated and isolated_margin is not None:
-        # Isolated margin (bits 127..32)
+        # Isolated margin (bits 127..64)
         appendix |= (
             isolated_margin & AppendixBitFields.VALUE_MASK
         ) << AppendixBitFields.VALUE_SHIFT
@@ -195,7 +189,7 @@ def build_appendix(
         OrderAppendixTriggerType.TWAP,
         OrderAppendixTriggerType.TWAP_CUSTOM_AMOUNTS,
     ]:
-        # TWAP value (bits 127..32) - 96 bits
+        # TWAP value (bits 127..64) - 64 bits
         # These are guaranteed to be non-None due to validation above
         assert twap_times is not None
         assert twap_slippage_frac is not None
