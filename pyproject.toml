@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nado-protocol"
-version = "0.1.7"
+version = "0.2.0"
 description = "Nado Protocol SDK"
 authors = ["Jeury Mejia <jeury@inkfnd.com>"]
 homepage = "https://nado.xyz"
@@ -39,6 +39,7 @@ contracts-sanity = "sanity.contracts:run"
 client-sanity = "sanity.nado_client:run"
 rewards-sanity = "sanity.rewards:run"
 signing-sanity = "sanity.signing:run"
+margin-sanity = "sanity.margin_manager:run"
 
 [[tool.poetry.source]]
 name = "private"

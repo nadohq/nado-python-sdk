@@ -49,6 +49,7 @@ class IndexerQueryType(StrEnum):
     REFERRAL_CODE = "referral_code"
     SUBACCOUNTS = "subaccounts"
     USDC_PRICE = "usdc_price"
+    ACCOUNT_SNAPSHOTS = "account_snapshots"
     # TODO: revise once this endpoint is live
     TOKEN_MERKLE_PROOFS = "token_merkle_proofs"
     FOUNDATION_REWARDS_MERKLE_PROOFS = "foundation_rewards_merkle_proofs"
@@ -292,6 +293,17 @@ class IndexerInterestAndFundingParams(NadoBaseModel):
     limit: int
 
 
+class IndexerAccountSnapshotsParams(NadoBaseModel):
+    """
+    Parameters for querying account snapshots.
+    """
+
+    subaccounts: list[str]
+    timestamps: list[int]
+    isolated: Optional[bool] = None
+    active: Optional[bool] = None
+
+
 IndexerParams = Union[
     IndexerSubaccountHistoricalOrdersParams,
     IndexerHistoricalOrdersByDigestParams,
@@ -314,6 +326,7 @@ IndexerParams = Union[
     IndexerTokenMerkleProofsParams,
     IndexerFoundationRewardsMerkleProofsParams,
     IndexerInterestAndFundingParams,
+    IndexerAccountSnapshotsParams,
 ]
 
 
@@ -487,6 +500,14 @@ class IndexerInterestAndFundingRequest(NadoBaseModel):
     interest_and_funding: IndexerInterestAndFundingParams
 
 
+class IndexerAccountSnapshotsRequest(NadoBaseModel):
+    """
+    Request object for querying account snapshots.
+    """
+
+    account_snapshots: IndexerAccountSnapshotsParams
+
+
 IndexerRequest = Union[
     IndexerHistoricalOrdersRequest,
     IndexerMatchesRequest,
@@ -508,6 +529,7 @@ IndexerRequest = Union[
     IndexerTokenMerkleProofsRequest,
     IndexerFoundationRewardsMerkleProofsRequest,
     IndexerInterestAndFundingRequest,
+    IndexerAccountSnapshotsRequest,
 ]
 
 
@@ -681,6 +703,14 @@ class IndexerInterestAndFundingData(NadoBaseModel):
 IndexerLiquidationFeedData = list[IndexerLiquidatableAccount]
 
 
+class IndexerAccountSnapshotsData(NadoBaseModel):
+    """
+    Data object for subaccount snapshots grouped by subaccount and timestamp.
+    """
+
+    snapshots: Dict[str, Dict[str, list[IndexerEvent]]]
+
+
 IndexerResponseData = Union[
     IndexerHistoricalOrdersData,
     IndexerMatchesData,
@@ -702,6 +732,7 @@ IndexerResponseData = Union[
     IndexerInterestAndFundingData,
     IndexerLiquidationFeedData,
     IndexerFundingRatesData,
+    IndexerAccountSnapshotsData,
 ]
 
 
@@ -808,6 +839,10 @@ def to_indexer_request(params: IndexerParams) -> IndexerRequest:
         IndexerInterestAndFundingParams: (
             IndexerInterestAndFundingRequest,
             IndexerQueryType.INTEREST_AND_FUNDING.value,
+        ),
+        IndexerAccountSnapshotsParams: (
+            IndexerAccountSnapshotsRequest,
+            IndexerQueryType.ACCOUNT_SNAPSHOTS.value,
         ),
     }
 
