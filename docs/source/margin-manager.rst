@@ -562,7 +562,7 @@ IsolatedPositionMetrics Fields
    * - ``maintenance_health``
      - Health for the isolated position (maintenance).
 
-Common Questions
+
 ----------------
 
 Does margin manager use oracle price or market price?
@@ -573,14 +573,6 @@ Does margin manager use oracle price or market price?
 Market prices (bid/ask from the orderbook) are only used for:
 - Estimated exit price for unrealized PnL display
 - **NOT** for any margin or health calculations
-
-This is by design to prevent manipulation and ensure fair liquidation logic.
-
-Evidence from the codebase:
-
-- ``calcSpotBalanceValue`` uses ``oraclePrice``
-- ``calcPerpBalanceNotionalValue`` uses ``oraclePrice``
-- All health calculations use ``balance.oraclePrice``
 
 Do I need to convert USDT to USD?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -595,11 +587,9 @@ Key points:
 - **No multiplication by USDT/USD rate** in any margin calculation
 - **The only oracle price multiplication** is for spot interest (converting from token units to USD)
 
-This was verified by systematically reviewing all margin manager calculations in the nado-web-monorepo. See ``margin-manager.md`` for detailed source file mappings.
-
 How do I calculate initial margin for a perp position?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
+Common Questions
 For a perp position, initial margin is:
 
 .. code-block:: text
