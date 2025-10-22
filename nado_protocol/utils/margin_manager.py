@@ -715,6 +715,14 @@ def print_account_summary(summary: AccountSummary) -> None:
     print("MARGIN MANAGER")
     print("=" * 80)
 
+    # Overview
+    initial_margin_used = summary.unweighted_health - summary.initial_health
+    print("\n━━━ Overview ━━━")
+    print(f"Total Equity:              ${summary.portfolio_value:,.2f}")
+    print(f"Initial Margin Used:       ${initial_margin_used:,.2f}")
+    print(f"Initial Margin Available:  ${summary.funds_available:,.2f}")
+    print(f"Leverage:                  {summary.account_leverage:.2f}x")
+
     # 1. Unified Margin Section
     print("\n━━━ UNIFIED MARGIN ━━━")
     print(f"Margin Usage:              {summary.margin_usage_fraction * 100:.2f}%")

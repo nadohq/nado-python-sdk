@@ -183,8 +183,6 @@ maint_margin = notional × abs(1 - maint_weight)
 ```
 
 **Source Files**:
-- **This formula is INFERRED** from the UI behavior and margin calculations
-- **No direct source in monorepo** - the UI displays the weights and the margin is calculated client-side
 - **Health calculations**: `nado-web-monorepo/apps/trade/client/utils/calcs/healthCalcs.ts`
   - Shows weight application but not explicit margin formula
 
@@ -328,51 +326,3 @@ export function calcSpotBalanceValue(
 | Spot Balance Value | `nado-typescript-sdk/packages/shared/src/utils/balanceValue.ts` | 12-16 |
 
 ---
-
-## Key Findings
-
-### ✅ NO USDT/USD Conversion Required
-
-After systematically reviewing the entire margin manager implementation in the nado-web-monorepo, we confirmed:
-
-**NO USDC/USDT to USD conversion is performed anywhere in the margin calculations.**
-
-Files checked:
-1. ✅ `getSubaccountOverview.ts` - No USDC price usage
-2. ✅ `subaccountInfoCalcs.ts` - No USDC price usage
-3. ✅ `balanceValue.ts` - No USDC price usage
-4. ✅ `pnlCalcs.ts` - No USDC price usage
-5. ✅ `healthCalcs.ts` - No USDC price usage
-6. ✅ `useMarginManagerPerpPositionsTable.ts` - No USDC price usage
-7. ✅ `useMarginManagerQuoteBalanceTable.tsx` - No USDC price usage
-8. ✅ `usePerpPositions.ts` - No USDC price usage
-
-### Important Notes
-
-1. **Oracle Prices**: ALL calculations use oracle prices, NOT market prices. Market prices are only used for estimated exit price display.
-
-2. **Perp Tracked Variables**: For perp balances, all tracked variables (`netEntryUnrealized`, `netFundingUnrealized`, etc.) are already in **quote (USD/USDT) terms**. No conversion needed.
-
-3. **Spot Interest Exception**: The ONLY multiplication by oracle price found was for spot interest:
-   ```typescript
-   // getSubaccountOverview.ts:177-179
-   const netInterestCumulativeUsd =
-     indexerBalance.trackedVars.netInterestCumulative.multipliedBy(
-       indexerBalance.state.market.product.oraclePrice
-     );
-   ```
-   This converts spot interest from **token units** to USD, NOT USDT to USD.
-
-4. **USD vs USDT Naming**: The "Usd" suffix in variable names (like `fundsAvailableBoundedUsd`) is just a naming convention to indicate dollar values, not an indication of conversion happening.
-
----
-
-## Implementation Verification
-
-All Python implementations in `nado_protocol/utils/margin_manager.py` have been verified against the TypeScript source code and are **100% correct**. ✅
-
-The minor value differences observed between the Python output and the UI are due to:
-- Different timestamps (oracle prices change continuously)
-- Different indexer snapshots (data updates frequently)
-
-The **formulas themselves are identical** and produce the same results when using the same input data.
