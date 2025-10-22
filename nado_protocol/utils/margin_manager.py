@@ -27,10 +27,17 @@ from nado_protocol.engine_client.types.query import SubaccountInfoData
 from nado_protocol.indexer_client.types.models import IndexerEvent
 from nado_protocol.indexer_client.types.query import IndexerAccountSnapshotsParams
 from nado_protocol.utils.bytes32 import subaccount_to_hex
-from nado_protocol.utils.math import from_x18
 
 if TYPE_CHECKING:
     from nado_protocol.client import NadoClient
+
+
+TEN_TO_18 = Decimal(10) ** 18
+
+
+def _from_x18_decimal(value: int | str) -> Decimal:
+    """Convert an x18 fixed-point integer (str or int) to Decimal without precision loss."""
+    return Decimal(str(value)) / TEN_TO_18
 
 
 class HealthMetrics(BaseModel):
@@ -76,6 +83,10 @@ class CrossPositionMetrics(BaseModel):
     margin_used: Decimal
     initial_health: Decimal
     maintenance_health: Decimal
+    long_weight_initial: Decimal
+    long_weight_maintenance: Decimal
+    short_weight_initial: Decimal
+    short_weight_maintenance: Decimal
 
     class Config:
         arbitrary_types_allowed = True
@@ -120,6 +131,7 @@ class AccountSummary(BaseModel):
     # Positions
     cross_positions: list[CrossPositionMetrics]
     isolated_positions: list[IsolatedPositionMetrics]
+    spot_positions: list[BalanceWithProduct]
 
     # Spot balances
     total_spot_deposits: Decimal
@@ -326,6 +338,7 @@ class MarginManager:
             account_leverage=leverage,
             cross_positions=cross_positions,
             isolated_positions=isolated_position_metrics,
+            spot_positions=spot_balances,
             total_spot_deposits=total_deposits,
             total_spot_borrows=total_borrows,
         )
@@ -503,8 +516,9 @@ class MarginManager:
             self.calculate_perp_balance_health_without_pnl(balance).initial
         )
 
-        # Unsettled = v_quote_balance (portion of open Perp PnL yet to be settled)
-        unsettled = balance.v_quote_balance if balance.v_quote_balance else Decimal(0)
+        # Unsettled = full perp balance value (amount × oracle_price + v_quote_balance)
+        # This represents the unrealized PnL
+        unsettled = self.calculate_perp_balance_value(balance)
 
         # Calculate Est. PnL if indexer data is available
         # Formula: (amount × oracle_price) - netEntryUnrealized
@@ -521,6 +535,10 @@ class MarginManager:
             margin_used=margin_used,
             initial_health=health_metrics.initial,
             maintenance_health=health_metrics.maintenance,
+            long_weight_initial=balance.long_weight_initial,
+            long_weight_maintenance=balance.long_weight_maintenance,
+            short_weight_initial=balance.short_weight_initial,
+            short_weight_maintenance=balance.short_weight_maintenance,
         )
 
     def _calculate_est_pnl(self, balance: BalanceWithProduct) -> Optional[Decimal]:
@@ -603,12 +621,12 @@ class MarginManager:
     def _has_borrows_or_perps(self) -> bool:
         """Check if account has any borrows or perp positions."""
         for spot_bal in self.subaccount_info.spot_balances:
-            amount = Decimal(from_x18(int(spot_bal.balance.amount)))
+            amount = _from_x18_decimal(spot_bal.balance.amount)
             if amount < 0:
                 return True
 
         for perp_bal in self.subaccount_info.perp_balances:
-            amount = Decimal(from_x18(int(perp_bal.balance.amount)))
+            amount = _from_x18_decimal(perp_bal.balance.amount)
             if amount != 0:
                 return True
 
@@ -620,7 +638,7 @@ class MarginManager:
 
     def _parse_health(self, health: SubaccountHealth) -> Decimal:
         """Parse health from SubaccountHealth model."""
-        return Decimal(from_x18(int(health.health)))
+        return _from_x18_decimal(health.health)
 
     def _create_spot_balances(self) -> list[BalanceWithProduct]:
         """Create BalanceWithProduct objects for all spot balances."""
@@ -649,31 +667,29 @@ class MarginManager:
         balance_type: str,
     ) -> BalanceWithProduct:
         """Create a BalanceWithProduct from raw balance and product data."""
-        amount = Decimal(from_x18(int(balance.balance.amount)))
-        oracle_price = Decimal(from_x18(int(product.oracle_price_x18)))
+        amount = _from_x18_decimal(balance.balance.amount)
+        oracle_price = _from_x18_decimal(product.oracle_price_x18)
 
         v_quote = None
         if balance_type == "perp":
             assert isinstance(
                 balance, PerpProductBalance
             ), "Perp balances must be PerpProductBalance"
-            v_quote = Decimal(from_x18(int(balance.balance.v_quote_balance)))
+            v_quote = _from_x18_decimal(balance.balance.v_quote_balance)
 
         return BalanceWithProduct(
             product_id=balance.product_id,
             amount=amount,
             oracle_price=oracle_price,
-            long_weight_initial=Decimal(
-                from_x18(int(product.risk.long_weight_initial_x18))
+            long_weight_initial=_from_x18_decimal(product.risk.long_weight_initial_x18),
+            long_weight_maintenance=_from_x18_decimal(
+                product.risk.long_weight_maintenance_x18
             ),
-            long_weight_maintenance=Decimal(
-                from_x18(int(product.risk.long_weight_maintenance_x18))
+            short_weight_initial=_from_x18_decimal(
+                product.risk.short_weight_initial_x18
             ),
-            short_weight_initial=Decimal(
-                from_x18(int(product.risk.short_weight_initial_x18))
-            ),
-            short_weight_maintenance=Decimal(
-                from_x18(int(product.risk.short_weight_maintenance_x18))
+            short_weight_maintenance=_from_x18_decimal(
+                product.risk.short_weight_maintenance_x18
             ),
             balance_type=balance_type,
             v_quote_balance=v_quote,
@@ -694,58 +710,124 @@ class MarginManager:
 
 
 def print_account_summary(summary: AccountSummary) -> None:
-    """Pretty print account summary."""
+    """Print formatted account summary matching UI layout."""
     print("\n" + "=" * 80)
-    print("MARGIN MANAGER ACCOUNT SUMMARY")
+    print("MARGIN MANAGER")
     print("=" * 80)
 
-    print("\n📊 HEALTH METRICS")
-    print(f"  Initial Health:      ${summary.initial_health:,.2f}")
-    print(f"  Maintenance Health:  ${summary.maintenance_health:,.2f}")
-    print(f"  Unweighted Health:   ${summary.unweighted_health:,.2f}")
+    # 1. Unified Margin Section
+    print("\n━━━ UNIFIED MARGIN ━━━")
+    print(f"Margin Usage:              {summary.margin_usage_fraction * 100:.2f}%")
+    print(
+        f"Maint. Margin Usage:       {summary.maint_margin_usage_fraction * 100:.2f}%"
+    )
+    print(f"Available Margin:          ${summary.funds_available:,.2f}")
+    print(f"Funds Until Liquidation:   ${summary.funds_until_liquidation:,.2f}")
 
-    print("\n📈 MARGIN USAGE")
-    print(f"  Initial Margin:      {summary.margin_usage_fraction * 100:.2f}%")
-    print(f"  Maintenance Margin:  {summary.maint_margin_usage_fraction * 100:.2f}%")
+    # USDT0 Balance
+    total_unsettled = sum(pos.unsettled for pos in summary.cross_positions)
+    cash_balance = summary.total_spot_deposits - summary.total_spot_borrows
+    net_balance = cash_balance + total_unsettled
 
-    print("\n💰 AVAILABLE FUNDS")
-    print(f"  Available (Initial):      ${summary.funds_available:,.2f}")
-    print(f"  Until Liquidation (Maint): ${summary.funds_until_liquidation:,.2f}")
+    print("\n┌─ USDT0 Balance")
+    print(f"│  Cash Balance:           ${cash_balance:,.2f}")
+    print(f"│  Unsettled PnL:          ${total_unsettled:,.2f}")
+    print(f"│  Net Balance:            ${net_balance:,.2f}")
+    print(f"│  Init. Weight / Margin:  1.00 / ${net_balance:,.2f}")
+    print(f"│  Maint. Weight / Margin: 1.00 / ${net_balance:,.2f}")
 
-    print("\n📦 PORTFOLIO")
-    print(f"  Total Value:  ${summary.portfolio_value:,.2f}")
-    print(f"  Leverage:     {summary.account_leverage:.2f}x")
+    # 2. Spot Balances
+    print("\n┌─ Balances")
+    spot_shown = False
+    for spot_pos in summary.spot_positions:
+        if spot_pos.amount == 0:
+            continue
+        spot_shown = True
+        balance_type = "Deposit" if spot_pos.amount > 0 else "Borrow"
+        value = abs(spot_pos.amount * spot_pos.oracle_price)
 
-    print("\n💵 SPOT POSITIONS")
-    print(f"  Total Deposits: ${summary.total_spot_deposits:,.2f}")
-    print(f"  Total Borrows:  ${summary.total_spot_borrows:,.2f}")
+        # Use appropriate weight based on position direction
+        if spot_pos.amount > 0:  # Deposit (asset)
+            init_weight = spot_pos.long_weight_initial
+            maint_weight = spot_pos.long_weight_maintenance
+        else:  # Borrow (liability)
+            init_weight = spot_pos.short_weight_initial
+            maint_weight = spot_pos.short_weight_maintenance
 
+        init_margin = value * init_weight
+        maint_margin = value * maint_weight
+
+        print(f"│  Product_{spot_pos.product_id} ({balance_type})")
+        print(f"│    Balance:                {abs(spot_pos.amount):,.4f}")
+        print(f"│    Value:                  ${value:,.2f}")
+        print(f"│    Init. Weight / Margin:  {init_weight:.2f} / ${init_margin:,.2f}")
+        print(f"│    Maint. Weight / Margin: {maint_weight:.2f} / ${maint_margin:,.2f}")
+
+    if not spot_shown:
+        print("│  No spot balances")
+
+    # 3. Perps
+    print("\n┌─ Perps")
     if summary.cross_positions:
-        print("\n🔄 CROSS MARGIN POSITIONS")
         for cross_pos in summary.cross_positions:
-            print(f"\n  {cross_pos.symbol} (ID: {cross_pos.product_id})")
-            print(f"    Position:       {cross_pos.position_size:,.4f}")
-            print(f"    Notional:       ${cross_pos.notional_value:,.2f}")
-            est_pnl_str = (
-                f"${cross_pos.est_pnl:,.2f}"
-                if cross_pos.est_pnl is not None
-                else "N/A (requires indexer)"
+            position_type = "Long" if cross_pos.position_size > 0 else "Short"
+            print(f"│  {cross_pos.symbol} ({position_type} / Cross)")
+            print(f"│    Position:             {cross_pos.position_size:,.3f}")
+            print(f"│    Notional:             ${cross_pos.notional_value:,.2f}")
+
+            if cross_pos.est_pnl is not None:
+                pnl_sign = "+" if cross_pos.est_pnl >= 0 else ""
+                print(f"│    Est. PnL:             {pnl_sign}${cross_pos.est_pnl:,.2f}")
+            else:
+                print(f"│    Est. PnL:             N/A")
+
+            print(f"│    Unsettled:            {cross_pos.unsettled:,.2f} USDT0")
+
+            # Use correct weight based on position direction
+            if cross_pos.position_size > 0:  # Long
+                init_weight = cross_pos.long_weight_initial
+                maint_weight = cross_pos.long_weight_maintenance
+            else:  # Short
+                init_weight = cross_pos.short_weight_initial
+                maint_weight = cross_pos.short_weight_maintenance
+
+            # Margin = notional × |1 - weight|
+            # For longs: weight < 1, so (1 - weight) > 0
+            # For shorts: weight > 1, so (1 - weight) < 0, we need abs
+            init_margin = cross_pos.notional_value * abs(1 - init_weight)
+            maint_margin = cross_pos.notional_value * abs(1 - maint_weight)
+
+            print(
+                f"│    Init. Weight / Margin:  {init_weight:.2f} / ${init_margin:,.2f}"
             )
-            print(f"    Est. PnL:       {est_pnl_str}")
-            print(f"    Unsettled:      {cross_pos.unsettled:,.2f} USDT0")
-            print(f"    Margin Used:    ${cross_pos.margin_used:,.2f}")
-            print(f"    Initial Health: ${cross_pos.initial_health:,.2f}")
-            print(f"    Maint Health:   ${cross_pos.maintenance_health:,.2f}")
+            print(
+                f"│    Maint. Weight / Margin: {maint_weight:.2f} / ${maint_margin:,.2f}"
+            )
+    else:
+        print("│  No perp positions")
+
+    # Spreads
+    print("\n┌─ Spreads")
+    print("│  No spreads")
+
+    # 4. Isolated Positions
+    print("\n━━━ ISOLATED POSITIONS ━━━")
+    total_isolated_margin = sum(pos.net_margin for pos in summary.isolated_positions)
+    print(f"Total Margin in Isolated Positions: ${total_isolated_margin:,.2f}")
 
     if summary.isolated_positions:
-        print("\n🔒 ISOLATED MARGIN POSITIONS")
-        for iso_pos_metrics in summary.isolated_positions:
-            print(f"\n  {iso_pos_metrics.symbol} (ID: {iso_pos_metrics.product_id})")
-            print(f"    Position:      {iso_pos_metrics.position_size:,.4f}")
-            print(f"    Notional:      ${iso_pos_metrics.notional_value:,.2f}")
-            print(f"    Net Margin:    ${iso_pos_metrics.net_margin:,.2f}")
-            print(f"    Leverage:      {iso_pos_metrics.leverage:.2f}x")
-            print(f"    Initial Health: ${iso_pos_metrics.initial_health:,.2f}")
-            print(f"    Maint Health:   ${iso_pos_metrics.maintenance_health:,.2f}")
+        print("\n┌─ Perps")
+        for iso_pos in summary.isolated_positions:
+            position_type = "Long" if iso_pos.position_size > 0 else "Short"
+            print(f"│  {iso_pos.symbol} ({position_type} / Isolated)")
+            print(f"│    Position:             {iso_pos.position_size:,.3f}")
+            print(f"│    Notional:             ${iso_pos.notional_value:,.2f}")
+            print(f"│    Margin:               ${iso_pos.net_margin:,.2f}")
+            print(f"│    Leverage:             {iso_pos.leverage:.2f}x")
+            print(f"│    Init. Health:         ${iso_pos.initial_health:,.2f}")
+            print(f"│    Maint. Health:        ${iso_pos.maintenance_health:,.2f}")
+    else:
+        print("\n┌─ Perps")
+        print("│  No isolated positions")
 
     print("\n" + "=" * 80)

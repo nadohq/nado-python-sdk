@@ -188,35 +188,6 @@ def run():
                 f"        Long Maint:    {from_x18(int(product.risk.long_weight_maintenance_x18)):.4f}"
             )
 
-    # Key insights
-    print("\n" + "=" * 80)
-    print("KEY INSIGHTS")
-    print("=" * 80)
-
-    liquidation_risk = summary.maint_margin_usage_fraction * 100
-    if liquidation_risk > 90:
-        risk_level = "CRITICAL 🔴"
-    elif liquidation_risk > 75:
-        risk_level = "HIGH 🟠"
-    elif liquidation_risk > 50:
-        risk_level = "MEDIUM 🟡"
-    else:
-        risk_level = "LOW 🟢"
-
-    print(f"\n• Liquidation Risk: {risk_level} ({liquidation_risk:.1f}%)")
-    print(f"• Account Leverage: {summary.account_leverage:.2f}x")
-    print(f"• Can Open New Positions: {'Yes' if summary.funds_available > 0 else 'No'}")
-
-    if summary.funds_available > 0:
-        print(f"  → Available capital: ${summary.funds_available:,.2f}")
-    else:
-        print(f"  → Need to reduce leverage by ${abs(summary.initial_health):,.2f}")
-
-    if summary.funds_until_liquidation > 0:
-        print(f"• Distance to Liquidation: ${summary.funds_until_liquidation:,.2f}")
-    else:
-        print("• ⚠️  ACCOUNT IS UNDERWATER - Liquidation risk!")
-
     print("\n" + "=" * 80)
     print("TEST COMPLETE ✓")
     print("=" * 80 + "\n")
