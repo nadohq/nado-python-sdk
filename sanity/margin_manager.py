@@ -13,9 +13,7 @@ To analyze a specific wallet, set the TEST_WALLET constant below.
 import sys
 import time
 from decimal import Decimal
-from nado_protocol.engine_client import EngineQueryClient, EngineClientOpts
-from nado_protocol.indexer_client import IndexerQueryClient, IndexerClientOpts
-from nado_protocol.indexer_client.types.query import IndexerAccountSnapshotsParams
+from nado_protocol.client import create_nado_client, NadoClientMode
 from nado_protocol.utils.bytes32 import subaccount_to_hex
 from nado_protocol.utils.math import from_x18
 from nado_protocol.utils.margin_manager import MarginManager, print_account_summary
@@ -32,92 +30,58 @@ def run():
     print(f"Testing wallet: {TEST_WALLET}")
     print("=" * 80)
 
-    # Setup clients (read-only, no private key needed)
-    print("\n[1/6] Setting up clients...")
-    engine_client = EngineQueryClient(
-        EngineClientOpts(url="https://gateway.test.nado-backend.xyz/v1")
-    )
-    indexer_client = IndexerQueryClient(
-        IndexerClientOpts(url="https://archive.test.nado-backend.xyz/v1")
-    )
+    # Setup Nado client (read-only, no private key needed)
+    print("\n[1/5] Setting up client...")
+    try:
+        client = create_nado_client(NadoClientMode.TESTNET)
+    except Exception as e:
+        print(f"  ✗ Error creating Nado client: {e}")
+        sys.exit(1)
+
     subaccount = subaccount_to_hex(TEST_WALLET, "default")
     print(f"  Subaccount: {subaccount}")
 
-    # Fetch subaccount info
-    print("\n[2/6] Fetching subaccount information...")
+    # Fetch subaccount info, isolated positions, and indexer events via helper
+    print("\n[2/5] Fetching margin data...")
+    current_timestamp = int(time.time())
     try:
-        subaccount_info = engine_client.get_subaccount_info(subaccount)
+        margin_manager = MarginManager.from_client(
+            client,
+            subaccount=subaccount,
+            include_indexer_events=True,
+            snapshot_timestamp=current_timestamp,
+            snapshot_isolated=False,
+            snapshot_active_only=True,
+        )
+        subaccount_info = margin_manager.subaccount_info
         print(f"  ✓ Found {len(subaccount_info.spot_balances)} spot balances")
         print(f"  ✓ Found {len(subaccount_info.perp_balances)} perp balances")
+        print(f"  ✓ Found {len(margin_manager.isolated_positions)} isolated positions")
     except Exception as e:
-        print(f"  ✗ Error fetching subaccount: {e}")
-        sys.exit(1)
-
-    # Fetch isolated positions
-    print("\n[3/6] Fetching isolated positions...")
-    try:
-        isolated_positions_data = engine_client.get_isolated_positions(subaccount)
-        isolated_positions = isolated_positions_data.isolated_positions
-        print(f"  ✓ Found {len(isolated_positions)} isolated positions")
-    except Exception as e:
-        print(f"  ⚠ Warning: Could not fetch isolated positions: {e}")
-        isolated_positions = []
-
-    # Fetch indexer snapshot for Est. PnL calculation
-    print("\n[4/6] Fetching indexer snapshot...")
-    try:
-        current_timestamp = int(time.time())
-        snapshot_response = indexer_client.get_multi_subaccount_snapshots(
-            IndexerAccountSnapshotsParams(
-                subaccounts=[subaccount],
-                timestamps=[current_timestamp],
-                isolated=False,
-                active=True,
-            )
-        )
-        snapshots_for_subaccount = snapshot_response.snapshots.get(subaccount, {})
-        requested_key = str(current_timestamp)
-        snapshot_events = snapshots_for_subaccount.get(requested_key)
-
-        if snapshot_events is None and snapshots_for_subaccount:
-            latest_key = max(snapshots_for_subaccount.keys(), key=int)
-            snapshot_events = snapshots_for_subaccount[latest_key]
-
-        if snapshot_events:
-            indexer_snapshot_events = snapshot_events
-            print(f"  ✓ Fetched snapshot with {len(snapshot_events)} balances")
-        else:
-            indexer_snapshot_events = []
-            print("  ⚠ Warning: No snapshot data found for requested timestamps")
-    except Exception as e:
-        print(f"  ⚠ Warning: Could not fetch indexer snapshot: {e}")
+        print(f"  ✗ Error fetching margin data: {e}")
         import traceback
 
         traceback.print_exc()
-        indexer_snapshot_events = []
+        sys.exit(1)
 
-    # Debug: Print snapshot structure
+    # Inspect indexer snapshot events
+    print("\n[3/5] Inspecting indexer snapshot...")
+    indexer_snapshot_events = margin_manager.indexer_events
     if indexer_snapshot_events:
+        print(f"  ✓ Retrieved {len(indexer_snapshot_events)} active balances")
+        first_balance = indexer_snapshot_events[0]
         print("\n[DEBUG] Indexer snapshot structure:")
         print(f"  Number of balances: {len(indexer_snapshot_events)}")
-        first_balance = indexer_snapshot_events[0]
         print(f"  First balance fields: {list(first_balance.__fields__.keys())}")
         print(f"  First balance product_id: {first_balance.product_id}")
         print(
             "  Tracked vars: net_entry_unrealized, net_entry_cumulative, net_funding_unrealized, net_funding_cumulative, net_interest_unrealized, net_interest_cumulative"
         )
-
-    # Create margin manager
-    print("\n[5/6] Initializing margin manager...")
-    margin_manager = MarginManager(
-        subaccount_info,
-        isolated_positions,
-        indexer_snapshot_events=indexer_snapshot_events,
-    )
-    print("  ✓ Margin manager initialized")
+    else:
+        print("  ⚠ Warning: No snapshot data found for requested timestamp")
 
     # Calculate summary
-    print("\n[6/6] Calculating account summary...")
+    print("\n[4/5] Calculating account summary...")
     try:
         summary = margin_manager.calculate_account_summary()
         print("  ✓ Calculations complete")
@@ -129,6 +93,7 @@ def run():
         sys.exit(1)
 
     # Display results
+    print("\n[5/5] Displaying summary...")
     print_account_summary(summary)
 
     # Additional detailed analysis

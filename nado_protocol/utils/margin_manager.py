@@ -12,7 +12,8 @@ Key Concepts:
 """
 
 from decimal import Decimal
-from typing import Optional
+from time import time
+from typing import Optional, TYPE_CHECKING
 from pydantic import BaseModel
 from nado_protocol.engine_client.types.models import (
     SpotProduct,
@@ -23,8 +24,13 @@ from nado_protocol.engine_client.types.models import (
     IsolatedPosition,
 )
 from nado_protocol.engine_client.types.query import SubaccountInfoData
-from nado_protocol.utils.math import from_x18
 from nado_protocol.indexer_client.types.models import IndexerEvent
+from nado_protocol.indexer_client.types.query import IndexerAccountSnapshotsParams
+from nado_protocol.utils.bytes32 import subaccount_to_hex
+from nado_protocol.utils.math import from_x18
+
+if TYPE_CHECKING:
+    from nado_protocol.client import NadoClient
 
 
 class HealthMetrics(BaseModel):
@@ -150,6 +156,89 @@ class MarginManager:
         self.subaccount_info = subaccount_info
         self.isolated_positions = isolated_positions or []
         self.indexer_events = indexer_snapshot_events or []
+
+    @classmethod
+    def from_client(
+        cls,
+        client: "NadoClient",
+        *,
+        subaccount: Optional[str] = None,
+        subaccount_name: str = "default",
+        include_indexer_events: bool = True,
+        snapshot_timestamp: Optional[int] = None,
+        snapshot_isolated: Optional[bool] = False,
+        snapshot_active_only: bool = True,
+    ) -> "MarginManager":
+        """
+        Initialize a MarginManager by fetching data via a NadoClient.
+
+        Args:
+            client: Configured Nado client with engine/indexer connectivity.
+            subaccount: Optional subaccount hex (bytes32). If omitted, derives the default
+                subaccount using the client's signer and ``subaccount_name``.
+            subaccount_name: Subaccount suffix (e.g. ``default``) used when deriving the
+                subaccount hex. Ignored when ``subaccount`` is provided.
+            include_indexer_events: When True (default), fetch indexer snapshot balances
+                for estimated PnL calculations.
+            snapshot_timestamp: Epoch seconds to request from the indexer. Defaults to
+                ``int(time.time())`` when indexer data is requested.
+            snapshot_isolated: Passed through to the indexer request to limit snapshots
+                to isolated (True), cross (False), or all (None) balances. Defaults to
+                ``False`` to match cross-margin behaviour.
+            snapshot_active_only: When True (default), enables the indexer's ``active``
+                filter so only live balances are returned.
+
+        Returns:
+            MarginManager instance populated with fresh engine and optional indexer data.
+        """
+
+        engine_client = client.context.engine_client
+
+        resolved_subaccount = subaccount
+        if resolved_subaccount is None:
+            signer = client.context.signer
+            if signer is None:
+                raise ValueError(
+                    "subaccount must be provided when the client has no signer"
+                )
+            resolved_subaccount = subaccount_to_hex(signer.address, subaccount_name)
+
+        subaccount_info = engine_client.get_subaccount_info(resolved_subaccount)
+        isolated_positions_data = engine_client.get_isolated_positions(
+            resolved_subaccount
+        )
+        isolated_positions = isolated_positions_data.isolated_positions
+
+        indexer_events: list[IndexerEvent] = []
+        if include_indexer_events:
+            timestamp = snapshot_timestamp or int(time())
+            try:
+                snapshot_response = (
+                    client.context.indexer_client.get_multi_subaccount_snapshots(
+                        IndexerAccountSnapshotsParams(
+                            subaccounts=[resolved_subaccount],
+                            timestamps=[timestamp],
+                            isolated=snapshot_isolated,
+                            active=snapshot_active_only,
+                        )
+                    )
+                )
+                snapshots_for_subaccount = snapshot_response.snapshots.get(
+                    resolved_subaccount, {}
+                )
+                events = snapshots_for_subaccount.get(str(timestamp))
+                if events is None and snapshots_for_subaccount:
+                    latest_key = max(snapshots_for_subaccount.keys(), key=int)
+                    events = snapshots_for_subaccount.get(latest_key)
+                indexer_events = events or []
+            except Exception:
+                indexer_events = []
+
+        return cls(
+            subaccount_info,
+            isolated_positions,
+            indexer_snapshot_events=indexer_events,
+        )
 
     def calculate_account_summary(self) -> AccountSummary:
         """

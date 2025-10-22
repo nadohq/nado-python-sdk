@@ -92,6 +92,38 @@ Basic Usage
 .. code-block:: python
 
    import time
+   from nado_protocol.client import create_nado_client, NadoClientMode
+   from nado_protocol.utils.margin_manager import MarginManager, print_account_summary
+
+   client = create_nado_client(NadoClientMode.TESTNET)
+
+   # Optionally override defaults (subaccount hex, timestamp, etc.)
+   manager = MarginManager.from_client(
+       client,
+       include_indexer_events=True,
+       snapshot_timestamp=int(time.time()),
+   )
+
+   summary = manager.calculate_account_summary()
+   print_account_summary(summary)
+
+If you skip the optional indexer request (``include_indexer_events=False``),
+``CrossPositionMetrics.est_pnl`` remains ``None`` and the printed summary displays
+``N/A`` for Est. PnL.
+
+Passing ``snapshot_active_only=True`` (the default) ensures the indexer only returns
+balances that are live at the requested timestamp, keeping the snapshot focused on
+current positions.
+
+Manual setup (advanced)
+^^^^^^^^^^^^^^^^^^^^^^^
+
+If you need more control over the data-fetching steps, you can assemble the manager
+yourself:
+
+.. code-block:: python
+
+   import time
    from nado_protocol.engine_client import EngineQueryClient, EngineClientOpts
    from nado_protocol.indexer_client import IndexerQueryClient, IndexerClientOpts
    from nado_protocol.indexer_client.types.query import IndexerAccountSnapshotsParams
@@ -137,12 +169,6 @@ Basic Usage
 
    # Display formatted summary
    print_account_summary(summary)
-
-If you skip the optional indexer request, ``CrossPositionMetrics.est_pnl`` remains
-``None`` and the printed summary will display ``N/A`` for Est. PnL.
-
-Passing ``active=True`` ensures the indexer only returns balances that are live at
-the requested timestamp, which keeps the snapshot focused on current positions.
 
 This outputs a complete margin summary:
 
