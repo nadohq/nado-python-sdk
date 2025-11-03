@@ -132,10 +132,10 @@ yourself:
 
    # Create read-only clients (no private key needed)
    engine_client = EngineQueryClient(
-       EngineClientOpts(url="https://gateway.test.nado-backend.xyz/v1")
+       EngineClientOpts(url="https://gateway.test.nado.xyz/v1")
    )
    indexer_client = IndexerQueryClient(
-       IndexerClientOpts(url="https://archive.test.nado-backend.xyz/v1")
+       IndexerClientOpts(url="https://archive.test.nado.xyz/v1")
    )
 
    # Get subaccount data
@@ -359,10 +359,10 @@ View any public subaccount's margin metrics:
 
    # Create engine client
    engine_client = EngineQueryClient(
-       EngineClientOpts(url="https://gateway.test.nado-backend.xyz/v1")
+       EngineClientOpts(url="https://gateway.test.nado.xyz/v1")
    )
    indexer_client = IndexerQueryClient(
-       IndexerClientOpts(url="https://archive.test.nado-backend.xyz/v1")
+       IndexerClientOpts(url="https://archive.test.nado.xyz/v1")
    )
 
    # Get data
