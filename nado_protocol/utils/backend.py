@@ -14,9 +14,9 @@ class NadoBackendURL(StrEnum):
     DEVNET_TRIGGER = "http://localhost:8080"
 
     # testnets
-    TESTNET_GATEWAY = "https://gateway.test.nado-backend.xyz/v1"
-    TESTNET_INDEXER = "https://archive.test.nado-backend.xyz/v1"
-    TESTNET_TRIGGER = "https://trigger.test.nado-backend.xyz/v1"
+    TESTNET_GATEWAY = "https://gateway.test.nado.xyz/v1"
+    TESTNET_INDEXER = "https://archive.test.nado.xyz/v1"
+    TESTNET_TRIGGER = "https://trigger.test.nado.xyz/v1"
 
 
 PrivateKey = str
