@@ -13,7 +13,7 @@ Key Concepts:
 
 from decimal import Decimal
 from time import time
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, Union, TYPE_CHECKING
 from pydantic import BaseModel
 from nado_protocol.engine_client.types.models import (
     SpotProduct,
@@ -35,7 +35,7 @@ if TYPE_CHECKING:
 TEN_TO_18 = Decimal(10) ** 18
 
 
-def _from_x18_decimal(value: int | str) -> Decimal:
+def _from_x18_decimal(value: Union[int, str]) -> Decimal:
     """Convert an x18 fixed-point integer (str or int) to Decimal without precision loss."""
     return Decimal(str(value)) / TEN_TO_18
 
@@ -662,8 +662,8 @@ class MarginManager:
 
     def _create_balance_with_product(
         self,
-        balance: SpotProductBalance | PerpProductBalance,
-        product: SpotProduct | PerpProduct,
+        balance: Union[SpotProductBalance, PerpProductBalance],
+        product: Union[SpotProduct, PerpProduct],
         balance_type: str,
     ) -> BalanceWithProduct:
         """Create a BalanceWithProduct from raw balance and product data."""
