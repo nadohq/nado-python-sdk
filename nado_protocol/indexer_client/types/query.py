@@ -305,6 +305,14 @@ class IndexerAccountSnapshotsParams(NadoBaseModel):
     active: Optional[bool] = None
 
 
+class IndexerInkAirdropParams(NadoBaseModel):
+    """
+    Parameters for querying Ink airdrop allocation.
+    """
+
+    address: str
+
+
 IndexerParams = Union[
     IndexerSubaccountHistoricalOrdersParams,
     IndexerHistoricalOrdersByDigestParams,
@@ -328,6 +336,7 @@ IndexerParams = Union[
     IndexerFoundationRewardsMerkleProofsParams,
     IndexerInterestAndFundingParams,
     IndexerAccountSnapshotsParams,
+    IndexerInkAirdropParams,
 ]
 
 
@@ -509,6 +518,14 @@ class IndexerAccountSnapshotsRequest(NadoBaseModel):
     account_snapshots: IndexerAccountSnapshotsParams
 
 
+class IndexerInkAirdropRequest(NadoBaseModel):
+    """
+    Request object for querying Ink airdrop allocation.
+    """
+
+    ink_airdrop: IndexerInkAirdropParams
+
+
 IndexerRequest = Union[
     IndexerHistoricalOrdersRequest,
     IndexerMatchesRequest,
@@ -531,6 +548,7 @@ IndexerRequest = Union[
     IndexerFoundationRewardsMerkleProofsRequest,
     IndexerInterestAndFundingRequest,
     IndexerAccountSnapshotsRequest,
+    IndexerInkAirdropRequest,
 ]
 
 
@@ -712,6 +730,14 @@ class IndexerAccountSnapshotsData(NadoBaseModel):
     snapshots: Dict[str, Dict[str, list[IndexerEvent]]]
 
 
+class IndexerInkAirdropData(NadoBaseModel):
+    """
+    Data object for Ink airdrop allocation.
+    """
+
+    amount: str
+
+
 IndexerResponseData = Union[
     IndexerHistoricalOrdersData,
     IndexerMatchesData,
@@ -734,6 +760,7 @@ IndexerResponseData = Union[
     IndexerLiquidationFeedData,
     IndexerFundingRatesData,
     IndexerAccountSnapshotsData,
+    IndexerInkAirdropData,
 ]
 
 
@@ -844,6 +871,10 @@ def to_indexer_request(params: IndexerParams) -> IndexerRequest:
         IndexerAccountSnapshotsParams: (
             IndexerAccountSnapshotsRequest,
             IndexerQueryType.ACCOUNT_SNAPSHOTS.value,
+        ),
+        IndexerInkAirdropParams: (
+            IndexerInkAirdropRequest,
+            IndexerQueryType.INK_AIRDROP.value,
         ),
     }
 
