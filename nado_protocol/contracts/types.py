@@ -122,6 +122,7 @@ class NadoExecuteType(StrEnum):
     """
 
     PLACE_ORDER = "place_order"
+    PLACE_ORDERS = "place_orders"
     CANCEL_ORDERS = "cancel_orders"
     CANCEL_PRODUCT_ORDERS = "cancel_product_orders"
     CANCEL_AND_PLACE = "cancel_and_place"

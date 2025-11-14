@@ -54,6 +54,7 @@ class IndexerQueryType(StrEnum):
     TOKEN_MERKLE_PROOFS = "token_merkle_proofs"
     FOUNDATION_REWARDS_MERKLE_PROOFS = "foundation_rewards_merkle_proofs"
     INTEREST_AND_FUNDING = "interest_and_funding"
+    INK_AIRDROP = "ink_airdrop"
 
 
 class IndexerBaseParams(NadoBaseModel):
@@ -71,10 +72,10 @@ class IndexerBaseParams(NadoBaseModel):
 
 class IndexerSubaccountHistoricalOrdersParams(IndexerBaseParams):
     """
-    Parameters for querying historical orders by subaccount.
+    Parameters for querying historical orders by subaccounts.
     """
 
-    subaccount: str
+    subaccounts: Optional[list[str]]
     product_ids: Optional[list[int]]
     trigger_types: Optional[list[str]]
     isolated: Optional[bool]
@@ -93,7 +94,7 @@ class IndexerMatchesParams(IndexerBaseParams):
     Parameters for querying matches.
     """
 
-    subaccount: Optional[str]
+    subaccounts: Optional[list[str]]
     product_ids: Optional[list[int]]
     isolated: Optional[bool]
 
@@ -122,7 +123,7 @@ class IndexerEventsParams(IndexerBaseParams):
     Parameters for querying events.
     """
 
-    subaccount: Optional[str]
+    subaccounts: Optional[list[str]]
     product_ids: Optional[list[int]]
     event_types: Optional[list[IndexerEventType]]
     isolated: Optional[bool]
@@ -304,6 +305,14 @@ class IndexerAccountSnapshotsParams(NadoBaseModel):
     active: Optional[bool] = None
 
 
+class IndexerInkAirdropParams(NadoBaseModel):
+    """
+    Parameters for querying Ink airdrop allocation.
+    """
+
+    address: str
+
+
 IndexerParams = Union[
     IndexerSubaccountHistoricalOrdersParams,
     IndexerHistoricalOrdersByDigestParams,
@@ -327,6 +336,7 @@ IndexerParams = Union[
     IndexerFoundationRewardsMerkleProofsParams,
     IndexerInterestAndFundingParams,
     IndexerAccountSnapshotsParams,
+    IndexerInkAirdropParams,
 ]
 
 
@@ -508,6 +518,14 @@ class IndexerAccountSnapshotsRequest(NadoBaseModel):
     account_snapshots: IndexerAccountSnapshotsParams
 
 
+class IndexerInkAirdropRequest(NadoBaseModel):
+    """
+    Request object for querying Ink airdrop allocation.
+    """
+
+    ink_airdrop: IndexerInkAirdropParams
+
+
 IndexerRequest = Union[
     IndexerHistoricalOrdersRequest,
     IndexerMatchesRequest,
@@ -530,6 +548,7 @@ IndexerRequest = Union[
     IndexerFoundationRewardsMerkleProofsRequest,
     IndexerInterestAndFundingRequest,
     IndexerAccountSnapshotsRequest,
+    IndexerInkAirdropRequest,
 ]
 
 
@@ -711,6 +730,14 @@ class IndexerAccountSnapshotsData(NadoBaseModel):
     snapshots: Dict[str, Dict[str, list[IndexerEvent]]]
 
 
+class IndexerInkAirdropData(NadoBaseModel):
+    """
+    Data object for Ink airdrop allocation.
+    """
+
+    amount: str
+
+
 IndexerResponseData = Union[
     IndexerHistoricalOrdersData,
     IndexerMatchesData,
@@ -733,6 +760,7 @@ IndexerResponseData = Union[
     IndexerLiquidationFeedData,
     IndexerFundingRatesData,
     IndexerAccountSnapshotsData,
+    IndexerInkAirdropData,
 ]
 
 
@@ -843,6 +871,10 @@ def to_indexer_request(params: IndexerParams) -> IndexerRequest:
         IndexerAccountSnapshotsParams: (
             IndexerAccountSnapshotsRequest,
             IndexerQueryType.ACCOUNT_SNAPSHOTS.value,
+        ),
+        IndexerInkAirdropParams: (
+            IndexerInkAirdropRequest,
+            IndexerQueryType.INK_AIRDROP.value,
         ),
     }
 

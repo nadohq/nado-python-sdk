@@ -1,4 +1,4 @@
-from typing import Optional, Type, Union
+from typing import Optional, Type, Union, Sequence
 from pydantic import validator
 from nado_protocol.contracts.types import NadoExecuteType
 from nado_protocol.engine_client.types.models import ResponseStatus
@@ -42,6 +42,21 @@ class PlaceOrderParams(SignatureParams):
     order: OrderParams
     digest: Optional[str]
     spot_leverage: Optional[bool]
+
+
+class PlaceOrdersParams(NadoBaseModel):
+    """
+    Class for defining the parameters needed to place multiple orders in a single request.
+
+    Attributes:
+        orders (list[PlaceOrderParams]): Array of orders to place.
+
+        stop_on_failure (Optional[bool]): If true, stops processing remaining orders when the first order fails.
+        Already successfully placed orders are NOT cancelled. Defaults to false.
+    """
+
+    orders: Sequence[PlaceOrderParams]
+    stop_on_failure: Optional[bool]
 
 
 class PlaceMarketOrderParams(SignatureParams):
@@ -215,6 +230,7 @@ class LinkSignerParams(BaseParamsSigned):
 
 ExecuteParams = Union[
     PlaceOrderParams,
+    PlaceOrdersParams,
     CancelOrdersParams,
     CancelProductOrdersParams,
     WithdrawCollateralParams,
@@ -244,12 +260,40 @@ class PlaceOrderRequest(NadoBaseModel):
         if v.order.nonce is None:
             raise ValueError("Missing order `nonce`")
         if v.signature is None:
-            raise ValueError("Missing `signature")
+            raise ValueError("Missing `signature`")
         if isinstance(v.order.sender, bytes):
             v.order.serialize_dict(["sender"], bytes32_to_hex)
         v.order.serialize_dict(
             ["nonce", "priceX18", "amount", "expiration", "appendix"], str
         )
+        return v
+
+
+class PlaceOrdersRequest(NadoBaseModel):
+    """
+    Parameters for a request to place multiple orders.
+
+    Attributes:
+        place_orders (PlaceOrdersParams): The parameters for the orders to be placed.
+
+    Methods:
+        serialize: Validates and serializes the order parameters.
+    """
+
+    place_orders: PlaceOrdersParams
+
+    @validator("place_orders")
+    def serialize(cls, v: PlaceOrdersParams) -> PlaceOrdersParams:
+        for order_params in v.orders:
+            if order_params.order.nonce is None:
+                raise ValueError("Missing order `nonce`")
+            if order_params.signature is None:
+                raise ValueError("Missing `signature`")
+            if isinstance(order_params.order.sender, bytes):
+                order_params.order.serialize_dict(["sender"], bytes32_to_hex)
+            order_params.order.serialize_dict(
+                ["nonce", "priceX18", "amount", "expiration", "appendix"], str
+            )
         return v
 
 
@@ -511,6 +555,7 @@ class LinkSignerRequest(NadoBaseModel):
 
 ExecuteRequest = Union[
     PlaceOrderRequest,
+    PlaceOrdersRequest,
     CancelOrdersRequest,
     CancelProductOrdersRequest,
     CancelAndPlaceRequest,
@@ -530,6 +575,23 @@ class PlaceOrderResponse(NadoBaseModel):
     digest: str
 
 
+class PlaceOrdersItemResponse(NadoBaseModel):
+    """
+    Data model for a single order in place orders response.
+    """
+
+    digest: Optional[str]
+    error: Optional[str]
+
+
+class PlaceOrdersResponse(NadoBaseModel):
+    """
+    Data model for place orders response.
+    """
+
+    place_orders: list[PlaceOrdersItemResponse]
+
+
 class CancelOrdersResponse(NadoBaseModel):
     """
     Data model for cancelled orders response.
@@ -538,7 +600,9 @@ class CancelOrdersResponse(NadoBaseModel):
     cancelled_orders: list[OrderData]
 
 
-ExecuteResponseData = Union[PlaceOrderResponse, CancelOrdersResponse]
+ExecuteResponseData = Union[
+    PlaceOrderResponse, PlaceOrdersResponse, CancelOrdersResponse
+]
 
 
 class ExecuteResponse(NadoBaseModel):
@@ -585,6 +649,7 @@ def to_execute_request(params: ExecuteParams) -> ExecuteRequest:
     """
     execute_request_mapping = {
         PlaceOrderParams: (PlaceOrderRequest, NadoExecuteType.PLACE_ORDER.value),
+        PlaceOrdersParams: (PlaceOrdersRequest, NadoExecuteType.PLACE_ORDERS.value),
         CancelOrdersParams: (
             CancelOrdersRequest,
             NadoExecuteType.CANCEL_ORDERS.value,
