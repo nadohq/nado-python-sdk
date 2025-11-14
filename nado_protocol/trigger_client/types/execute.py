@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Sequence
 from pydantic import validator
 from nado_protocol.contracts.types import NadoExecuteType
 from nado_protocol.utils.bytes32 import bytes32_to_hex
@@ -29,7 +29,7 @@ class PlaceTriggerOrdersParams(PlaceOrdersParams):
         Already successfully placed orders are NOT cancelled. Defaults to false.
     """
 
-    orders: list[PlaceTriggerOrderParams]
+    orders: Sequence[PlaceTriggerOrderParams]
 
 
 CancelTriggerOrdersParams = CancelOrdersParams

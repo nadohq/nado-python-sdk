@@ -1,4 +1,4 @@
-from typing import Optional, Type, Union
+from typing import Optional, Type, Union, Sequence
 from pydantic import validator
 from nado_protocol.contracts.types import NadoExecuteType
 from nado_protocol.engine_client.types.models import ResponseStatus
@@ -55,7 +55,7 @@ class PlaceOrdersParams(NadoBaseModel):
         Already successfully placed orders are NOT cancelled. Defaults to false.
     """
 
-    orders: list[PlaceOrderParams]
+    orders: Sequence[PlaceOrderParams]
     stop_on_failure: Optional[bool]
 
 
