@@ -61,7 +61,7 @@ class PlaceTriggerOrderRequest(NadoBaseModel):
         if v.order.nonce is None:
             raise ValueError("Missing order `nonce`")
         if v.signature is None:
-            raise ValueError("Missing `signature")
+            raise ValueError("Missing `signature`")
         if isinstance(v.order.sender, bytes):
             v.order.serialize_dict(["sender"], bytes32_to_hex)
         v.order.serialize_dict(
@@ -89,7 +89,7 @@ class PlaceTriggerOrdersRequest(NadoBaseModel):
             if order_params.order.nonce is None:
                 raise ValueError("Missing order `nonce`")
             if order_params.signature is None:
-                raise ValueError("Missing `signature")
+                raise ValueError("Missing `signature`")
             if isinstance(order_params.order.sender, bytes):
                 order_params.order.serialize_dict(["sender"], bytes32_to_hex)
             order_params.order.serialize_dict(
