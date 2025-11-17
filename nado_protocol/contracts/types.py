@@ -17,6 +17,9 @@ class NadoNetwork(StrEnum):
     # testnet
     TESTNET = "testnet"  # Ink Sepolia
 
+    # mainnet
+    MAINNET = "mainnet"  # Ink Mainnet
+
 
 class NadoAbiName(StrEnum):
     """

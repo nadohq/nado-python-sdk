@@ -24,6 +24,8 @@ class NadoClientMode(StrEnum):
     NadoClientMode is an enumeration representing the operational modes of the NadoClient.
 
     Attributes:
+        MAINNET: For operating in Nado's mainnet environment deployed on Ink.
+
         DEVNET: For local development.
 
         TESTING: For running tests.
@@ -35,6 +37,9 @@ class NadoClientMode(StrEnum):
 
     # testnet
     TESTNET = "testnet"  # Ink Sepolia
+
+    # mainnet
+    MAINNET = "mainnet"  # Ink Mainnet
 
 
 class NadoClient:
@@ -193,6 +198,12 @@ def client_mode_to_setup(
                 NadoBackendURL.TESTNET_INDEXER.value,
                 NadoBackendURL.TESTNET_TRIGGER.value,
                 NadoNetwork.TESTNET.value,
+            ),
+            NadoClientMode.MAINNET: (
+                NadoBackendURL.MAINNET_GATEWAY.value,
+                NadoBackendURL.MAINNET_INDEXER.value,
+                NadoBackendURL.MAINNET_TRIGGER.value,
+                NadoNetwork.MAINNET.value,
             ),
         }[client_mode]
     except KeyError:

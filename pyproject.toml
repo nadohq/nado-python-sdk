@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nado-protocol"
-version = "0.2.4"
+version = "0.2.5"
 description = "Nado Protocol SDK"
 authors = ["Jeury Mejia <jeury@inkfnd.com>"]
 homepage = "https://nado.xyz"

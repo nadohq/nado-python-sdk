@@ -117,15 +117,17 @@ def test_create_nado_client(
 
     signer = Account.from_key(private_keys[0])
 
-    devnet_nado_client = create_nado_client(NadoClientMode.TESTING, signer)
+    mainnet_nado_client = create_nado_client(NadoClientMode.MAINNET, signer)
 
-    assert devnet_nado_client.context.engine_client.chain_id == chain_id
-    assert devnet_nado_client.context.engine_client.endpoint_addr == endpoint_addr
-    assert devnet_nado_client.context.engine_client.url == NadoBackendURL.DEVNET_GATEWAY
+    assert mainnet_nado_client.context.engine_client.chain_id == chain_id
+    assert mainnet_nado_client.context.engine_client.endpoint_addr == endpoint_addr
     assert (
-        devnet_nado_client.context.indexer_client.url == NadoBackendURL.DEVNET_INDEXER
+        mainnet_nado_client.context.engine_client.url == NadoBackendURL.MAINNET_GATEWAY
     )
-    assert devnet_nado_client.context.engine_client.signer == signer
+    assert (
+        mainnet_nado_client.context.indexer_client.url == NadoBackendURL.MAINNET_INDEXER
+    )
+    assert mainnet_nado_client.context.engine_client.signer == signer
 
     with pytest.raises(Exception, match="Mode provided `custom` not supported!"):
         create_nado_client("custom", signer)
