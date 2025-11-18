@@ -124,12 +124,11 @@ class SymbolData(NadoBaseModel):
     price_increment_x18: str
     size_increment: str
     min_size: str
-    min_depth_x18: str
-    max_spread_rate_x18: str
     maker_fee_rate_x18: str
     taker_fee_rate_x18: str
     long_weight_initial_x18: str
     long_weight_maintenance_x18: str
+    max_open_interest_x18: Optional[str]
 
 
 class SubaccountPosition(NadoBaseModel):
