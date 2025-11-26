@@ -9,8 +9,6 @@ from nado_protocol.indexer_client.types.query import (
     IndexerHistoricalOrdersRequest,
     IndexerLinkedSignerRateLimitRequest,
     IndexerLiquidationFeedRequest,
-    IndexerMakerStatisticsParams,
-    IndexerMakerStatisticsRequest,
     IndexerMatchesParams,
     IndexerMatchesRequest,
     IndexerOraclePricesRequest,
@@ -18,10 +16,7 @@ from nado_protocol.indexer_client.types.query import (
     IndexerProductSnapshotsParams,
     IndexerProductSnapshotsRequest,
     IndexerSubaccountHistoricalOrdersParams,
-    IndexerSubaccountSummaryRequest,
-    IndexerReferralCodeRequest,
     IndexerBaseParams,
-    IndexerTokenRewardsRequest,
 )
 
 
@@ -37,21 +32,17 @@ def test_indexer_obj_query_params(
     mock_post.return_value = mock_response
 
     indexer_client.get_subaccount_historical_orders(
-        IndexerSubaccountHistoricalOrdersParams(subaccount="xxx")
+        IndexerSubaccountHistoricalOrdersParams(subaccounts=["xxx"])
     )
     indexer_client.get_historical_orders_by_digest([])
 
     mock_response.json.return_value = {"matches": [], "txs": []}
     mock_post.return_value = mock_response
-    indexer_client.get_matches(IndexerMatchesParams(subaccount="xxx"))
+    indexer_client.get_matches(IndexerMatchesParams(subaccounts=["xxx"]))
 
     mock_response.json.return_value = {"events": [], "txs": []}
     mock_post.return_value = mock_response
     indexer_client.get_events(IndexerEventsParams(submission_idx=10))
-
-    mock_response.json.return_value = {"events": []}
-    mock_post.return_value = mock_response
-    indexer_client.get_subaccount_summary("xxx")
 
     mock_response.json.return_value = {"products": [], "txs": []}
     mock_post.return_value = mock_response
@@ -84,20 +75,6 @@ def test_indexer_obj_query_params(
     mock_post.return_value = mock_response
     indexer_client.get_oracle_prices([])
 
-    mock_response.json.return_value = {
-        "rewards": [],
-        "update_time": "0",
-        "total_referrals": "0",
-    }
-    mock_post.return_value = mock_response
-    indexer_client.get_token_rewards("xxx")
-
-    mock_response.json.return_value = {"reward_coefficient": 0.0, "makers": []}
-    mock_post.return_value = mock_response
-    indexer_client.get_maker_statistics(
-        IndexerMakerStatisticsParams(product_id=1, epoch=1, interval=1)
-    )
-
     mock_response.json.return_value = []
     mock_post.return_value = mock_response
     indexer_client.get_liquidation_feed()
@@ -111,10 +88,6 @@ def test_indexer_obj_query_params(
     mock_post.return_value = mock_response
     indexer_client.get_linked_signer_rate_limits("xxx")
 
-    mock_response.json.return_value = {"referral_code": "nado"}
-    mock_post.return_value = mock_response
-    indexer_client.get_referral_code("xxx")
-
 
 def test_indexer_raw_query_params(
     mock_post: MagicMock,
@@ -127,11 +100,11 @@ def test_indexer_raw_query_params(
 
     mock_response.json.return_value = {"orders": []}
     mock_post.return_value = mock_response
-    indexer_client.get_subaccount_historical_orders({"subaccount": "xxx"})
+    indexer_client.get_subaccount_historical_orders({"subaccounts": ["xxx"]})
 
     mock_response.json.return_value = {"matches": [], "txs": []}
     mock_post.return_value = mock_response
-    indexer_client.get_matches({"subaccount": "xxx"})
+    indexer_client.get_matches({"subaccounts": ["xxx"]})
 
     mock_response.json.return_value = {"events": [], "txs": []}
     mock_post.return_value = mock_response
@@ -145,10 +118,6 @@ def test_indexer_raw_query_params(
     mock_post.return_value = mock_response
     indexer_client.get_candlesticks({"granularity": 60, "product_id": 1})
 
-    mock_response.json.return_value = {"reward_coefficient": 0.0, "makers": []}
-    mock_post.return_value = mock_response
-    indexer_client.get_maker_statistics({"product_id": 1, "epoch": 1, "interval": 1})
-
 
 def test_indexer_request_params(
     mock_post: MagicMock,
@@ -161,17 +130,16 @@ def test_indexer_request_params(
     mock_response.json.return_value = []
     mock_post.return_value = mock_response
 
-    indexer_client.query({"orders": {"subaccount": "xxx"}})
-    indexer_client.query(IndexerHistoricalOrdersRequest(orders={"subaccount": "xxx"}))
+    indexer_client.query({"orders": {"subaccounts": ["xxx"]}})
+    indexer_client.query(
+        IndexerHistoricalOrdersRequest(orders={"subaccounts": ["xxx"]})
+    )
 
-    indexer_client.query({"matches": {"subaccount": "xxx"}})
-    indexer_client.query(IndexerMatchesRequest(matches={"subaccount": "xxx"}))
+    indexer_client.query({"matches": {"subaccounts": ["xxx"]}})
+    indexer_client.query(IndexerMatchesRequest(matches={"subaccounts": ["xxx"]}))
 
-    indexer_client.query({"events": {"subaccount": "xxx"}})
-    indexer_client.query(IndexerEventsParams(events={"subaccount": "xxx"}))
-
-    indexer_client.query({"summary": {"subaccount": "xxx"}})
-    indexer_client.query(IndexerSubaccountSummaryRequest(summary={"subaccount": "xxx"}))
+    indexer_client.query({"events": {"subaccounts": ["xxx"]}})
+    indexer_client.query(IndexerEventsParams(events={"subaccounts": ["xxx"]}))
 
     indexer_client.query({"products": {"product_id": 1}})
     indexer_client.query(IndexerProductSnapshotsRequest(products={"product_id": 1}))
@@ -190,18 +158,6 @@ def test_indexer_request_params(
     indexer_client.query({"oracle_price": {"product_ids": [1]}})
     indexer_client.query(IndexerOraclePricesRequest(oracle_price={"product_ids": [1]}))
 
-    indexer_client.query({"rewards": {"address": "xxx"}})
-    indexer_client.query(IndexerTokenRewardsRequest(rewards={"address": "xxx"}))
-
-    indexer_client.query(
-        {"maker_statistics": {"product_id": 1, "epoch": 1, "interval": 1}}
-    )
-    indexer_client.query(
-        IndexerMakerStatisticsRequest(
-            maker_statistics={"product_id": 1, "epoch": 1, "interval": 1}
-        )
-    )
-
     indexer_client.query({"liquidation_feed": {}})
     indexer_client.query(IndexerLiquidationFeedRequest(liquidation_feed={}))
 
@@ -210,11 +166,6 @@ def test_indexer_request_params(
         IndexerLinkedSignerRateLimitRequest(
             linked_signer_rate_limit={"subaccount": "xxx"}
         )
-    )
-
-    indexer_client.query({"referral_code": {"subaccount": "xxx"}})
-    indexer_client.query(
-        IndexerReferralCodeRequest(referral_code={"subaccount": "xxx"})
     )
 
 

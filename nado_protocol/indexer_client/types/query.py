@@ -48,11 +48,8 @@ class IndexerQueryType(StrEnum):
     LINKED_SIGNER_RATE_LIMIT = "linked_signer_rate_limit"
     REFERRAL_CODE = "referral_code"
     SUBACCOUNTS = "subaccounts"
-    USDC_PRICE = "usdc_price"
+    QUOTE_PRICE = "quote_price"
     ACCOUNT_SNAPSHOTS = "account_snapshots"
-    # TODO: revise once this endpoint is live
-    TOKEN_MERKLE_PROOFS = "token_merkle_proofs"
-    FOUNDATION_REWARDS_MERKLE_PROOFS = "foundation_rewards_merkle_proofs"
     INTEREST_AND_FUNDING = "interest_and_funding"
     INK_AIRDROP = "ink_airdrop"
 
@@ -138,16 +135,6 @@ class IndexerEventsParams(IndexerBaseParams):
     limit: Optional[IndexerEventsLimit]  # type: ignore
 
 
-class IndexerSubaccountSummaryParams(NadoBaseModel):
-    """
-    Parameters for querying subaccount summary.
-    """
-
-    subaccount: str
-    timestamp: Optional[int] = None
-    active: Optional[bool] = None
-
-
 class IndexerProductSnapshotsParams(IndexerBaseParams):
     """
     Parameters for querying product snapshots.
@@ -215,24 +202,6 @@ class IndexerOraclePricesParams(NadoBaseModel):
     product_ids: list[int]
 
 
-class IndexerTokenRewardsParams(NadoBaseModel):
-    """
-    Parameters for querying token rewards.
-    """
-
-    address: str
-
-
-class IndexerMakerStatisticsParams(NadoBaseModel):
-    """
-    Parameters for querying maker statistics.
-    """
-
-    product_id: int
-    epoch: int
-    interval: int
-
-
 class IndexerLiquidationFeedParams(NadoBaseModel):
     """
     Parameters for querying liquidation feed.
@@ -249,14 +218,6 @@ class IndexerLinkedSignerRateLimitParams(NadoBaseModel):
     subaccount: str
 
 
-class IndexerReferralCodeParams(NadoBaseModel):
-    """
-    Parameters for querying a referral code.
-    """
-
-    subaccount: str
-
-
 class IndexerSubaccountsParams(NadoBaseModel):
     """
     Parameters for querying subaccounts.
@@ -267,28 +228,12 @@ class IndexerSubaccountsParams(NadoBaseModel):
     start: Optional[int]
 
 
-class IndexerUsdcPriceParams(NadoBaseModel):
+class IndexerQuotePriceParams(NadoBaseModel):
     """
-    Parameters for querying usdc price.
+    Parameters for querying quote price.
     """
 
     pass
-
-
-class IndexerTokenMerkleProofsParams(NadoBaseModel):
-    """
-    Parameters for querying token merkle proofs.
-    """
-
-    address: str
-
-
-class IndexerFoundationRewardsMerkleProofsParams(NadoBaseModel):
-    """
-    Parameters for querying Foundation Rewards merkle proofs.
-    """
-
-    address: str
 
 
 class IndexerInterestAndFundingParams(NadoBaseModel):
@@ -326,22 +271,16 @@ IndexerParams = Union[
     IndexerHistoricalOrdersByDigestParams,
     IndexerMatchesParams,
     IndexerEventsParams,
-    IndexerSubaccountSummaryParams,
     IndexerProductSnapshotsParams,
     IndexerCandlesticksParams,
     IndexerFundingRateParams,
     IndexerPerpPricesParams,
     IndexerOraclePricesParams,
-    IndexerTokenRewardsParams,
-    IndexerMakerStatisticsParams,
     IndexerLiquidationFeedParams,
     IndexerLinkedSignerRateLimitParams,
-    IndexerReferralCodeParams,
     IndexerSubaccountsParams,
-    IndexerUsdcPriceParams,
+    IndexerQuotePriceParams,
     IndexerMarketSnapshotsParams,
-    IndexerTokenMerkleProofsParams,
-    IndexerFoundationRewardsMerkleProofsParams,
     IndexerInterestAndFundingParams,
     IndexerAccountSnapshotsParams,
     IndexerInkAirdropParams,
@@ -375,14 +314,6 @@ class IndexerEventsRequest(NadoBaseModel):
     """
 
     events: IndexerEventsParams
-
-
-class IndexerSubaccountSummaryRequest(NadoBaseModel):
-    """
-    Request object for querying subaccount summary.
-    """
-
-    summary: IndexerSubaccountSummaryParams
 
 
 class IndexerProductSnapshotsRequest(NadoBaseModel):
@@ -441,22 +372,6 @@ class IndexerOraclePricesRequest(NadoBaseModel):
     oracle_price: IndexerOraclePricesParams
 
 
-class IndexerTokenRewardsRequest(NadoBaseModel):
-    """
-    Request object for querying token rewards.
-    """
-
-    rewards: IndexerTokenRewardsParams
-
-
-class IndexerMakerStatisticsRequest(NadoBaseModel):
-    """
-    Request object for querying maker statistics.
-    """
-
-    maker_statistics: IndexerMakerStatisticsParams
-
-
 class IndexerLiquidationFeedRequest(NadoBaseModel):
     """
     Request object for querying liquidation feed.
@@ -473,14 +388,6 @@ class IndexerLinkedSignerRateLimitRequest(NadoBaseModel):
     linked_signer_rate_limit: IndexerLinkedSignerRateLimitParams
 
 
-class IndexerReferralCodeRequest(NadoBaseModel):
-    """
-    Request object for querying a referral code.
-    """
-
-    referral_code: IndexerReferralCodeParams
-
-
 class IndexerSubaccountsRequest(NadoBaseModel):
     """
     Request object for querying subaccounts.
@@ -489,28 +396,12 @@ class IndexerSubaccountsRequest(NadoBaseModel):
     subaccounts: IndexerSubaccountsParams
 
 
-class IndexerUsdcPriceRequest(NadoBaseModel):
+class IndexerQuotePriceRequest(NadoBaseModel):
     """
-    Request object for querying usdc price.
-    """
-
-    usdc_price: IndexerUsdcPriceParams
-
-
-class IndexerTokenMerkleProofsRequest(NadoBaseModel):
-    """
-    Request object for querying token merkle proofs.
+    Request object for querying quote price.
     """
 
-    token_merkle_proofs: IndexerTokenMerkleProofsParams
-
-
-class IndexerFoundationRewardsMerkleProofsRequest(NadoBaseModel):
-    """
-    Request object for querying Foundation Rewards merkle proofs.
-    """
-
-    foundation_rewards_merkle_proofs: IndexerFoundationRewardsMerkleProofsParams
+    quote_price: IndexerQuotePriceParams
 
 
 class IndexerInterestAndFundingRequest(NadoBaseModel):
@@ -541,22 +432,16 @@ IndexerRequest = Union[
     IndexerHistoricalOrdersRequest,
     IndexerMatchesRequest,
     IndexerEventsRequest,
-    IndexerSubaccountSummaryRequest,
     IndexerProductSnapshotsRequest,
     IndexerCandlesticksRequest,
     IndexerFundingRateRequest,
     IndexerPerpPricesRequest,
     IndexerOraclePricesRequest,
-    IndexerTokenRewardsRequest,
-    IndexerMakerStatisticsRequest,
     IndexerLiquidationFeedRequest,
     IndexerLinkedSignerRateLimitRequest,
-    IndexerReferralCodeRequest,
     IndexerSubaccountsRequest,
-    IndexerUsdcPriceRequest,
+    IndexerQuotePriceRequest,
     IndexerMarketSnapshotsRequest,
-    IndexerTokenMerkleProofsRequest,
-    IndexerFoundationRewardsMerkleProofsRequest,
     IndexerInterestAndFundingRequest,
     IndexerAccountSnapshotsRequest,
     IndexerInkAirdropRequest,
@@ -587,14 +472,6 @@ class IndexerEventsData(NadoBaseModel):
 
     events: list[IndexerEvent]
     txs: list[IndexerTx]
-
-
-class IndexerSubaccountSummaryData(NadoBaseModel):
-    """
-    Data object for subaccount summary.
-    """
-
-    events: list[IndexerEvent]
 
 
 class IndexerProductSnapshotsData(NadoBaseModel):
@@ -654,25 +531,6 @@ class IndexerOraclePricesData(NadoBaseModel):
     prices: list[IndexerOraclePrice]
 
 
-class IndexerTokenRewardsData(NadoBaseModel):
-    """
-    Data object for token rewards.
-    """
-
-    rewards: list[IndexerTokenReward]
-    update_time: str
-    total_referrals: str
-
-
-class IndexerMakerStatisticsData(NadoBaseModel):
-    """
-    Data object for maker statistics.
-    """
-
-    reward_coefficient: float
-    makers: list[IndexerMarketMaker]
-
-
 class IndexerLinkedSignerRateLimitData(NadoBaseModel):
     """
     Data object for linked signer rate limits.
@@ -684,18 +542,6 @@ class IndexerLinkedSignerRateLimitData(NadoBaseModel):
     signer: str
 
 
-class IndexerReferralCodeData(NadoBaseModel):
-    """
-    Data object for referral codes.
-    """
-
-    referral_code: str
-
-    @validator("referral_code", pre=True, always=True)
-    def set_default_referral_code(cls, v):
-        return v or ""
-
-
 class IndexerSubaccountsData(NadoBaseModel):
     """
     Data object for subaccounts response from the indexer.
@@ -704,20 +550,12 @@ class IndexerSubaccountsData(NadoBaseModel):
     subaccounts: list[IndexerSubaccount]
 
 
-class IndexerUsdcPriceData(NadoBaseModel):
+class IndexerQuotePriceData(NadoBaseModel):
     """
-    Data object for the usdc price response from the indexer.
+    Data object for the quote price response from the indexer.
     """
 
     price_x18: str
-
-
-class IndexerMerkleProofsData(NadoBaseModel):
-    """
-    Data object for the merkle proofs response from the indexer.
-    """
-
-    merkle_proofs: list[IndexerMerkleProof]
 
 
 class IndexerInterestAndFundingData(NadoBaseModel):
@@ -753,20 +591,15 @@ IndexerResponseData = Union[
     IndexerHistoricalOrdersData,
     IndexerMatchesData,
     IndexerEventsData,
-    IndexerSubaccountSummaryData,
     IndexerProductSnapshotsData,
     IndexerCandlesticksData,
     IndexerFundingRateData,
     IndexerPerpPricesData,
     IndexerOraclePricesData,
-    IndexerTokenRewardsData,
-    IndexerMakerStatisticsData,
     IndexerLinkedSignerRateLimitData,
-    IndexerReferralCodeData,
     IndexerSubaccountsData,
-    IndexerUsdcPriceData,
+    IndexerQuotePriceData,
     IndexerMarketSnapshotsData,
-    IndexerMerkleProofsData,
     IndexerInterestAndFundingData,
     IndexerLiquidationFeedData,
     IndexerFundingRatesData,
@@ -807,10 +640,6 @@ def to_indexer_request(params: IndexerParams) -> IndexerRequest:
         ),
         IndexerMatchesParams: (IndexerMatchesRequest, IndexerQueryType.MATCHES.value),
         IndexerEventsParams: (IndexerEventsRequest, IndexerQueryType.EVENTS.value),
-        IndexerSubaccountSummaryParams: (
-            IndexerSubaccountSummaryRequest,
-            IndexerQueryType.SUMMARY.value,
-        ),
         IndexerProductSnapshotsParams: (
             IndexerProductSnapshotsRequest,
             IndexerQueryType.PRODUCTS.value,
@@ -839,14 +668,6 @@ def to_indexer_request(params: IndexerParams) -> IndexerRequest:
             IndexerOraclePricesRequest,
             IndexerQueryType.ORACLE_PRICES.value,
         ),
-        IndexerTokenRewardsParams: (
-            IndexerTokenRewardsRequest,
-            IndexerQueryType.REWARDS.value,
-        ),
-        IndexerMakerStatisticsParams: (
-            IndexerMakerStatisticsRequest,
-            IndexerQueryType.MAKER_STATISTICS.value,
-        ),
         IndexerLiquidationFeedParams: (
             IndexerLiquidationFeedRequest,
             IndexerQueryType.LIQUIDATION_FEED.value,
@@ -855,25 +676,13 @@ def to_indexer_request(params: IndexerParams) -> IndexerRequest:
             IndexerLinkedSignerRateLimitRequest,
             IndexerQueryType.LINKED_SIGNER_RATE_LIMIT.value,
         ),
-        IndexerReferralCodeParams: (
-            IndexerReferralCodeRequest,
-            IndexerQueryType.REFERRAL_CODE.value,
-        ),
         IndexerSubaccountsParams: (
             IndexerSubaccountsRequest,
             IndexerQueryType.SUBACCOUNTS.value,
         ),
-        IndexerUsdcPriceParams: (
-            IndexerUsdcPriceRequest,
-            IndexerQueryType.USDC_PRICE.value,
-        ),
-        IndexerTokenMerkleProofsParams: (
-            IndexerTokenMerkleProofsRequest,
-            IndexerQueryType.TOKEN_MERKLE_PROOFS.value,
-        ),
-        IndexerFoundationRewardsMerkleProofsParams: (
-            IndexerFoundationRewardsMerkleProofsRequest,
-            IndexerQueryType.FOUNDATION_REWARDS_MERKLE_PROOFS.value,
+        IndexerQuotePriceParams: (
+            IndexerQuotePriceRequest,
+            IndexerQueryType.QUOTE_PRICE.value,
         ),
         IndexerInterestAndFundingParams: (
             IndexerInterestAndFundingRequest,

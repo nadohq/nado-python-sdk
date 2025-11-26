@@ -14,8 +14,6 @@ from nado_protocol.indexer_client.types.query import (
     IndexerFundingRatesData,
     IndexerHistoricalOrdersByDigestParams,
     IndexerHistoricalOrdersData,
-    IndexerReferralCodeData,
-    IndexerReferralCodeParams,
     IndexerSubaccountHistoricalOrdersParams,
     IndexerLinkedSignerRateLimitData,
     IndexerLinkedSignerRateLimitParams,
@@ -23,8 +21,6 @@ from nado_protocol.indexer_client.types.query import (
     IndexerLiquidationFeedParams,
     IndexerMarketSnapshotsData,
     IndexerMarketSnapshotsParams,
-    IndexerMakerStatisticsData,
-    IndexerMakerStatisticsParams,
     IndexerMatchesParams,
     IndexerMatchesData,
     IndexerOraclePricesData,
@@ -36,17 +32,10 @@ from nado_protocol.indexer_client.types.query import (
     IndexerProductSnapshotsParams,
     IndexerRequest,
     IndexerResponse,
-    IndexerSubaccountSummaryParams,
-    IndexerSubaccountSummaryData,
     IndexerSubaccountsData,
     IndexerSubaccountsParams,
-    IndexerTokenRewardsData,
-    IndexerTokenRewardsParams,
-    IndexerUsdcPriceParams,
-    IndexerUsdcPriceData,
-    IndexerTokenMerkleProofsParams,
-    IndexerFoundationRewardsMerkleProofsParams,
-    IndexerMerkleProofsData,
+    IndexerQuotePriceParams,
+    IndexerQuotePriceData,
     IndexerInterestAndFundingParams,
     IndexerInterestAndFundingData,
     IndexerAccountSnapshotsParams,
@@ -186,29 +175,6 @@ class IndexerQueryClient:
             self.query(IndexerEventsParams.parse_obj(params)).data, IndexerEventsData
         )
 
-    def get_subaccount_summary(
-        self, subaccount: str, timestamp: Optional[int] = None
-    ) -> IndexerSubaccountSummaryData:
-        """
-        Retrieves a summary of a specified subaccount at a certain timestamp.
-
-        Args:
-            subaccount (str): The identifier for the subaccount.
-
-            timestamp (int | None, optional): The timestamp for which to retrieve the subaccount summary. If not provided, the most recent summary is retrieved.
-
-        Returns:
-            IndexerSubaccountSummaryData: The summary of the specified subaccount at the provided timestamp.
-        """
-        return ensure_data_type(
-            self.query(
-                IndexerSubaccountSummaryParams(
-                    subaccount=subaccount, timestamp=timestamp
-                )
-            ).data,
-            IndexerSubaccountSummaryData,
-        )
-
     def get_product_snapshots(
         self, params: IndexerProductSnapshotsParams
     ) -> IndexerProductSnapshotsData:
@@ -319,38 +285,6 @@ class IndexerQueryClient:
             IndexerOraclePricesData,
         )
 
-    def get_token_rewards(self, address: str) -> IndexerTokenRewardsData:
-        """
-        Retrieves the token reward data for a specific address.
-
-        Args:
-            address (str): The address for which to retrieve token reward data.
-
-        Returns:
-            IndexerTokenRewardsData: The token reward data for the specified address.
-        """
-        return ensure_data_type(
-            self.query(IndexerTokenRewardsParams(address=address)).data,
-            IndexerTokenRewardsData,
-        )
-
-    def get_maker_statistics(
-        self, params: IndexerMakerStatisticsParams
-    ) -> IndexerMakerStatisticsData:
-        """
-        Retrieves maker statistics based on provided parameters.
-
-        Args:
-            params (IndexerMakerStatisticsParams): The parameters for retrieving maker statistics.
-
-        Returns:
-            IndexerMakerStatisticsData: The maker statistics corresponding to the provided parameters.
-        """
-        return ensure_data_type(
-            self.query(IndexerMakerStatisticsParams.parse_obj(params)).data,
-            IndexerMakerStatisticsData,
-        )
-
     def get_liquidation_feed(self) -> IndexerLiquidationFeedData:
         """
         Retrieves the liquidation feed data.
@@ -377,21 +311,6 @@ class IndexerQueryClient:
             IndexerLinkedSignerRateLimitData,
         )
 
-    def get_referral_code(self, subaccount: str) -> IndexerReferralCodeData:
-        """
-        Retrieves the referral code for a given address.
-
-        Args:
-            subaccount (str): Unique identifier for the subaccount.
-
-        Returns:
-            IndexerReferralCodeData: The referral code for the specific address.
-        """
-        return ensure_data_type(
-            self.query(IndexerReferralCodeParams(subaccount=subaccount)).data,
-            IndexerReferralCodeData,
-        )
-
     def get_subaccounts(
         self, params: IndexerSubaccountsParams
     ) -> IndexerSubaccountsData:
@@ -409,26 +328,10 @@ class IndexerQueryClient:
             IndexerSubaccountsData,
         )
 
-    def get_usdc_price(self) -> IndexerUsdcPriceData:
+    def get_quote_price(self) -> IndexerQuotePriceData:
         return ensure_data_type(
-            self.query(IndexerUsdcPriceParams()).data,
-            IndexerUsdcPriceData,
-        )
-
-    def get_token_merkle_proofs(self, address: str) -> IndexerMerkleProofsData:
-        return ensure_data_type(
-            self.query(IndexerTokenMerkleProofsParams(address=address)).data,
-            IndexerMerkleProofsData,
-        )
-
-    def get_foundation_rewards_merkle_proofs(
-        self, address: str
-    ) -> IndexerMerkleProofsData:
-        return ensure_data_type(
-            self.query(
-                IndexerFoundationRewardsMerkleProofsParams(address=address)
-            ).data,
-            IndexerMerkleProofsData,
+            self.query(IndexerQuotePriceParams()).data,
+            IndexerQuotePriceData,
         )
 
     def get_interest_and_funding_payments(

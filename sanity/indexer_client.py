@@ -81,10 +81,6 @@ def run():
     )
     print("subaccount events:", subaccount_events.json(indent=2))
 
-    print("querying subaccount summary...")
-    subaccount_summary = client.get_subaccount_summary(subaccount)
-    print("subaccount summary:", subaccount_summary.json(indent=2))
-
     print("querying product snapshots...")
     btc_snapshots = client.get_product_snapshots({"product_id": 1, "limit": 3})
     print("btc snapshots:", btc_snapshots.json(indent=2))
@@ -115,20 +111,6 @@ def run():
     oracle_prices = client.get_oracle_prices(product_ids=[1, 2])
     print("oracle prices:", oracle_prices.json(indent=2))
 
-    print("querying token rewards...")
-    token_rewards = client.get_token_rewards(owner)
-    print("token rewards:", token_rewards.json(indent=2))
-
-    print("querying maker stats...")
-    try:
-        maker_stats = client.get_maker_statistics(
-            {"product_id": 1, "epoch": 2, "interval": 10000}
-        )
-        print("maker stats:", maker_stats.json(indent=2))
-    except Exception as e:
-        # this endpoint fails locally when there's no epoch data.
-        print("failed to retrieve maker stats with error:", e)
-
     print("querying liquidation feed...")
     liquidation_feed = client.get_liquidation_feed()
     print(
@@ -140,25 +122,12 @@ def run():
     linked_signer_rate_limit = client.get_linked_signer_rate_limits(subaccount)
     print("linked signer rate limit:", linked_signer_rate_limit.json(indent=2))
 
-    print("querying referral code...")
-    referral_code = client.get_referral_code(subaccount=subaccount)
-    print("referral code:", referral_code.json(indent=2))
-
     print("querying subaccounts...")
     subaccounts = client.get_subaccounts(
         IndexerSubaccountsParams(limit=2, start=0, address=owner)
     )
     print("subaccounts:", subaccounts.json(indent=2))
 
-    print("querying usdc price...")
-    usdc_price = client.get_usdc_price()
-    print("usdc price", usdc_price.price_x18)
-
-    print("querying foundation rewards merkle proofs...")
-    foundation_rewards_merkle_proofs = client.get_foundation_rewards_merkle_proofs(
-        owner
-    )
-    print(
-        "foundation rewards merkle proofs:",
-        foundation_rewards_merkle_proofs.json(indent=2),
-    )
+    print("querying quote price...")
+    quote_price = client.get_quote_price()
+    print("quote price", quote_price.price_x18)
