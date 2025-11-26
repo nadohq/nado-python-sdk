@@ -78,54 +78,15 @@ class RewardsExecuteAPI(NadoBaseAPI):
     def _get_claim_tokens_contract_params(
         self, params: ClaimTokensParams, signer: LocalAccount
     ) -> ClaimTokensContractParams:
-        epoch_merkle_proofs = self.context.indexer_client.get_token_merkle_proofs(
-            signer.address
-        ).merkle_proofs[params.epoch]
-        total_claimable_amount = int(epoch_merkle_proofs.total_amount)
-        if params.amount is not None:
-            amount_to_claim = params.amount
-        else:
-            assert self.context.contracts.airdrop is not None
-            amount_claimed = self.context.contracts.airdrop.functions.getClaimed(
-                signer.address
-            ).call()
-            amount_to_claim = total_claimable_amount - amount_claimed[params.epoch]
-        return ClaimTokensContractParams(
-            epoch=params.epoch,
-            amount_to_claim=amount_to_claim,
-            total_claimable_amount=total_claimable_amount,
-            merkle_proof=epoch_merkle_proofs.proof,
+        raise NotImplementedError(
+            "Token merkle proofs endpoint has been removed from the indexer. "
+            "This functionality is no longer available."
         )
 
     def _get_claim_foundation_rewards_contract_params(
         self, signer: LocalAccount
     ) -> ClaimFoundationRewardsContractParams:
-        assert self.context.contracts.foundation_rewards_airdrop is not None
-        claimed = (
-            self.context.contracts.foundation_rewards_airdrop.functions.getClaimed(
-                signer.address
-            ).call()
+        raise NotImplementedError(
+            "Foundation rewards merkle proofs endpoint has been removed from the indexer. "
+            "This functionality is no longer available."
         )
-        merkle_proofs = (
-            self.context.indexer_client.get_foundation_rewards_merkle_proofs(
-                signer.address
-            )
-        )
-        claim_proofs = []
-
-        for idx, proof in enumerate(merkle_proofs.merkle_proofs):
-            if idx == 0:
-                # week 0 is invalid
-                continue
-
-            total_amount = int(proof.total_amount)
-
-            # There's no partial claim, so find weeks where there's a claimable amount and amt claimed is zero
-            if total_amount > 0 and int(claimed[idx]) == 0:
-                claim_proofs.append(
-                    ClaimFoundationRewardsProofStruct(
-                        totalAmount=total_amount, week=idx, proof=proof.proof
-                    )
-                )
-
-        return ClaimFoundationRewardsContractParams(claim_proofs=claim_proofs)

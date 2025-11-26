@@ -1,5 +1,5 @@
 from nado_protocol.utils.enum import StrEnum
-from typing import Dict, Optional, Union
+from typing import Dict, List, Optional, Tuple, Type, Union
 
 from pydantic import Field, validator
 from nado_protocol.indexer_client.types.models import (
@@ -699,11 +699,11 @@ def to_indexer_request(params: IndexerParams) -> IndexerRequest:
     }
 
     RequestClass, field_name = indexer_request_mapping[type(params)]
-    return RequestClass.parse_obj({field_name: params.dict(exclude_none=False)})
+    return RequestClass.parse_obj({field_name: params.dict(exclude_none=False)})  # type: ignore[attr-defined]
 
 
 IndexerTickersData = Dict[str, IndexerTickerInfo]
 
 IndexerPerpContractsData = Dict[str, IndexerPerpContractInfo]
 
-IndexerHistoricalTradesData = list[IndexerTradeInfo]
+IndexerHistoricalTradesData = List[IndexerTradeInfo]
