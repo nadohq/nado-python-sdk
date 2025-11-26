@@ -82,7 +82,7 @@ class IndexerSubaccountHistoricalOrdersParams(IndexerBaseParams):
 
     class Config:
         # Ensure this doesn't get confused with digest params
-        extra = 'forbid'
+        extra = "forbid"
 
 
 class IndexerHistoricalOrdersByDigestParams(NadoBaseModel):
@@ -94,7 +94,7 @@ class IndexerHistoricalOrdersByDigestParams(NadoBaseModel):
 
     class Config:
         # Ensure this doesn't get confused with subaccount params
-        extra = 'forbid'
+        extra = "forbid"
 
 
 class IndexerMatchesParams(IndexerBaseParams):
