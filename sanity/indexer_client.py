@@ -37,7 +37,7 @@ def run():
     pprint(perp_contracts)
 
     print("querying BTC-PERP historical trades...")
-    btc_perp_trades = client.get_historical_trades("BTC-PERP_USDT", 2)
+    btc_perp_trades = client.get_historical_trades("BTC-PERP_USDT0", 2)
     pprint(btc_perp_trades)
 
     owner = Account.from_key(SIGNER_PRIVATE_KEY).address
@@ -48,18 +48,18 @@ def run():
 
     print("querying subaccount historical orders...")
     subaccount_historical_orders = client.get_subaccount_historical_orders(
-        IndexerSubaccountHistoricalOrdersParams(subaccount=subaccount, limit=3)
+        IndexerSubaccountHistoricalOrdersParams(subaccounts=[subaccount], limit=3)
     )
     print("subaccount historical orders:", subaccount_historical_orders.json(indent=2))
 
     digests = [order.digest for order in subaccount_historical_orders.orders][:2]
-    print("querying historical orders by digests...", digests)
+    print("querying historical orders by digests...")
     historical_orders_by_digest = client.get_historical_orders_by_digest(digests)
     print("historical orders by digest:", historical_orders_by_digest.json(indent=2))
 
     print("querying subaccount matches...")
     subaccount_matches = client.get_matches(
-        IndexerMatchesParams(subaccount=subaccount, limit=2, product_ids=[1])
+        IndexerMatchesParams(subaccounts=[subaccount], limit=2, product_ids=[1])
     )
     print("subaccount matches:", subaccount_matches.json(indent=2))
 
@@ -77,7 +77,7 @@ def run():
 
     print("querying subaccount events...")
     subaccount_events = client.get_events(
-        params={"subaccount": subaccount, "limit": {"raw": 2}}
+        params={"subaccounts": [subaccount], "limit": {"raw": 2}}
     )
     print("subaccount events:", subaccount_events.json(indent=2))
 

@@ -80,6 +80,10 @@ class IndexerSubaccountHistoricalOrdersParams(IndexerBaseParams):
     trigger_types: Optional[list[str]]
     isolated: Optional[bool]
 
+    class Config:
+        # Ensure this doesn't get confused with digest params
+        extra = 'forbid'
+
 
 class IndexerHistoricalOrdersByDigestParams(NadoBaseModel):
     """
@@ -87,6 +91,10 @@ class IndexerHistoricalOrdersByDigestParams(NadoBaseModel):
     """
 
     digests: list[str]
+
+    class Config:
+        # Ensure this doesn't get confused with subaccount params
+        extra = 'forbid'
 
 
 class IndexerMatchesParams(IndexerBaseParams):
@@ -348,6 +356,9 @@ class IndexerHistoricalOrdersRequest(NadoBaseModel):
     orders: Union[
         IndexerSubaccountHistoricalOrdersParams, IndexerHistoricalOrdersByDigestParams
     ]
+
+    class Config:
+        smart_union = True
 
 
 class IndexerMatchesRequest(NadoBaseModel):
@@ -879,7 +890,7 @@ def to_indexer_request(params: IndexerParams) -> IndexerRequest:
     }
 
     RequestClass, field_name = indexer_request_mapping[type(params)]
-    return RequestClass(**{field_name: params})
+    return RequestClass.parse_obj({field_name: params.dict(exclude_none=False)})
 
 
 IndexerTickersData = Dict[str, IndexerTickerInfo]
