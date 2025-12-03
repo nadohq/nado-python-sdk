@@ -2,7 +2,7 @@ from abc import abstractmethod
 from copy import deepcopy
 from typing import Optional, Type, Union
 from eth_account.signers.local import LocalAccount
-from pydantic import validator
+from pydantic import field_validator, ConfigDict
 from nado_protocol.contracts.eip712.sign import (
     build_eip712_typed_data,
     get_eip712_typed_data_digest,
@@ -30,12 +30,12 @@ class BaseParams(NadoBaseModel):
     """
 
     sender: Subaccount
-    nonce: Optional[int]
+    nonce: Optional[int] = None
 
-    class Config:
-        validate_assignment = True
+    model_config = ConfigDict(validate_assignment=True)
 
-    @validator("sender")
+    @field_validator("sender")
+    @classmethod
     def serialize_sender(cls, v: Subaccount) -> Union[bytes, Subaccount]:
         """
         Validates and serializes the sender to bytes32 format.
@@ -60,7 +60,7 @@ class SignatureParams(NadoBaseModel):
         signature (Optional[str]): An optional string representing the signature for the request.
     """
 
-    signature: Optional[str]
+    signature: Optional[str] = None
 
 
 class BaseParamsSigned(BaseParams, SignatureParams):
@@ -356,7 +356,7 @@ class NadoBaseExecute:
         """
         return self.build_digest(
             NadoExecuteType.PLACE_ORDER,
-            order.dict(),
+            order.model_dump(),
             self.order_verifying_contract(product_id),
             self.chain_id,
         )

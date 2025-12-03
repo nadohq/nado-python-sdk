@@ -1,4 +1,5 @@
-from pydantic import BaseModel, AnyUrl, validator
+from typing import Union
+from pydantic import BaseModel, AnyUrl, field_validator, TypeAdapter
 from nado_protocol.indexer_client.types.models import *
 from nado_protocol.indexer_client.types.query import *
 
@@ -8,11 +9,13 @@ class IndexerClientOpts(BaseModel):
     Model representing the options for the Indexer Client
     """
 
-    url: AnyUrl
+    url: str
 
-    @validator("url")
-    def clean_url(cls, v: AnyUrl) -> str:
-        return v.rstrip("/")
+    @field_validator("url")
+    @classmethod
+    def clean_url(cls, v: Union[str, AnyUrl]) -> str:
+        TypeAdapter(AnyUrl).validate_python(v)
+        return str(v).rstrip("/")
 
 
 __all__ = [

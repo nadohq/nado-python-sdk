@@ -1,7 +1,7 @@
 from typing import Optional, List, Union
 from enum import Enum
 
-from pydantic import validator
+from pydantic import field_validator
 
 from nado_protocol.engine_client.types.models import ResponseStatus
 from nado_protocol.trigger_client.types.models import TriggerOrderData
@@ -35,7 +35,7 @@ class ListTriggerOrdersParams(NadoBaseModel):
     Parameters for listing trigger orders
     """
 
-    type = "list_trigger_orders"
+    type: str = "list_trigger_orders"
     tx: ListTriggerOrdersTx
     product_ids: Optional[List[int]] = None
     trigger_types: Optional[List[TriggerType]] = None
@@ -53,7 +53,7 @@ class ListTwapExecutionsParams(NadoBaseModel):
     Parameters for listing TWAP executions for a specific order
     """
 
-    type = "list_twap_executions"
+    type: str = "list_twap_executions"
     digest: str
 
 
@@ -159,7 +159,8 @@ class TriggerOrdersData(NadoBaseModel):
 class ListTriggerOrdersRequest(ListTriggerOrdersParams):
     tx: ListTriggerOrdersTx
 
-    @validator("tx")
+    @field_validator("tx")
+    @classmethod
     def serialize(cls, v: ListTriggerOrdersTx) -> ListTriggerOrdersTx:
         if isinstance(v.sender, bytes):
             v.serialize_dict(["sender"], bytes32_to_hex)

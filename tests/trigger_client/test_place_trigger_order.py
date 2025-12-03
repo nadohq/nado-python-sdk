@@ -258,7 +258,7 @@ def test_place_order_execute_success(
         ),
         trigger=PriceTrigger(
             price_trigger=PriceTriggerData(
-                price_requirement=LastPriceAbove(last_price_above=100)
+                price_requirement=LastPriceAbove(last_price_above="100")
             )
         ),
     )
@@ -346,6 +346,7 @@ def test_place_order_execute_success(
     }
     mock_post.return_value = mock_response
 
+    place_trigger_order_params.signature = None
     res = trigger_client.place_trigger_order(place_trigger_order_params)
     place_trigger_order_req = PlaceTriggerOrderRequest(**res.req)
 

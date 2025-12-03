@@ -29,7 +29,7 @@ def test_create_nado_client_context(
         "status": "success",
         "data": {
             "endpoint_addr": endpoint_addr,
-            "chain_id": chain_id,
+            "chain_id": str(chain_id),
         },
     }
     mock_post.return_value = mock_response
@@ -110,7 +110,7 @@ def test_create_nado_client(
         "status": "success",
         "data": {
             "endpoint_addr": endpoint_addr,
-            "chain_id": chain_id,
+            "chain_id": str(chain_id),
         },
     }
     mock_post.return_value = mock_response

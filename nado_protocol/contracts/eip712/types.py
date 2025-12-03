@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from nado_protocol.contracts.types import NadoTxType
 
 
@@ -29,9 +29,7 @@ class EIP712Types(BaseModel):
 
     EIP712Domain: list[dict]
 
-    class Config:
-        arbitrary_types_allowed = True
-        extra = "allow"
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra='allow')
 
 
 class EIP712TypedData(BaseModel):

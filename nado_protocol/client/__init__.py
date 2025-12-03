@@ -16,7 +16,8 @@ from nado_protocol.utils.backend import NadoBackendURL, Signer
 from nado_protocol.utils.enum import StrEnum
 from nado_protocol.client.context import *
 
-from pydantic import parse_obj_as
+from typing import Union
+from pydantic import AnyUrl, parse_obj_as
 
 
 class NadoClientMode(StrEnum):
@@ -116,6 +117,9 @@ def create_nado_client(
         NadoClient: The created NadoClient instance.
     """
     logging.info(f"Initializing default {mode} context")
+    engine_endpoint_url: Union[str, AnyUrl]
+    indexer_endpoint_url: Union[str, AnyUrl]
+    trigger_endpoint_url: Union[str, AnyUrl]
     (
         engine_endpoint_url,
         indexer_endpoint_url,
@@ -125,7 +129,7 @@ def create_nado_client(
     try:
         network = NadoNetwork(network_name)
         deployment = load_deployment(network)
-        rpc_node_url = deployment.node_url
+        rpc_node_url: Union[str, AnyUrl] = deployment.node_url
         contracts_context = NadoContractsContext(
             network=network,
             endpoint_addr=deployment.endpoint_addr,
@@ -166,9 +170,9 @@ def create_nado_client(
     context = create_nado_client_context(
         NadoClientContextOpts(
             rpc_node_url=rpc_node_url,
-            engine_endpoint_url=parse_obj_as(AnyUrl, engine_endpoint_url),
-            indexer_endpoint_url=parse_obj_as(AnyUrl, indexer_endpoint_url),
-            trigger_endpoint_url=parse_obj_as(AnyUrl, trigger_endpoint_url),
+            engine_endpoint_url=engine_endpoint_url,
+            indexer_endpoint_url=indexer_endpoint_url,
+            trigger_endpoint_url=trigger_endpoint_url,
             contracts_context=contracts_context,
         ),
         signer,

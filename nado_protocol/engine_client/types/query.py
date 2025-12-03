@@ -1,6 +1,6 @@
 from nado_protocol.utils.enum import StrEnum
 from typing import Optional, Union
-from pydantic import validator
+from pydantic import field_validator
 from nado_protocol.utils.model import NadoBaseModel
 from nado_protocol.engine_client.types.models import (
     ApplyDeltaTx,
@@ -52,7 +52,7 @@ class QueryStatusParams(NadoBaseModel):
     Parameters for querying the status of the engine.
     """
 
-    type = EngineQueryType.STATUS.value
+    type: str = EngineQueryType.STATUS.value
 
 
 class QueryContractsParams(NadoBaseModel):
@@ -60,7 +60,7 @@ class QueryContractsParams(NadoBaseModel):
     Parameters for querying the Nado contract addresses.
     """
 
-    type = EngineQueryType.CONTRACTS.value
+    type: str = EngineQueryType.CONTRACTS.value
 
 
 class QueryNoncesParams(NadoBaseModel):
@@ -68,7 +68,7 @@ class QueryNoncesParams(NadoBaseModel):
     Parameters for querying the nonces associated with a specific address.
     """
 
-    type = EngineQueryType.NONCES.value
+    type: str = EngineQueryType.NONCES.value
     address: str
 
 
@@ -77,7 +77,7 @@ class QueryOrderParams(NadoBaseModel):
     Parameters for querying a specific order using its product_id and digest.
     """
 
-    type = EngineQueryType.ORDER.value
+    type: str = EngineQueryType.ORDER.value
     product_id: int
     digest: str
 
@@ -87,7 +87,7 @@ class QueryIsolatedPositionsParams(NadoBaseModel):
     Parameters for querying the isolated positions of a specific subaccount.
     """
 
-    type = EngineQueryType.ISOLATED_POSITIONS.value
+    type: str = EngineQueryType.ISOLATED_POSITIONS.value
     subaccount: str
 
 
@@ -99,7 +99,7 @@ class QuerySubaccountInfoParams(NadoBaseModel):
     Parameters for querying the subaccount summary from engine, including balances.
     """
 
-    type = EngineQueryType.SUBACCOUNT_INFO.value
+    type: str = EngineQueryType.SUBACCOUNT_INFO.value
     subaccount: str
     txs: Optional[list[QuerySubaccountInfoTx]]
 
@@ -109,7 +109,7 @@ class QuerySubaccountOpenOrdersParams(NadoBaseModel):
     Parameters for querying open orders associated with a subaccount for a specific product.
     """
 
-    type = EngineQueryType.SUBACCOUNT_ORDERS.value
+    type: str = EngineQueryType.SUBACCOUNT_ORDERS.value
     product_id: int
     sender: str
 
@@ -119,7 +119,7 @@ class QuerySubaccountMultiProductOpenOrdersParams(NadoBaseModel):
     Parameters for querying open orders associated with a subaccount for provided products.
     """
 
-    type = EngineQueryType.ORDERS.value
+    type: str = EngineQueryType.ORDERS.value
     product_ids: list[int]
     sender: str
 
@@ -129,7 +129,7 @@ class QueryMarketLiquidityParams(NadoBaseModel):
     Parameters for querying the market liquidity for a specific product up to a defined depth.
     """
 
-    type = EngineQueryType.MARKET_LIQUIDITY.value
+    type: str = EngineQueryType.MARKET_LIQUIDITY.value
     product_id: int
     depth: int
 
@@ -139,7 +139,7 @@ class QuerySymbolsParams(NadoBaseModel):
     Parameters for querying symbols and product info
     """
 
-    type = EngineQueryType.SYMBOLS.value
+    type: str = EngineQueryType.SYMBOLS.value
     product_type: Optional[str]
     product_ids: Optional[list[int]]
 
@@ -149,7 +149,7 @@ class QueryAllProductsParams(NadoBaseModel):
     Parameters for querying all products available in the engine.
     """
 
-    type = EngineQueryType.ALL_PRODUCTS.value
+    type: str = EngineQueryType.ALL_PRODUCTS.value
 
 
 class QueryMarketPriceParams(NadoBaseModel):
@@ -157,14 +157,15 @@ class QueryMarketPriceParams(NadoBaseModel):
     Parameters for querying the market price of a specific product.
     """
 
-    type = EngineQueryType.MARKET_PRICE.value
+    type: str = EngineQueryType.MARKET_PRICE.value
     product_id: int
 
 
 class SpotLeverageSerializerMixin(NadoBaseModel):
     spot_leverage: Optional[bool]
 
-    @validator("spot_leverage")
+    @field_validator("spot_leverage")
+    @classmethod
     def spot_leverage_to_str(cls, v: Optional[bool]) -> Optional[str]:
         return str(v).lower() if v is not None else v
 
@@ -174,7 +175,7 @@ class QueryMaxOrderSizeParams(SpotLeverageSerializerMixin):
     Parameters for querying the maximum order size for a specific product and a given sender.
     """
 
-    type = EngineQueryType.MAX_ORDER_SIZE.value
+    type: str = EngineQueryType.MAX_ORDER_SIZE.value
     sender: str
     product_id: int
     price_x18: str
@@ -182,15 +183,18 @@ class QueryMaxOrderSizeParams(SpotLeverageSerializerMixin):
     reduce_only: Optional[bool]
     isolated: Optional[bool]
 
-    @validator("direction")
+    @field_validator("direction")
+    @classmethod
     def direction_to_str(cls, v: MaxOrderSizeDirection) -> str:
         return v.value
 
-    @validator("reduce_only")
+    @field_validator("reduce_only")
+    @classmethod
     def reduce_only_to_str(cls, v: Optional[bool]) -> Optional[str]:
         return str(v).lower() if v is not None else v
 
-    @validator("isolated")
+    @field_validator("isolated")
+    @classmethod
     def isolated_to_str(cls, v: Optional[bool]) -> Optional[str]:
         return str(v).lower() if v is not None else v
 
@@ -200,7 +204,7 @@ class QueryMaxWithdrawableParams(SpotLeverageSerializerMixin):
     Parameters for querying the maximum withdrawable amount for a specific product and a given sender.
     """
 
-    type = EngineQueryType.MAX_WITHDRAWABLE.value
+    type: str = EngineQueryType.MAX_WITHDRAWABLE.value
     sender: str
     product_id: int
 
@@ -210,7 +214,7 @@ class QueryMaxLpMintableParams(SpotLeverageSerializerMixin):
     Parameters for querying the maximum liquidity that can be minted by a specified sender for a specific product.
     """
 
-    type = EngineQueryType.MAX_NLP_MINTABLE.value
+    type: str = EngineQueryType.MAX_NLP_MINTABLE.value
     sender: str
     product_id: int
 
@@ -220,7 +224,7 @@ class QueryFeeRatesParams(NadoBaseModel):
     Parameters for querying the fee rates associated with a specified sender.
     """
 
-    type = EngineQueryType.FEE_RATES.value
+    type: str = EngineQueryType.FEE_RATES.value
     sender: str
 
 
@@ -229,7 +233,7 @@ class QueryHealthGroupsParams(NadoBaseModel):
     Parameters for querying the health groups in the engine.
     """
 
-    type = EngineQueryType.HEALTH_GROUPS.value
+    type: str = EngineQueryType.HEALTH_GROUPS.value
 
 
 class QueryLinkedSignerParams(NadoBaseModel):
@@ -237,7 +241,7 @@ class QueryLinkedSignerParams(NadoBaseModel):
     Parameters for querying the signer linked to a specified subaccount.
     """
 
-    type = EngineQueryType.LINKED_SIGNER.value
+    type: str = EngineQueryType.LINKED_SIGNER.value
     subaccount: str
 
 
@@ -510,10 +514,10 @@ class QueryResponse(NadoBaseModel):
     """
 
     status: ResponseStatus
-    data: Optional[QueryResponseData]
-    error: Optional[str]
-    error_code: Optional[int]
-    request_type: Optional[str]
+    data: Optional[QueryResponseData] = None
+    error: Optional[str] = None
+    error_code: Optional[int] = None
+    request_type: Optional[str] = None
 
 
 AssetsData = list[Asset]

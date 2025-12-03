@@ -130,7 +130,7 @@ def nado_client(
         "status": "success",
         "data": {
             "endpoint_addr": endpoint_addr,
-            "chain_id": chain_id,
+            "chain_id": str(chain_id),
         },
     }
     mock_post.return_value = mock_response
@@ -154,7 +154,7 @@ def nado_client_with_trigger(
         "status": "success",
         "data": {
             "endpoint_addr": endpoint_addr,
-            "chain_id": chain_id,
+            "chain_id": str(chain_id),
         },
     }
     mock_post.return_value = mock_response
@@ -325,12 +325,12 @@ def mock_cancel_orders_response(mock_post: MagicMock) -> MagicMock:
             "cancelled_orders": [
                 {
                     "product_id": 1,
-                    "sender": 1,
-                    "price_x18": 2.8898e22,
-                    "amount": -10000000000000000,
-                    "expiration": 4611687701117784000,
-                    "nonce": 1,
-                    "unfilled_amount": -10000000000000000,
+                    "sender": "1",
+                    "price_x18": "28898000000000000000000",
+                    "amount": "-10000000000000000",
+                    "expiration": "4611687701117784000",
+                    "nonce": "1",
+                    "unfilled_amount": "-10000000000000000",
                     "digest": "0x8efa3736d834718f755b57cee9ba75db315f66c66844150bd15efd641e62e9e6",
                     "placed_at": "1686629287",
                 }

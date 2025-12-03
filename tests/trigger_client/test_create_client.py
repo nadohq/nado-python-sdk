@@ -26,7 +26,9 @@ def test_create_client_url_validation():
 def test_create_client_signer_validation(url: str, private_keys: list[str]):
     opts_signer_from_private_key = TriggerClientOpts(url=url, signer=private_keys[0])
     assert isinstance(opts_signer_from_private_key.signer, LocalAccount)
-    assert opts_signer_from_private_key.signer.key.hex() == private_keys[0]
+    assert opts_signer_from_private_key.signer.key.hex() == private_keys[0].replace(
+        "0x", ""
+    )
     assert opts_signer_from_private_key.linked_signer is None
 
     with pytest.raises(
@@ -40,20 +42,25 @@ def test_create_client_signer_validation(url: str, private_keys: list[str]):
     )
     assert isinstance(opts_linked_signer_from_private_key.linked_signer, LocalAccount)
     assert (
-        opts_linked_signer_from_private_key.linked_signer.key.hex() == private_keys[1]
+        opts_linked_signer_from_private_key.linked_signer.key.hex()
+        == private_keys[1].replace("0x", "")
     )
     assert opts_linked_signer_from_private_key.signer is not None
 
     opts_signer_from_account = TriggerClientOpts(url=url, signer=signer)
     assert isinstance(opts_signer_from_account.signer, LocalAccount)
-    assert opts_signer_from_account.signer.key.hex() == private_keys[0]
+    assert opts_signer_from_account.signer.key.hex() == private_keys[0].replace(
+        "0x", ""
+    )
 
     linked_signer = Account.from_key(private_keys[1])
     opts_linked_signer_from_account = TriggerClientOpts(
         url=url, signer=signer, linked_signer=linked_signer
     )
     assert isinstance(opts_linked_signer_from_account.linked_signer, LocalAccount)
-    assert opts_linked_signer_from_account.linked_signer.key.hex() == private_keys[1]
+    assert opts_linked_signer_from_account.linked_signer.key.hex() == private_keys[
+        1
+    ].replace("0x", "")
 
 
 def test_create_client_all_opts(

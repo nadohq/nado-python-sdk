@@ -271,6 +271,7 @@ def test_place_order_execute_success(
     }
     mock_post.return_value = mock_response
 
+    place_order_params.signature = None
     res = engine_client.place_order(place_order_params)
     place_order_req = PlaceOrderRequest(**res.req)
 

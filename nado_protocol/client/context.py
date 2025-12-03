@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Union
 from eth_account import Account
 
 from pydantic import AnyUrl, BaseModel
@@ -29,11 +29,11 @@ class NadoClientContext:
 
 
 class NadoClientContextOpts(BaseModel):
-    contracts_context: Optional[NadoContractsContext]
-    rpc_node_url: Optional[AnyUrl]
-    engine_endpoint_url: Optional[AnyUrl]
-    indexer_endpoint_url: Optional[AnyUrl]
-    trigger_endpoint_url: Optional[AnyUrl]
+    contracts_context: Optional[NadoContractsContext] = None
+    rpc_node_url: Optional[Union[AnyUrl, str]] = None
+    engine_endpoint_url: Optional[Union[AnyUrl, str]] = None
+    indexer_endpoint_url: Optional[Union[AnyUrl, str]] = None
+    trigger_endpoint_url: Optional[Union[AnyUrl, str]] = None
 
 
 def create_nado_client_context(
@@ -61,7 +61,7 @@ def create_nado_client_context(
 
     signer = Account.from_key(signer) if isinstance(signer, str) else signer
     engine_client = EngineClient(
-        EngineClientOpts(url=opts.engine_endpoint_url, signer=signer)
+        EngineClientOpts(url=str(opts.engine_endpoint_url), signer=signer)
     )
     trigger_client = None
     try:
@@ -71,7 +71,7 @@ def create_nado_client_context(
 
         if opts.trigger_endpoint_url is not None:
             trigger_client = TriggerClient(
-                TriggerClientOpts(url=opts.trigger_endpoint_url, signer=signer)
+                TriggerClientOpts(url=str(opts.trigger_endpoint_url), signer=signer)
             )
             trigger_client.endpoint_addr = contracts.endpoint_addr
             trigger_client.chain_id = int(contracts.chain_id)
@@ -83,6 +83,6 @@ def create_nado_client_context(
         signer=signer,
         engine_client=engine_client,
         trigger_client=trigger_client,
-        indexer_client=IndexerClient(IndexerClientOpts(url=opts.indexer_endpoint_url)),
-        contracts=NadoContracts(opts.rpc_node_url, opts.contracts_context),
+        indexer_client=IndexerClient(IndexerClientOpts(url=str(opts.indexer_endpoint_url))),
+        contracts=NadoContracts(str(opts.rpc_node_url), opts.contracts_context),
     )

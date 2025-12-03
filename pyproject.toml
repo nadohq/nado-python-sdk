@@ -13,9 +13,9 @@ keywords = ["nado protocol", "nado sdk", "nado protocol api"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-pydantic = "^1.10.7"
-web3 = "^6.4.0"
-eth-account = "^0.8.0"
+pydantic = "^2.12.5"
+web3 = "^7.14.0"
+eth-account = "^0.13.7"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "*"

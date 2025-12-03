@@ -40,15 +40,15 @@ class NadoContractsContext(BaseModel):
         foundation_rewards_airdrop_addr (Optional[str]): The Foundation Rewards airdrop address of the corresponding chain (e.g: Ink airdrop for Ink). This may be None.
     """
 
-    network: Optional[NadoNetwork]
+    network: Optional[NadoNetwork] = None
     endpoint_addr: str
     querier_addr: str
-    spot_engine_addr: Optional[str]
-    perp_engine_addr: Optional[str]
-    clearinghouse_addr: Optional[str]
-    airdrop_addr: Optional[str]
-    staking_addr: Optional[str]
-    foundation_rewards_airdrop_addr: Optional[str]
+    spot_engine_addr: Optional[str] = None
+    perp_engine_addr: Optional[str] = None
+    clearinghouse_addr: Optional[str] = None
+    airdrop_addr: Optional[str] = None
+    staking_addr: Optional[str] = None
+    foundation_rewards_airdrop_addr: Optional[str] = None
 
 
 class NadoContracts:

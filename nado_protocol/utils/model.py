@@ -9,7 +9,7 @@ class NadoBaseModel(BaseModel):
     values by default when serializing via .dict() or .json()
     """
 
-    def dict(self, **kwargs):
+    def model_dump(self, **kwargs):
         """
         Convert model to dictionary, excluding None fields by default.
 
@@ -20,9 +20,9 @@ class NadoBaseModel(BaseModel):
             dict: The model as a dictionary.
         """
         kwargs.setdefault("exclude_none", True)
-        return super().dict(**kwargs)
+        return super().model_dump(**kwargs)
 
-    def json(self, **kwargs):
+    def model_dump_json(self, **kwargs):
         """
         Convert model to JSON, excluding None fields by default.
 
@@ -33,7 +33,21 @@ class NadoBaseModel(BaseModel):
             str: The model as a JSON string.
         """
         kwargs.setdefault("exclude_none", True)
-        return super().json(**kwargs)
+        return super().model_dump_json(**kwargs)
+
+    def dict(self, **kwargs):
+        """
+        Convert model to dictionary, excluding None fields by default.
+        Deprecated: use model_dump instead.
+        """
+        return self.model_dump(**kwargs)
+
+    def json(self, **kwargs):
+        """
+        Convert model to JSON, excluding None fields by default.
+        Deprecated: use model_dump_json instead.
+        """
+        return self.model_dump_json(**kwargs)
 
     def serialize_dict(self, fields: list[str], func: Callable):
         """
