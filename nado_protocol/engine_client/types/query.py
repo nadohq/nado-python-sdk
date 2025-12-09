@@ -101,8 +101,21 @@ class QuerySubaccountInfoParams(NadoBaseModel):
 
     type = EngineQueryType.SUBACCOUNT_INFO.value
     subaccount: str
-    txs: Optional[list[QuerySubaccountInfoTx]]
+    txns: Optional[str]
     pre_state: Optional[str]
+
+    @validator("txns", pre=True)
+    def txns_to_json_str(
+        cls, v: Optional[list[QuerySubaccountInfoTx]]
+    ) -> Optional[str]:
+        if v is None:
+            return v
+        if isinstance(v, str):
+            return v
+        # Convert list of transactions to JSON string
+        import json
+
+        return json.dumps([tx.dict() for tx in v])
 
     @validator("pre_state")
     def pre_state_to_str(cls, v: Optional[bool]) -> Optional[str]:

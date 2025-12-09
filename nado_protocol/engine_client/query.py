@@ -209,7 +209,7 @@ class EngineQueryClient:
         return ensure_data_type(
             self.query(
                 QuerySubaccountInfoParams(
-                    subaccount=subaccount, txs=txs, pre_state=pre_state_str
+                    subaccount=subaccount, txns=txs, pre_state=pre_state_str
                 )
             ).data,
             SubaccountInfoData,

@@ -18,9 +18,8 @@ from nado_protocol.engine_client.types.execute import (
 )
 from nado_protocol.engine_client.types.query import (
     QueryMaxOrderSizeParams,
-    QuerySubaccountInfoTx,
 )
-from nado_protocol.engine_client.types.models import ApplyDelta
+from nado_protocol.engine_client.types.models import ApplyDelta, ApplyDeltaTx
 from nado_protocol.utils.bytes32 import (
     bytes32_to_hex,
     str_to_hex,
@@ -81,7 +80,7 @@ def run():
     pprint(spots_apr)
 
     print("querying orderbook for BTC-PERP pair...")
-    btc_perp_book = client.get_orderbook("BTC-PERP_USDT", 10)
+    btc_perp_book = client.get_orderbook("BTC-PERP_USDT0", 10)
     pprint(btc_perp_book)
 
     order_price = 100_000
@@ -136,24 +135,26 @@ def run():
 
     print("querying subaccount info with simulated transaction and pre_state...")
     # Simulate applying a delta to a perp product
-    simulated_tx = ApplyDelta(
-        apply_delta={
-            "product_id": 2,
-            "subaccount": sender,
-            "amount_delta": "100000000000000000",
-            "v_quote_delta": "3033500000000000000000"
-        }
+    simulated_tx = ApplyDeltaTx(
+        apply_delta=ApplyDelta(
+            product_id=2,
+            subaccount=sender,
+            amount_delta="100000000000000000",
+            v_quote_delta="3033500000000000000000",
+        )
     )
     subaccount_info_with_pre_state = client.get_subaccount_info(
-        sender,
-        txs=[simulated_tx],
-        pre_state=True
+        sender, txs=[simulated_tx], pre_state=True
     )
-    print("subaccount info with pre_state:", subaccount_info_with_pre_state.json(indent=2))
+    print(
+        "subaccount info with simulation:",
+        subaccount_info_with_pre_state.json(indent=2),
+    )
     if subaccount_info_with_pre_state.pre_state:
-        print("pre_state exists:", subaccount_info_with_pre_state.pre_state.json(indent=2))
+        print("✓ pre_state returned successfully")
+        print("pre_state healths:", subaccount_info_with_pre_state.pre_state.healths)
     else:
-        print("Warning: pre_state was not returned")
+        print("✗ Warning: pre_state was not returned")
 
     print("querying subaccount open orders...")
     subaccount_open_orders = client.get_subaccount_open_orders(product_id, sender)
