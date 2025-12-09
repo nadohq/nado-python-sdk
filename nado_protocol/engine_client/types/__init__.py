@@ -60,6 +60,7 @@ __all__ = [
     "ContractsData",
     "NoncesData",
     "OrderData",
+    "PreState",
     "SubaccountInfoData",
     "SubaccountOpenOrdersData",
     "MarketLiquidityData",
