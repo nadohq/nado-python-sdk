@@ -1,3 +1,4 @@
+import json
 from nado_protocol.utils.enum import StrEnum
 from typing import Optional, Union
 from pydantic import validator
@@ -113,8 +114,6 @@ class QuerySubaccountInfoParams(NadoBaseModel):
         if isinstance(v, str):
             return v
         # Convert list of transactions to JSON string
-        import json
-
         return json.dumps([tx.dict() for tx in v])
 
     @validator("pre_state")
