@@ -1,3 +1,4 @@
+import json
 from typing import Optional
 import requests
 
@@ -202,6 +203,10 @@ class EngineQueryClient:
         Returns:
             SubaccountInfoData: Information about the specified subaccount.
         """
+        txns_str = None
+        if txs is not None:
+            txns_str = json.dumps([tx.dict() for tx in txs])
+
         pre_state_str = None
         if pre_state is not None:
             pre_state_str = str(pre_state).lower()
@@ -209,7 +214,7 @@ class EngineQueryClient:
         return ensure_data_type(
             self.query(
                 QuerySubaccountInfoParams(
-                    subaccount=subaccount, txns=txs, pre_state=pre_state_str
+                    subaccount=subaccount, txns=txns_str, pre_state=pre_state_str
                 )
             ).data,
             SubaccountInfoData,
