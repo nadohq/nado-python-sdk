@@ -78,6 +78,8 @@ class CrossPositionMetrics(BaseModel):
     symbol: str
     position_size: Decimal
     notional_value: Decimal
+    avg_entry_price: Optional[Decimal]  # Average entry price (requires indexer data)
+    est_liq_price: Optional[Decimal]  # Estimated liquidation price
     est_pnl: Optional[Decimal]  # Estimated PnL (requires indexer data)
     unsettled: Decimal  # Unsettled quote (v_quote_balance)
     margin_used: Decimal
@@ -520,9 +522,9 @@ class MarginManager:
         # This represents the unrealized PnL
         unsettled = self.calculate_perp_balance_value(balance)
 
-        # Calculate Est. PnL if indexer data is available
-        # Formula: (amount × oracle_price) - netEntryUnrealized
-        # where netEntryUnrealized excludes funding, fees, slippage
+        # Calculate metrics (requires indexer data for avg_entry_price and est_pnl)
+        avg_entry_price = self._calculate_avg_entry_price(balance)
+        est_liq_price = self._calculate_est_liq_price(balance)
         est_pnl = self._calculate_est_pnl(balance)
 
         return CrossPositionMetrics(
@@ -530,6 +532,8 @@ class MarginManager:
             symbol=f"Product_{balance.product_id}",
             position_size=balance.amount,
             notional_value=notional,
+            avg_entry_price=avg_entry_price,
+            est_liq_price=est_liq_price,
             est_pnl=est_pnl,
             unsettled=unsettled,
             margin_used=margin_used,
@@ -541,6 +545,24 @@ class MarginManager:
             short_weight_maintenance=balance.short_weight_maintenance,
         )
 
+    def _get_indexer_event_for_product(self, product_id: int) -> Optional[IndexerEvent]:
+        """
+        Get indexer event for a specific product (cross margin only).
+
+        Returns None if indexer data is not available or product not found.
+        """
+        if not self.indexer_events or product_id == self.QUOTE_PRODUCT_ID:
+            return None
+
+        for event in self.indexer_events:
+            if event.product_id != product_id:
+                continue
+            if event.isolated:
+                continue
+            return event
+
+        return None
+
     def _calculate_est_pnl(self, balance: BalanceWithProduct) -> Optional[Decimal]:
         """
         Calculate estimated PnL if indexer snapshot is available.
@@ -549,26 +571,90 @@ class MarginManager:
 
         Returns None if indexer data is not available.
         """
-        if not self.indexer_events or balance.product_id == self.QUOTE_PRODUCT_ID:
+        event = self._get_indexer_event_for_product(balance.product_id)
+        if event is None:
             return None
 
-        for event in self.indexer_events:
-            if event.product_id != balance.product_id:
-                continue
-            if event.isolated:
-                continue
+        try:
+            net_entry_int = int(event.net_entry_unrealized)
+        except (TypeError, ValueError):
+            return None
 
-            try:
-                net_entry_int = int(event.net_entry_unrealized)
-            except (TypeError, ValueError):
-                continue
+        net_entry_unrealized = Decimal(net_entry_int) / Decimal(10**18)
+        current_value = balance.amount * balance.oracle_price
+        return current_value - net_entry_unrealized
 
-            net_entry_unrealized = Decimal(net_entry_int) / Decimal(10**18)
+    def _calculate_avg_entry_price(
+        self, balance: BalanceWithProduct
+    ) -> Optional[Decimal]:
+        """
+        Calculate average entry price if indexer snapshot is available.
 
-            current_value = balance.amount * balance.oracle_price
-            return current_value - net_entry_unrealized
+        Formula: abs(netEntryUnrealized / position_amount)
 
-        return None
+        Returns None if indexer data is not available or position is zero.
+        """
+        if balance.amount == 0:
+            return None
+
+        event = self._get_indexer_event_for_product(balance.product_id)
+        if event is None:
+            return None
+
+        try:
+            net_entry_int = int(event.net_entry_unrealized)
+        except (TypeError, ValueError):
+            return None
+
+        net_entry_unrealized = Decimal(net_entry_int) / Decimal(10**18)
+        return abs(net_entry_unrealized / balance.amount)
+
+    def _calculate_est_liq_price(
+        self, balance: BalanceWithProduct
+    ) -> Optional[Decimal]:
+        """
+        Calculate estimated liquidation price.
+
+        Formula:
+        - If long: oracle_price - (maint_health / amount / long_weight)
+        - If short: oracle_price + (maint_health / abs(amount) * short_weight)
+
+        Returns None if:
+        - Position is zero
+        - Long liq price <= 0 (prevents -infinity)
+        - Short liq price >= 10x oracle price (prevents +infinity)
+        """
+        if balance.amount == 0:
+            return None
+
+        # Get maintenance health from subaccount info
+        maint_health = self._parse_health(self.subaccount_info.healths[1])
+
+        is_long = balance.amount > 0
+
+        if is_long:
+            # Long: oracle_price - (maint_health / amount / long_weight)
+            if balance.long_weight_maintenance == 0:
+                return None
+
+            liq_price = balance.oracle_price - (
+                maint_health / balance.amount / balance.long_weight_maintenance
+            )
+
+            # If liquidation price is 0 or less, return None (prevents -infinity)
+            if liq_price <= 0:
+                return None
+        else:
+            # Short: oracle_price + (maint_health / abs(amount) * short_weight)
+            liq_price = balance.oracle_price + (
+                maint_health / abs(balance.amount) * balance.short_weight_maintenance
+            )
+
+            # If liquidation price is 10x oracle price, return None (prevents +infinity)
+            if liq_price >= balance.oracle_price * 10:
+                return None
+
+        return liq_price
 
     def calculate_isolated_position_metrics(
         self, iso_pos: IsolatedPosition
@@ -782,6 +868,16 @@ def print_account_summary(summary: AccountSummary) -> None:
             print(f"│  {cross_pos.symbol} ({position_type} / Cross)")
             print(f"│    Position:             {cross_pos.position_size:,.3f}")
             print(f"│    Notional:             ${cross_pos.notional_value:,.2f}")
+
+            if cross_pos.avg_entry_price is not None:
+                print(f"│    Avg Entry Price:      ${cross_pos.avg_entry_price:,.2f}")
+            else:
+                print(f"│    Avg Entry Price:      N/A")
+
+            if cross_pos.est_liq_price is not None:
+                print(f"│    Est. Liq Price:       ${cross_pos.est_liq_price:,.2f}")
+            else:
+                print(f"│    Est. Liq Price:       N/A")
 
             if cross_pos.est_pnl is not None:
                 pnl_sign = "+" if cross_pos.est_pnl >= 0 else ""
