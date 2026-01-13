@@ -18,14 +18,13 @@ class IndexerEventType(StrEnum):
     WITHDRAW_COLLATERAL = "withdraw_collateral"
     SETTLE_PNL = "settle_pnl"
     MATCH_ORDERS = "match_orders"
-    MATCH_ORDER_A_M_M = "match_order_a_m_m"
-    SWAP_AMM = "swap_a_m_m"
     MINT_NLP = "mint_nlp"
     BURN_NLP = "burn_nlp"
     MANUAL_ASSERT = "manual_assert"
     LINK_SIGNER = "link_signer"
     TRANSFER_QUOTE = "transfer_quote"
     CREATE_ISOLATED_SUBACCOUNT = "create_isolated_subaccount"
+    CLOSE_ISOLATED_SUBACCOUNT = "close_isolated_subaccount"
 
 
 class IndexerCandlesticksGranularity(IntEnum):
