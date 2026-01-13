@@ -77,6 +77,7 @@ class EngineQueryClient:
         self.url: str = self._opts.url
         self.url_v2: str = self.url.replace("/v1", "") + "/v2"
         self.session = requests.Session()  # type: ignore
+        self.session.headers.update({"Accept-Encoding": "gzip"})
 
     def query(self, req: QueryRequest) -> QueryResponse:
         """

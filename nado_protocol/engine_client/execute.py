@@ -60,6 +60,7 @@ class EngineExecuteClient(NadoBaseExecute):
         self._opts: EngineClientOpts = EngineClientOpts.parse_obj(opts)
         self.url: str = self._opts.url
         self.session = requests.Session()
+        self.session.headers.update({"Accept-Encoding": "gzip"})
 
     def tx_nonce(self, sender: str) -> int:
         """

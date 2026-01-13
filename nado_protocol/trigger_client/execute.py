@@ -44,6 +44,7 @@ class TriggerExecuteClient(NadoBaseExecute):
         self._opts: TriggerClientOpts = TriggerClientOpts.parse_obj(opts)
         self.url: str = self._opts.url
         self.session = requests.Session()
+        self.session.headers.update({"Accept-Encoding": "gzip"})
 
     def tx_nonce(self, _: str) -> int:
         raise NotImplementedError
