@@ -7,14 +7,21 @@ from web3.contract import Contract
 from web3.contract.contract import ContractFunction
 from eth_account.signers.local import LocalAccount
 from nado_protocol.contracts.loader import load_abi
-from nado_protocol.contracts.types import DepositCollateralParams, NadoAbiName
+from nado_protocol.contracts.types import (
+    BuilderInfo,
+    ClaimBuilderFeeParams,
+    DepositCollateralParams,
+    NadoAbiName,
+)
 from nado_protocol.utils.bytes32 import (
     hex_to_bytes32,
     str_to_hex,
     subaccount_name_to_bytes12,
+    subaccount_to_bytes32,
     zero_address,
 )
 from nado_protocol.utils.exceptions import InvalidProductId
+from nado_protocol.utils.slow_mode import encode_claim_builder_fee_tx
 from nado_protocol.contracts.types import *
 
 
@@ -33,6 +40,8 @@ class NadoContractsContext(BaseModel):
 
         clearinghouse_addr (Optional[str]): The clearinghouse address. This may be None.
 
+        offchain_exchange_addr (Optional[str]): The offchain exchange address. This may be None.
+
         airdrop_addr (Optional[str]): The airdrop address. This may be None.
 
         staking_addr (Optional[str]): The staking address. This may be None.
@@ -46,6 +55,7 @@ class NadoContractsContext(BaseModel):
     spot_engine_addr: Optional[str]
     perp_engine_addr: Optional[str]
     clearinghouse_addr: Optional[str]
+    offchain_exchange_addr: Optional[str]
     airdrop_addr: Optional[str]
     staking_addr: Optional[str]
     foundation_rewards_airdrop_addr: Optional[str]
@@ -62,6 +72,7 @@ class NadoContracts:
     querier: Contract
     endpoint: Contract
     clearinghouse: Optional[Contract]
+    offchain_exchange: Optional[Contract]
     spot_engine: Optional[Contract]
     perp_engine: Optional[Contract]
     airdrop: Optional[Contract]
@@ -92,6 +103,7 @@ class NadoContracts:
             abi=load_abi(NadoAbiName.ENDPOINT),  # type: ignore
         )
         self.clearinghouse = None
+        self.offchain_exchange = None
         self.spot_engine = None
         self.perp_engine = None
 
@@ -111,6 +123,12 @@ class NadoContracts:
             self.perp_engine: Contract = self.w3.eth.contract(
                 address=self.contracts_context.perp_engine_addr,
                 abi=load_abi(NadoAbiName.IPERP_ENGINE),  # type: ignore
+            )
+
+        if self.contracts_context.offchain_exchange_addr:
+            self.offchain_exchange: Contract = self.w3.eth.contract(
+                address=self.contracts_context.offchain_exchange_addr,
+                abi=load_abi(NadoAbiName.IOFFCHAIN_EXCHANGE),  # type: ignore
             )
 
         if self.contracts_context.staking_addr:
@@ -294,6 +312,58 @@ class NadoContracts:
             self.foundation_rewards_airdrop.functions.claim(proofs), signer
         )
 
+    def claim_builder_fee(
+        self,
+        params: ClaimBuilderFeeParams,
+        signer: LocalAccount,
+    ) -> str:
+        """
+        Claims accumulated builder fees via slow mode transaction.
+
+        This submits a ClaimBuilderFee slow mode transaction to the Endpoint contract.
+        The fees will be credited to the specified subaccount.
+
+        Args:
+            params (ClaimBuilderFeeParams): The parameters for claiming builder fees.
+            signer (LocalAccount): The account that will sign the transaction.
+
+        Returns:
+            str: The transaction hash of the claim operation.
+        """
+        params = ClaimBuilderFeeParams.parse_obj(params)
+        sender_bytes = subaccount_to_bytes32(
+            params.subaccount_owner, params.subaccount_name
+        )
+        tx_bytes = encode_claim_builder_fee_tx(sender_bytes, params.builder_id)
+        return self.execute(
+            self.endpoint.functions.submitSlowModeTransaction(tx_bytes),
+            signer,
+        )
+
+    def get_builder_info(self, builder_id: int) -> BuilderInfo:
+        """
+        Gets builder information from the OffchainExchange contract.
+
+        Args:
+            builder_id (int): The builder ID to query.
+
+        Returns:
+            BuilderInfo: The builder information including owner, fee tier, and fee rates.
+
+        Raises:
+            Exception: If the OffchainExchange contract is not initialized.
+        """
+        if self.offchain_exchange is None:
+            raise Exception("OffchainExchange contract not initialized")
+
+        result = self.offchain_exchange.functions.getBuilder(builder_id).call()
+        return BuilderInfo(
+            owner=result[0],
+            default_fee_tier=result[1],
+            lowest_fee_rate=result[2],
+            highest_fee_rate=result[3],
+        )
+
     def _mint_mock_erc20(
         self, erc20: Contract, amount: int, signer: LocalAccount
     ) -> str:
@@ -377,6 +447,8 @@ class NadoContracts:
 __all__ = [
     "NadoContractsContext",
     "NadoContracts",
+    "BuilderInfo",
+    "ClaimBuilderFeeParams",
     "DepositCollateralParams",
     "NadoExecuteType",
     "NadoNetwork",

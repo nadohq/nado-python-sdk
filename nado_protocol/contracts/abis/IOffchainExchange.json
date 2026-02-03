@@ -1,0 +1,43 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "uint32",
+        "name": "builderId",
+        "type": "uint32"
+      }
+    ],
+    "name": "getBuilder",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "owner",
+            "type": "address"
+          },
+          {
+            "internalType": "uint32",
+            "name": "defaultFeeTier",
+            "type": "uint32"
+          },
+          {
+            "internalType": "int128",
+            "name": "lowestFeeRate",
+            "type": "int128"
+          },
+          {
+            "internalType": "int128",
+            "name": "highestFeeRate",
+            "type": "int128"
+          }
+        ],
+        "internalType": "struct IOffchainExchange.Builder",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]

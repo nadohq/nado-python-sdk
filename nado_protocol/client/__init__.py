@@ -133,6 +133,7 @@ def create_nado_client(
             perp_engine_addr=deployment.perp_engine_addr,
             spot_engine_addr=deployment.spot_engine_addr,
             clearinghouse_addr=deployment.clearinghouse_addr,
+            offchain_exchange_addr=deployment.offchain_exchange_addr,
             airdrop_addr=deployment.airdrop_addr,
             staking_addr=deployment.staking_addr,
             foundation_rewards_airdrop_addr=deployment.foundation_rewards_airdrop_addr,

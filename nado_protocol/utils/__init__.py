@@ -6,6 +6,7 @@ from nado_protocol.utils.math import *
 from nado_protocol.utils.nonce import *
 from nado_protocol.utils.exceptions import *
 from nado_protocol.utils.order import *
+from nado_protocol.utils.slow_mode import *
 
 __all__ = [
     "NadoBackendURL",
@@ -53,4 +54,11 @@ __all__ = [
     "order_trigger_type",
     "order_twap_data",
     "order_execution_type",
+    # Builder utilities
+    "order_builder_id",
+    "order_builder_fee_rate",
+    "order_builder_info",
+    # Slow mode utilities
+    "SlowModeTxType",
+    "encode_claim_builder_fee_tx",
 ]

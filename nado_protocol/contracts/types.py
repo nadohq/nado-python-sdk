@@ -30,6 +30,7 @@ class NadoAbiName(StrEnum):
     FQUERIER = "FQuerier"
     ICLEARINGHOUSE = "IClearinghouse"
     IENDPOINT = "IEndpoint"
+    IOFFCHAIN_EXCHANGE = "IOffchainExchange"
     IPERP_ENGINE = "IPerpEngine"
     ISPOT_ENGINE = "ISpotEngine"
     MOCK_ERC20 = "MockERC20"
@@ -74,6 +75,7 @@ class NadoDeployment(NadoBaseModel):
     airdrop_addr: str = Field(alias="airdrop")
     staking_addr: str = Field(alias="staking")
     foundation_rewards_airdrop_addr: str = Field(alias="foundationRewardsAirdrop")
+    offchain_exchange_addr: str = Field(alias="offchainExchange")
 
 
 class DepositCollateralParams(NadoBaseModel):
@@ -117,6 +119,38 @@ class ClaimFoundationRewardsProofStruct(NadoBaseModel):
 
 class ClaimFoundationRewardsContractParams(NadoBaseModel):
     claim_proofs: list[ClaimFoundationRewardsProofStruct]
+
+
+class ClaimBuilderFeeParams(NadoBaseModel):
+    """
+    Parameters for claiming builder fees via slow mode transaction.
+
+    Attributes:
+        subaccount_owner (str): The address of the subaccount owner.
+        subaccount_name (str): The name of the subaccount (default: "default").
+        builder_id (int): The builder ID to claim fees for.
+    """
+
+    subaccount_owner: str
+    subaccount_name: str = "default"
+    builder_id: int
+
+
+class BuilderInfo(NadoBaseModel):
+    """
+    Builder information from the OffchainExchange contract.
+
+    Attributes:
+        owner (str): The address that can claim builder fees.
+        default_fee_tier (int): The default fee tier for the builder.
+        lowest_fee_rate (int): The lowest fee rate (x18).
+        highest_fee_rate (int): The highest fee rate (x18).
+    """
+
+    owner: str
+    default_fee_tier: int
+    lowest_fee_rate: int
+    highest_fee_rate: int
 
 
 class NadoExecuteType(StrEnum):
