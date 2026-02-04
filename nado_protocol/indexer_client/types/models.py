@@ -25,6 +25,7 @@ class IndexerEventType(StrEnum):
     TRANSFER_QUOTE = "transfer_quote"
     CREATE_ISOLATED_SUBACCOUNT = "create_isolated_subaccount"
     CLOSE_ISOLATED_SUBACCOUNT = "close_isolated_subaccount"
+    CLAIM_BUILDER_FEE = "claim_builder_fee"
 
 
 class IndexerCandlesticksGranularity(IntEnum):
@@ -57,6 +58,7 @@ class IndexerOrderFill(IndexerBaseModel):
     base_filled: str
     quote_filled: str
     fee: str
+    builder_fee: str
 
 
 class IndexerHistoricalOrder(IndexerOrderFill):
@@ -66,6 +68,7 @@ class IndexerHistoricalOrder(IndexerOrderFill):
     price_x18: str
     expiration: str
     nonce: str
+    appendix: str
     isolated: bool
 
 
@@ -76,6 +79,7 @@ class IndexerSignedOrder(NadoBaseModel):
 
 class IndexerMatch(IndexerOrderFill):
     order: IndexerBaseOrder
+    sequencer_fee: str
     cumulative_fee: str
     cumulative_base_filled: str
     cumulative_quote_filled: str

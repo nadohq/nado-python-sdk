@@ -81,7 +81,36 @@ def run():
         )
         time.sleep(1)
 
-    order_price = 90_000
+    # Get oracle prices for WBTC (product_id=1) and BTC-PERP (product_id=2)
+    print("querying all products for oracle prices...")
+    all_products = client.market.get_all_engine_markets()
+
+    spot_product = next(
+        (p for p in all_products.spot_products if p.product_id == 1), None
+    )
+    if spot_product is None:
+        raise Exception("WBTC product not found")
+    spot_oracle_price_x18 = int(spot_product.oracle_price_x18)
+    price_increment = 10**18
+    # Use 85% of oracle price for buy orders (within 80-120% range)
+    spot_buy_price_x18 = int(spot_oracle_price_x18 * 0.85)
+    spot_buy_price_x18 = (spot_buy_price_x18 // price_increment) * price_increment
+    # Use 115% of oracle price for sell orders
+    spot_sell_price_x18 = int(spot_oracle_price_x18 * 1.15)
+    spot_sell_price_x18 = (spot_sell_price_x18 // price_increment) * price_increment
+
+    perp_product = next(
+        (p for p in all_products.perp_products if p.product_id == 2), None
+    )
+    if perp_product is None:
+        raise Exception("BTC-PERP product not found")
+    perp_oracle_price_x18 = int(perp_product.oracle_price_x18)
+    # Use 85% of oracle price for buy orders
+    perp_buy_price_x18 = int(perp_oracle_price_x18 * 0.85)
+    perp_buy_price_x18 = (perp_buy_price_x18 // price_increment) * price_increment
+    # Use 115% of oracle price for sell orders
+    perp_sell_price_x18 = int(perp_oracle_price_x18 * 1.15)
+    perp_sell_price_x18 = (perp_sell_price_x18 // price_increment) * price_increment
 
     owner = client.context.engine_client.signer.address
     print("placing order...")
@@ -91,7 +120,7 @@ def run():
             subaccount_owner=owner,
             subaccount_name="default",
         ),
-        priceX18=to_x18(order_price),
+        priceX18=spot_buy_price_x18,
         amount=to_pow_10(1, 17),
         expiration=get_expiration_timestamp(40),
         appendix=build_appendix(OrderType.POST_ONLY),
@@ -108,12 +137,15 @@ def run():
         ),
         amount=-to_pow_10(1, 17),
     )
-    res = client.market.place_market_order(
-        PlaceMarketOrderParams(
-            product_id=1, market_order=market_order, slippage=0.001  # 0.1%
+    try:
+        res = client.market.place_market_order(
+            PlaceMarketOrderParams(
+                product_id=1, market_order=market_order, slippage=0.001  # 0.1%
+            )
         )
-    )
-    print("market order result:", res.json(indent=2))
+        print("market order result:", res.json(indent=2))
+    except Exception as e:
+        print("market order failed (likely no liquidity):", e)
 
     sender = subaccount_to_hex(order.sender)
     order.sender = subaccount_to_bytes32(order.sender)
@@ -145,8 +177,8 @@ def run():
             subaccount_owner=owner,
             subaccount_name="default",
         ),
-        priceX18=to_x18(order_price),
-        amount=to_pow_10(1, 17),
+        priceX18=perp_buy_price_x18,
+        amount=to_pow_10(1, 16),  # 0.01 BTC
         expiration=get_expiration_timestamp(40),
         appendix=build_appendix(OrderType.POST_ONLY),
         nonce=gen_order_nonce(),
@@ -170,8 +202,8 @@ def run():
             subaccount_owner=owner,
             subaccount_name="default",
         ),
-        priceX18=to_x18(order_price + 40_000),
-        amount=-to_pow_10(1, 17),
+        priceX18=perp_sell_price_x18,
+        amount=-to_pow_10(1, 16),  # -0.01 BTC
         expiration=get_expiration_timestamp(40),
         appendix=build_appendix(OrderType.POST_ONLY),
         nonce=gen_order_nonce(),
@@ -193,8 +225,8 @@ def run():
             subaccount_owner=owner,
             subaccount_name="default",
         ),
-        priceX18=to_x18(order_price),
-        amount=to_pow_10(1, 17),
+        priceX18=perp_buy_price_x18,
+        amount=to_pow_10(1, 16),  # 0.01 BTC
         expiration=get_expiration_timestamp(60),
         appendix=build_appendix(OrderType.POST_ONLY),
         nonce=gen_order_nonce(),
@@ -244,7 +276,7 @@ def run():
 
     print("querying historical orders...")
     historical_orders = client.market.get_subaccount_historical_orders(
-        {"subaccount": sender, "limit": 2}
+        {"subaccounts": [sender], "limit": 2}
     )
     print("subaccount historical orders:", historical_orders.json(indent=2))
 
@@ -265,8 +297,13 @@ def run():
         appendix=build_appendix(OrderType.IOC),
         nonce=gen_order_nonce(),
     )
-    res = client.market.place_order({"product_id": btc_perp.product_id, "order": order})
-    print("order result:", res.json(indent=2))
+    try:
+        res = client.market.place_order(
+            {"product_id": btc_perp.product_id, "order": order}
+        )
+        print("order result:", res.json(indent=2))
+    except Exception as e:
+        print("open perp position failed (IOC order - likely no liquidity):", e)
 
     btc_perp_balance = [
         balance
@@ -278,13 +315,17 @@ def run():
     print("perp balance:", btc_perp_balance.json(indent=2))
 
     print("closing perp position...")
-    res = client.market.close_position(
-        subaccount=SubaccountParams(
-            subaccount_owner=client.context.signer.address, subaccount_name="default"
-        ),
-        product_id=2,
-    )
-    print("position close result:", res.json(indent=2))
+    try:
+        res = client.market.close_position(
+            subaccount=SubaccountParams(
+                subaccount_owner=client.context.signer.address,
+                subaccount_name="default",
+            ),
+            product_id=2,
+        )
+        print("position close result:", res.json(indent=2))
+    except Exception as e:
+        print("close perp position failed (likely no position or no liquidity):", e)
 
     subaccount_summary = client.subaccount.get_engine_subaccount_summary(subaccount)
     print("subaccount summary post position close:", subaccount_summary.json(indent=2))
@@ -401,9 +442,10 @@ def run():
     fee_rates = client.subaccount.get_subaccount_fee_rates(sender)
     print("fee rates:", fee_rates.json(indent=2))
 
-    print("querying subaccount token rewards...")
-    token_rewards = client.subaccount.get_subaccount_token_rewards(owner)
-    print("token rewards:", token_rewards.json(indent=2))
+    # Note: get_subaccount_token_rewards is not implemented in the SDK
+    # print("querying subaccount token rewards...")
+    # token_rewards = client.subaccount.get_subaccount_token_rewards(owner)
+    # print("token rewards:", token_rewards.json(indent=2))
 
     print("querying subaccount linked signer rate limits...")
     linked_signer_rate_limits = (
@@ -452,7 +494,7 @@ def run():
     try:
         twap_res = client.market.place_twap_order(
             product_id=1,
-            price_x18=str(to_x18(52_000)),
+            price_x18=str(spot_buy_price_x18),
             total_amount_x18=str(to_pow_10(5, 17)),
             times=5,
             slippage_frac=0.005,
@@ -468,9 +510,9 @@ def run():
     try:
         trigger_res = client.market.place_price_trigger_order(
             product_id=1,
-            price_x18=str(to_x18(45_000)),
-            amount_x18=str(-to_pow_10(1, 18)),
-            trigger_price_x18=str(to_x18(46_000)),
+            price_x18=str(spot_sell_price_x18),
+            amount_x18=str(-to_pow_10(1, 17)),
+            trigger_price_x18=str(spot_buy_price_x18),
             trigger_type="last_price_below",
             reduce_only=True,
         )

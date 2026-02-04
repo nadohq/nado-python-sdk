@@ -5,6 +5,9 @@ from nado_protocol.utils.order import (
     OrderAppendixTriggerType,
     TWAPBitFields,
     build_appendix,
+    order_builder_fee_rate,
+    order_builder_id,
+    order_builder_info,
     order_execution_type,
     order_is_isolated,
     order_is_trigger_order,
@@ -40,7 +43,9 @@ def test_appendix_bit_field_sizes():
     assert AppendixBitFields.ORDER_TYPE_BITS == 2
     assert AppendixBitFields.REDUCE_ONLY_BITS == 1
     assert AppendixBitFields.TRIGGER_TYPE_BITS == 2
-    assert AppendixBitFields.RESERVED_BITS == 50
+    assert AppendixBitFields.RESERVED_BITS == 24
+    assert AppendixBitFields.BUILDER_FEE_RATE_BITS == 10
+    assert AppendixBitFields.BUILDER_ID_BITS == 16
     assert AppendixBitFields.VALUE_BITS == 64
 
 
@@ -51,7 +56,9 @@ def test_appendix_bit_masks():
     assert AppendixBitFields.ORDER_TYPE_MASK == 3
     assert AppendixBitFields.REDUCE_ONLY_MASK == 1
     assert AppendixBitFields.TRIGGER_TYPE_MASK == 3
-    assert AppendixBitFields.RESERVED_MASK == (1 << 50) - 1
+    assert AppendixBitFields.RESERVED_MASK == (1 << 24) - 1
+    assert AppendixBitFields.BUILDER_FEE_RATE_MASK == (1 << 10) - 1
+    assert AppendixBitFields.BUILDER_ID_MASK == (1 << 16) - 1
     assert AppendixBitFields.VALUE_MASK == (1 << 64) - 1
 
 
@@ -63,6 +70,8 @@ def test_appendix_bit_shift_positions():
     assert AppendixBitFields.REDUCE_ONLY_SHIFT == 11
     assert AppendixBitFields.TRIGGER_TYPE_SHIFT == 12
     assert AppendixBitFields.RESERVED_SHIFT == 14
+    assert AppendixBitFields.BUILDER_FEE_RATE_SHIFT == 38
+    assert AppendixBitFields.BUILDER_ID_SHIFT == 48
     assert AppendixBitFields.VALUE_SHIFT == 64
 
 
@@ -565,3 +574,164 @@ def test_twap_minimum_values():
     extracted_times, extracted_slippage = twap_data
     assert extracted_times == times
     assert abs(extracted_slippage - slippage) < 1e-6
+
+
+# Builder tests
+
+
+def test_builder_basic():
+    """Test basic builder fields."""
+    builder_id = 2
+    builder_fee_rate = 500  # 50 bps
+
+    appendix = build_appendix(
+        OrderType.DEFAULT,
+        builder_id=builder_id,
+        builder_fee_rate=builder_fee_rate,
+    )
+
+    assert order_builder_id(appendix) == builder_id
+    assert order_builder_fee_rate(appendix) == builder_fee_rate
+
+
+def test_builder_info():
+    """Test builder info extraction."""
+    builder_id = 123
+    builder_fee_rate = 100
+
+    appendix = build_appendix(
+        OrderType.IOC,
+        builder_id=builder_id,
+        builder_fee_rate=builder_fee_rate,
+    )
+
+    info = order_builder_info(appendix)
+    assert info is not None
+    assert info == (builder_id, builder_fee_rate)
+
+
+def test_builder_with_other_flags():
+    """Test builder fields with other order flags."""
+    builder_id = 5
+    builder_fee_rate = 200
+
+    appendix = build_appendix(
+        OrderType.POST_ONLY,
+        reduce_only=True,
+        builder_id=builder_id,
+        builder_fee_rate=builder_fee_rate,
+    )
+
+    assert order_builder_id(appendix) == builder_id
+    assert order_builder_fee_rate(appendix) == builder_fee_rate
+    assert order_execution_type(appendix) == OrderType.POST_ONLY
+    assert order_reduce_only(appendix)
+
+
+def test_builder_max_values():
+    """Test builder fields with maximum values."""
+    max_builder_id = (1 << 16) - 1  # 16 bits = 65535
+    max_fee_rate = (1 << 10) - 1  # 10 bits = 1023
+
+    appendix = build_appendix(
+        OrderType.DEFAULT,
+        builder_id=max_builder_id,
+        builder_fee_rate=max_fee_rate,
+    )
+
+    assert order_builder_id(appendix) == max_builder_id
+    assert order_builder_fee_rate(appendix) == max_fee_rate
+
+
+def test_no_builder():
+    """Test that orders without builder return None."""
+    appendix = build_appendix(OrderType.DEFAULT)
+
+    assert order_builder_id(appendix) is None
+    assert order_builder_fee_rate(appendix) is None
+    assert order_builder_info(appendix) is None
+
+
+def test_builder_requires_both_fields():
+    """Test that builder_id and builder_fee_rate must be provided together."""
+    with pytest.raises(
+        ValueError,
+        match="builder_id and builder_fee_rate must both be provided or both be None",
+    ):
+        build_appendix(OrderType.DEFAULT, builder_id=1)
+
+    with pytest.raises(
+        ValueError,
+        match="builder_id and builder_fee_rate must both be provided or both be None",
+    ):
+        build_appendix(OrderType.DEFAULT, builder_fee_rate=100)
+
+
+def test_builder_round_trip():
+    """Test builder fields round-trip conversion."""
+    original_builder_id = 42
+    original_fee_rate = 333
+
+    original_appendix = build_appendix(
+        OrderType.FOK,
+        reduce_only=True,
+        builder_id=original_builder_id,
+        builder_fee_rate=original_fee_rate,
+    )
+
+    # Extract all fields
+    version = order_version(original_appendix)
+    order_type = order_execution_type(original_appendix)
+    reduce_only = order_reduce_only(original_appendix)
+    builder_info = order_builder_info(original_appendix)
+
+    assert builder_info is not None
+    extracted_builder_id, extracted_fee_rate = builder_info
+
+    # Rebuild
+    rebuilt_appendix = build_appendix(
+        order_type,
+        reduce_only=reduce_only,
+        builder_id=extracted_builder_id,
+        builder_fee_rate=extracted_fee_rate,
+    )
+
+    assert original_appendix == rebuilt_appendix
+
+
+def test_builder_with_trigger():
+    """Test builder fields with trigger order."""
+    builder_id = 10
+    builder_fee_rate = 50
+
+    appendix = build_appendix(
+        OrderType.DEFAULT,
+        trigger_type=OrderAppendixTriggerType.PRICE,
+        builder_id=builder_id,
+        builder_fee_rate=builder_fee_rate,
+    )
+
+    assert order_builder_id(appendix) == builder_id
+    assert order_builder_fee_rate(appendix) == builder_fee_rate
+    assert order_trigger_type(appendix) == OrderAppendixTriggerType.PRICE
+    assert order_is_trigger_order(appendix)
+
+
+def test_builder_with_isolated():
+    """Test builder fields with isolated order."""
+    builder_id = 7
+    builder_fee_rate = 150
+    margin = to_x6(100)
+
+    appendix = build_appendix(
+        OrderType.DEFAULT,
+        isolated=True,
+        isolated_margin=margin,
+        builder_id=builder_id,
+        builder_fee_rate=builder_fee_rate,
+    )
+
+    assert order_builder_id(appendix) == builder_id
+    assert order_builder_fee_rate(appendix) == builder_fee_rate
+    assert order_is_isolated(appendix)
+    assert order_isolated_margin(appendix) == margin

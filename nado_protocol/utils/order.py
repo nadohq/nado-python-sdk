@@ -8,9 +8,9 @@ APPENDIX_VERSION = 1
 
 
 class AppendixBitFields:
-    # | value   | reserved | trigger | reduce only | order type| isolated | version |
-    # | 64 bits | 50 bits  | 2 bits  | 1 bit       | 2 bits    | 1 bit    | 8 bits  |
-    # | 127..64 | 63..14   | 13..12  | 11          | 10..9     | 8        | 7..0    |
+    # | value   | builderId | builderFeeRate | reserved | trigger | reduce only | order type| isolated | version |
+    # | 64 bits | 16 bits   | 10 bits        | 24 bits  | 2 bits  | 1 bit       | 2 bits    | 1 bit    | 8 bits  |
+    # | 127..64 | 63..48    | 47..38         | 37..14   | 13..12  | 11          | 10..9     | 8        | 7..0    |
 
     # Bit positions (from LSB to MSB)
     VERSION_BITS = 8  # bits 7..0
@@ -18,7 +18,9 @@ class AppendixBitFields:
     ORDER_TYPE_BITS = 2  # bits 10..9
     REDUCE_ONLY_BITS = 1  # bit 11
     TRIGGER_TYPE_BITS = 2  # bits 13..12
-    RESERVED_BITS = 50  # bits 63..14
+    RESERVED_BITS = 24  # bits 37..14
+    BUILDER_FEE_RATE_BITS = 10  # bits 47..38
+    BUILDER_ID_BITS = 16  # bits 63..48
     VALUE_BITS = 64  # bits 127..64 (for isolated margin or TWAP data)
 
     # Bit masks
@@ -28,6 +30,8 @@ class AppendixBitFields:
     REDUCE_ONLY_MASK = (1 << REDUCE_ONLY_BITS) - 1
     TRIGGER_TYPE_MASK = (1 << TRIGGER_TYPE_BITS) - 1
     RESERVED_MASK = (1 << RESERVED_BITS) - 1
+    BUILDER_FEE_RATE_MASK = (1 << BUILDER_FEE_RATE_BITS) - 1
+    BUILDER_ID_MASK = (1 << BUILDER_ID_BITS) - 1
     VALUE_MASK = (1 << VALUE_BITS) - 1
 
     # Bit shift positions
@@ -37,6 +41,8 @@ class AppendixBitFields:
     REDUCE_ONLY_SHIFT = 11
     TRIGGER_TYPE_SHIFT = 12
     RESERVED_SHIFT = 14
+    BUILDER_FEE_RATE_SHIFT = 38
+    BUILDER_ID_SHIFT = 48
     VALUE_SHIFT = 64
 
 
@@ -111,6 +117,8 @@ def build_appendix(
     isolated_margin: Optional[int] = None,
     twap_times: Optional[int] = None,
     twap_slippage_frac: Optional[float] = None,
+    builder_id: Optional[int] = None,
+    builder_fee_rate: Optional[int] = None,
     _version: Optional[int] = APPENDIX_VERSION,
 ) -> int:
     """
@@ -124,6 +132,8 @@ def build_appendix(
         isolated_margin (Optional[int]): Margin amount for isolated position if isolated is True.
         twap_times (Optional[int]): Number of TWAP executions (required for TWAP trigger type).
         twap_slippage_frac (Optional[float]): TWAP slippage fraction (required for TWAP trigger type).
+        builder_id (Optional[int]): Builder ID for fee sharing (16 bits, max 65535).
+        builder_fee_rate (Optional[int]): Builder fee rate as raw 10-bit integer (0-1023), each unit = 0.1 bps.
 
     Returns:
         int: The built appendix value with version set to APPENDIX_VERSION.
@@ -150,6 +160,12 @@ def build_appendix(
             raise ValueError(
                 "twap_times and twap_slippage_frac are required for TWAP orders"
             )
+
+    # Builder validation: both must be provided together or neither
+    if (builder_id is None) != (builder_fee_rate is None):
+        raise ValueError(
+            "builder_id and builder_fee_rate must both be provided or both be None"
+        )
 
     appendix = 0
 
@@ -178,6 +194,15 @@ def build_appendix(
     appendix |= (
         trigger_value & AppendixBitFields.TRIGGER_TYPE_MASK
     ) << AppendixBitFields.TRIGGER_TYPE_SHIFT
+
+    # Builder fields (bits 47..38 for fee rate, bits 63..48 for id)
+    if builder_id is not None and builder_fee_rate is not None:
+        appendix |= (
+            builder_fee_rate & AppendixBitFields.BUILDER_FEE_RATE_MASK
+        ) << AppendixBitFields.BUILDER_FEE_RATE_SHIFT
+        appendix |= (
+            builder_id & AppendixBitFields.BUILDER_ID_MASK
+        ) << AppendixBitFields.BUILDER_ID_SHIFT
 
     # Handle upper bits (127..64) based on order type
     if isolated and isolated_margin is not None:
@@ -348,3 +373,57 @@ def order_execution_type(appendix: int) -> OrderType:
         appendix >> AppendixBitFields.ORDER_TYPE_SHIFT
     ) & AppendixBitFields.ORDER_TYPE_MASK
     return OrderType(order_type_bits)
+
+
+def order_builder_id(appendix: int) -> Optional[int]:
+    """
+    Extracts the builder ID from the appendix value.
+
+    Args:
+        appendix (int): The order appendix value.
+
+    Returns:
+        Optional[int]: The builder ID if set (non-zero), None otherwise.
+    """
+    builder_id = (
+        appendix >> AppendixBitFields.BUILDER_ID_SHIFT
+    ) & AppendixBitFields.BUILDER_ID_MASK
+    return builder_id if builder_id > 0 else None
+
+
+def order_builder_fee_rate(appendix: int) -> Optional[int]:
+    """
+    Extracts the builder fee rate from the appendix value.
+
+    Args:
+        appendix (int): The order appendix value.
+
+    Returns:
+        Optional[int]: The builder fee rate if builder is set, None otherwise.
+            This is a raw 10-bit integer (0-1023) where each unit = 0.1 bps.
+    """
+    builder_id = order_builder_id(appendix)
+    if builder_id is None:
+        return None
+    return (
+        appendix >> AppendixBitFields.BUILDER_FEE_RATE_SHIFT
+    ) & AppendixBitFields.BUILDER_FEE_RATE_MASK
+
+
+def order_builder_info(appendix: int) -> Optional[tuple[int, int]]:
+    """
+    Extracts builder info (id and fee rate) from the appendix value.
+
+    Args:
+        appendix (int): The order appendix value.
+
+    Returns:
+        Optional[tuple[int, int]]: Tuple of (builder_id, builder_fee_rate) if set, None otherwise.
+    """
+    builder_id = order_builder_id(appendix)
+    if builder_id is None:
+        return None
+    fee_rate = (
+        appendix >> AppendixBitFields.BUILDER_FEE_RATE_SHIFT
+    ) & AppendixBitFields.BUILDER_FEE_RATE_MASK
+    return (builder_id, fee_rate)

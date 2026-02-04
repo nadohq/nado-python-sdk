@@ -83,7 +83,30 @@ def run():
     btc_perp_book = client.get_orderbook("BTC-PERP_USDT0", 10)
     pprint(btc_perp_book)
 
-    order_price = 100_000
+    print("querying all products for oracle prices...")
+    all_products = client.get_all_products()
+
+    # Get WBTC (product_id=1) oracle price for spot order
+    spot_product = next(
+        (p for p in all_products.spot_products if p.product_id == 1), None
+    )
+    if spot_product is None:
+        raise Exception("WBTC product not found")
+    spot_oracle_price_x18 = int(spot_product.oracle_price_x18)
+    # Use 85% of oracle price (within 80-120% range), rounded to price increment
+    price_increment = 10**18
+    spot_order_price_x18 = int(spot_oracle_price_x18 * 0.85)
+    spot_order_price_x18 = (spot_order_price_x18 // price_increment) * price_increment
+
+    # Get BTC-PERP (product_id=2) oracle price for perp order
+    perp_product = next(
+        (p for p in all_products.perp_products if p.product_id == 2), None
+    )
+    if perp_product is None:
+        raise Exception("BTC-PERP product not found")
+    perp_oracle_price_x18 = int(perp_product.oracle_price_x18)
+    perp_order_price_x18 = int(perp_oracle_price_x18 * 0.85)
+    perp_order_price_x18 = (perp_order_price_x18 // price_increment) * price_increment
 
     print("placing order...")
     product_id = 1
@@ -91,7 +114,7 @@ def run():
         sender=SubaccountParams(
             subaccount_owner=client.signer.address, subaccount_name="default"
         ),
-        priceX18=to_x18(order_price),
+        priceX18=spot_order_price_x18,
         amount=to_pow_10(1, 17),
         expiration=get_expiration_timestamp(40),
         nonce=gen_order_nonce(),
@@ -110,7 +133,7 @@ def run():
         sender=SubaccountParams(
             subaccount_owner=client.signer.address, subaccount_name="default"
         ),
-        priceX18=to_x18(order_price),
+        priceX18=spot_order_price_x18,
         amount=to_pow_10(1, 17),
         expiration=get_expiration_timestamp(40),
         nonce=gen_order_nonce(),
@@ -195,7 +218,7 @@ def run():
         QueryMaxOrderSizeParams(
             sender=sender,
             product_id=product_id,
-            price_x18=to_x18(order_price),
+            price_x18=spot_order_price_x18,
             direction="short",
         )
     )
@@ -302,8 +325,8 @@ def run():
             sender=SubaccountParams(
                 subaccount_owner=client.signer.address, subaccount_name="default"
             ),
-            priceX18=to_x18(order_price),
-            amount=to_pow_10(1, 17),
+            priceX18=perp_order_price_x18,
+            amount=to_pow_10(1, 16),  # 0.01 BTC for perp
             expiration=get_expiration_timestamp(40),
             nonce=gen_order_nonce(),
             appendix=build_appendix(OrderType.DEFAULT),
