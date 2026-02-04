@@ -3,6 +3,10 @@ Builder Integration
 
 The Builder Code system allows trading interfaces (builders) to earn fees on orders placed through their platforms. When users place orders through a builder's interface, the builder can receive a portion of the trade value as fees.
 
+.. note::
+
+   For more details on the Builder Integration system, see the `official Nado documentation <https://docs.nado.xyz/developer-resources/api/builder-integration>`_.
+
 Overview
 --------
 
