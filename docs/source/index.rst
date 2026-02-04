@@ -39,4 +39,5 @@ You might want to use a virtual environment to isolate your packages.
    user-guides
    margin-manager
    order-appendix
+   builder-integration
    api-reference

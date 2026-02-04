@@ -68,6 +68,7 @@ class IndexerHistoricalOrder(IndexerOrderFill):
     price_x18: str
     expiration: str
     nonce: str
+    appendix: str
     isolated: bool
 
 
