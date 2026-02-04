@@ -76,7 +76,7 @@ Complete Order Placement Example
     # Initialize client
     signer = Account.from_key("YOUR_PRIVATE_KEY")
     engine_client = EngineClient(
-        opts=EngineClientOpts(url="https://gateway.nado.xyz/api", signer=signer)
+        opts=EngineClientOpts(url="https://gateway.prod.nado.xyz/v1", signer=signer)
     )
 
     # Get contracts info
@@ -192,7 +192,7 @@ Querying Historical Orders
     from nado_protocol.indexer_client import IndexerClient
     from nado_protocol.utils.order import order_builder_id, order_builder_fee_rate
 
-    indexer = IndexerClient(opts={"url": "https://archive.nado.xyz/api"})
+    indexer = IndexerClient(opts={"url": "https://archive.prod.nado.xyz/v1"})
 
     # Query order by digest
     orders = indexer.get_historical_orders_by_digest(["0x...order_digest..."])
@@ -217,7 +217,7 @@ Querying Match Events
     from nado_protocol.indexer_client import IndexerClient
     from nado_protocol.indexer_client.types.query import IndexerMatchesParams
 
-    indexer = IndexerClient(opts={"url": "https://archive.nado.xyz/api"})
+    indexer = IndexerClient(opts={"url": "https://archive.prod.nado.xyz/v1"})
 
     # Query matches for a subaccount
     sender_hex = "0x..."  # Your subaccount hex
@@ -354,7 +354,7 @@ Query ``claim_builder_fee`` events from the indexer:
         IndexerEventsRawLimit
     )
 
-    indexer = IndexerClient(opts={"url": "https://archive.nado.xyz/api"})
+    indexer = IndexerClient(opts={"url": "https://archive.prod.nado.xyz/v1"})
 
     # Query claim events for your subaccount
     sender_hex = "0x..."  # Your subaccount hex
