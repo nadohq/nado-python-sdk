@@ -240,6 +240,29 @@ Querying Match Events
         print(f"Sequencer Fee: {match.sequencer_fee}")
         print(f"Builder Fee: {match.builder_fee}")
 
+Querying Claimable Fees
+-----------------------
+
+Before claiming, check how much you've accumulated using ``get_claimable_builder_fee``:
+
+.. code-block:: python
+
+    from nado_protocol.contracts import NadoContracts, NadoContractsContext
+    from nado_protocol.contracts.loader import load_deployment
+
+    deployment = load_deployment("mainnet")  # or "testnet"
+    nado_contracts = NadoContracts(
+        node_url=deployment.node_url,
+        contracts_context=NadoContractsContext(**deployment.dict()),
+    )
+
+    builder_id = 2  # Your builder ID
+    claimable = nado_contracts.get_claimable_builder_fee(builder_id)
+    print(f"Claimable: {claimable / 1e18} USDC")
+
+This calls the ``getClaimableBuilderFee(quoteId, builderId)`` view function on the OffchainExchange contract.
+The return value is in **x18 format** (divide by 10^18 to get USDC), e.g. ``5000000000000000000`` = 5 USDC.
+
 Claiming Builder Fees
 ---------------------
 
@@ -446,6 +469,7 @@ Slow Mode Functions
 Contract Methods
 ~~~~~~~~~~~~~~~~
 
+- :meth:`nado_protocol.contracts.NadoContracts.get_claimable_builder_fee` - Query claimable fee amount
 - :meth:`nado_protocol.contracts.NadoContracts.claim_builder_fee` - Claim accumulated builder fees
 - :meth:`nado_protocol.contracts.NadoContracts.get_builder_info` - Query builder configuration
 
