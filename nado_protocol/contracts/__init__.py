@@ -340,6 +340,26 @@ class NadoContracts:
             signer,
         )
 
+    def get_claimable_builder_fee(self, builder_id: int) -> int:
+        """
+        Gets the claimable builder fee for a given builder ID.
+
+        Args:
+            builder_id (int): The builder ID to query.
+
+        Returns:
+            int: The claimable fee amount in x18 format (divide by 1e18 to get USDC).
+
+        Raises:
+            Exception: If the OffchainExchange contract is not initialized.
+        """
+        if self.offchain_exchange is None:
+            raise Exception("OffchainExchange contract not initialized")
+
+        return self.offchain_exchange.functions.getClaimableBuilderFee(
+            0, builder_id
+        ).call()
+
     def get_builder_info(self, builder_id: int) -> BuilderInfo:
         """
         Gets builder information from the OffchainExchange contract.
