@@ -65,5 +65,6 @@ autodoc_member_order = "bysource"
 autosummary_generate = True
 
 html_favicon = "nado.ico"
+html_logo = "nado-icon.svg"
 
 pygments_style = "sphinx"
