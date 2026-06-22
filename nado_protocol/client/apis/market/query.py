@@ -4,6 +4,7 @@ from nado_protocol.engine_client.types.query import (
     AllProductsData,
     MarketLiquidityData,
     MarketPriceData,
+    MarketPricesData,
     MaxLpMintableData,
     MaxOrderSizeData,
     ProductSymbolsData,
@@ -90,6 +91,18 @@ class MarketQueryAPI(NadoBaseAPI):
             MarketPriceData: A data class object containing information about the latest market price for the given product.
         """
         return self.context.engine_client.get_market_price(product_id)
+
+    def get_latest_market_prices(self, product_ids: list[int]) -> MarketPricesData:
+        """
+        Retrieves the latest off-chain orderbook prices for multiple products at once.
+
+        Args:
+            product_ids (list[int]): The identifiers of the products to retrieve prices for.
+
+        Returns:
+            MarketPricesData: Market price data for each requested product.
+        """
+        return self.context.engine_client.get_market_prices(product_ids)
 
     def get_subaccount_open_orders(
         self, product_id: int, sender: str

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from nado_protocol.contracts.types import NadoTxType
 
 
@@ -29,9 +29,7 @@ class EIP712Types(BaseModel):
 
     EIP712Domain: list[dict]
 
-    class Config:
-        arbitrary_types_allowed = True
-        extra = "allow"
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
 
 class EIP712TypedData(BaseModel):
@@ -95,6 +93,16 @@ def get_nado_eip712_type(tx: NadoTxType) -> dict:
                 {"name": "nonce", "type": "uint64"},
             ]
         },
+        NadoTxType.WITHDRAW_COLLATERAL_V2: {
+            "WithdrawCollateralV2": [
+                {"name": "sender", "type": "bytes32"},
+                {"name": "productId", "type": "uint32"},
+                {"name": "amount", "type": "uint128"},
+                {"name": "nonce", "type": "uint64"},
+                {"name": "sendTo", "type": "address"},
+                {"name": "appendix", "type": "uint128"},
+            ]
+        },
         NadoTxType.LIQUIDATE_SUBACCOUNT: {
             "LiquidateSubaccount": [
                 {"name": "sender", "type": "bytes32"},
@@ -144,6 +152,20 @@ def get_nado_eip712_type(tx: NadoTxType) -> dict:
             "ListTriggerOrders": [
                 {"name": "sender", "type": "bytes32"},
                 {"name": "recvTime", "type": "uint64"},
+            ]
+        },
+        NadoTxType.LEADERBOARD_AUTHENTICATION: {
+            "LeaderboardAuthentication": [
+                {"name": "sender", "type": "bytes32"},
+                {"name": "expiration", "type": "uint64"},
+                {"name": "contestIds", "type": "uint32[]"},
+            ]
+        },
+        NadoTxType.SOCIAL_AUTHENTICATION: {
+            "SocialAuthentication": [
+                {"name": "sender", "type": "bytes32"},
+                {"name": "expiration", "type": "uint64"},
+                {"name": "provider", "type": "string"},
             ]
         },
     }[tx]

@@ -210,7 +210,7 @@ def test_trigger_order_types():
         extracted_trigger_type = order_trigger_type(appendix)
         assert extracted_trigger_type == trigger_type
 
-        assert order_is_trigger_order(appendix) == True
+        assert order_is_trigger_order(appendix) is True
 
 
 def test_twap_order_data_extraction():
@@ -391,7 +391,7 @@ def test_basic_round_trip():
     """Test basic round-trip conversion."""
     original_appendix = build_appendix(OrderType.FOK, reduce_only=True)
 
-    version = order_version(original_appendix)
+    assert order_version(original_appendix) is not None
     order_type = order_execution_type(original_appendix)
     reduce_only = order_reduce_only(original_appendix)
 
@@ -407,7 +407,7 @@ def test_isolated_round_trip():
         OrderType.POST_ONLY, isolated=True, isolated_margin=original_margin
     )
 
-    version = order_version(original_appendix)
+    assert order_version(original_appendix) is not None
     is_isolated = order_is_isolated(original_appendix)
     margin = order_isolated_margin(original_appendix)
     order_type = order_execution_type(original_appendix)
@@ -432,7 +432,7 @@ def test_twap_round_trip():
         twap_slippage_frac=original_slippage,
     )
 
-    version = order_version(original_appendix)
+    assert order_version(original_appendix) is not None
     trigger_type = order_trigger_type(original_appendix)
     reduce_only = order_reduce_only(original_appendix)
     twap_data = order_twap_data(original_appendix)
@@ -680,7 +680,7 @@ def test_builder_round_trip():
     )
 
     # Extract all fields
-    version = order_version(original_appendix)
+    assert order_version(original_appendix) is not None
     order_type = order_execution_type(original_appendix)
     reduce_only = order_reduce_only(original_appendix)
     builder_info = order_builder_info(original_appendix)

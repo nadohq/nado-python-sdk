@@ -13,7 +13,7 @@ from nado_protocol.utils.exceptions import InvalidTokenClaimParams
 
 class RewardsExecuteAPI(NadoBaseAPI):
     def _validate_claim_params(self, params: ClaimTokensParams):
-        p = ClaimTokensParams.parse_obj(params)
+        p = ClaimTokensParams.model_validate(params)
         if p.amount is None and p.claim_all is None:
             raise InvalidTokenClaimParams()
 

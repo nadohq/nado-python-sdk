@@ -49,16 +49,16 @@ class NadoContractsContext(BaseModel):
         foundation_rewards_airdrop_addr (Optional[str]): The Foundation Rewards airdrop address of the corresponding chain (e.g: Ink airdrop for Ink). This may be None.
     """
 
-    network: Optional[NadoNetwork]
+    network: Optional[NadoNetwork] = None
     endpoint_addr: str
     querier_addr: str
-    spot_engine_addr: Optional[str]
-    perp_engine_addr: Optional[str]
-    clearinghouse_addr: Optional[str]
-    offchain_exchange_addr: Optional[str]
-    airdrop_addr: Optional[str]
-    staking_addr: Optional[str]
-    foundation_rewards_airdrop_addr: Optional[str]
+    spot_engine_addr: Optional[str] = None
+    perp_engine_addr: Optional[str] = None
+    clearinghouse_addr: Optional[str] = None
+    offchain_exchange_addr: Optional[str] = None
+    airdrop_addr: Optional[str] = None
+    staking_addr: Optional[str] = None
+    foundation_rewards_airdrop_addr: Optional[str] = None
 
 
 class NadoContracts:
@@ -67,17 +67,17 @@ class NadoContracts:
     """
 
     w3: Web3
-    network: Optional[NadoNetwork]
+    network: Optional[NadoNetwork] = None
     contracts_context: NadoContractsContext
     querier: Contract
     endpoint: Contract
-    clearinghouse: Optional[Contract]
-    offchain_exchange: Optional[Contract]
-    spot_engine: Optional[Contract]
-    perp_engine: Optional[Contract]
-    airdrop: Optional[Contract]
-    staking: Optional[Contract]
-    foundation_rewards_airdrop: Optional[Contract]
+    clearinghouse: Optional[Contract] = None
+    offchain_exchange: Optional[Contract] = None
+    spot_engine: Optional[Contract] = None
+    perp_engine: Optional[Contract] = None
+    airdrop: Optional[Contract] = None
+    staking: Optional[Contract] = None
+    foundation_rewards_airdrop: Optional[Contract] = None
 
     def __init__(self, node_url: str, contracts_context: NadoContractsContext):
         """
@@ -94,7 +94,7 @@ class NadoContracts:
         self.network = contracts_context.network
         self.w3 = Web3(Web3.HTTPProvider(node_url))
 
-        self.contracts_context = NadoContractsContext.parse_obj(contracts_context)
+        self.contracts_context = NadoContractsContext.model_validate(contracts_context)
         self.querier: Contract = self.w3.eth.contract(
             address=contracts_context.querier_addr, abi=load_abi(NadoAbiName.FQUERIER)  # type: ignore
         )
@@ -163,7 +163,7 @@ class NadoContracts:
         Returns:
             str: The transaction hash of the deposit operation.
         """
-        params = DepositCollateralParams.parse_obj(params)
+        params = DepositCollateralParams.model_validate(params)
         if params.referral_code is not None and params.referral_code.strip():
             return self.execute(
                 self.endpoint.functions.depositCollateralWithReferral(
@@ -330,7 +330,7 @@ class NadoContracts:
         Returns:
             str: The transaction hash of the claim operation.
         """
-        params = ClaimBuilderFeeParams.parse_obj(params)
+        params = ClaimBuilderFeeParams.model_validate(params)
         sender_bytes = subaccount_to_bytes32(
             params.subaccount_owner, params.subaccount_name
         )

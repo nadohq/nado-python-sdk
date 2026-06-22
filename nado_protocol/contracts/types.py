@@ -1,5 +1,5 @@
 from typing import Optional
-from pydantic import AnyUrl, Field
+from pydantic import Field
 from nado_protocol.utils.enum import StrEnum
 
 from nado_protocol.utils.model import NadoBaseModel
@@ -44,7 +44,7 @@ class NadoDeployment(NadoBaseModel):
     Class representing deployment data for Nado protocol contracts.
 
     Attributes:
-        node_url (AnyUrl): The URL of the node.
+        node_url (str): The URL of the node.
 
         quote_addr (str): The address of the quote contract.
 
@@ -65,7 +65,7 @@ class NadoDeployment(NadoBaseModel):
         foundation_rewards_airdrop_addr (str): The address of Foundation Rewards airdrop contract for the corresponding chain (e.g: Arb airdrop for Arbitrum).
     """
 
-    node_url: AnyUrl = Field(alias="publicNodeUrl")
+    node_url: str = Field(alias="publicNodeUrl")
     quote_addr: str = Field(alias="quote")
     querier_addr: str = Field(alias="querier")
     clearinghouse_addr: str = Field(alias="clearinghouse")
@@ -95,13 +95,13 @@ class DepositCollateralParams(NadoBaseModel):
     subaccount_name: str
     product_id: int
     amount: int
-    referral_code: Optional[str]
+    referral_code: Optional[str] = None
 
 
 class ClaimTokensParams(NadoBaseModel):
     epoch: int
-    amount: Optional[int]
-    claim_all: Optional[bool]
+    amount: Optional[int] = None
+    claim_all: Optional[bool] = None
 
 
 class ClaimTokensContractParams(NadoBaseModel):
@@ -164,6 +164,7 @@ class NadoExecuteType(StrEnum):
     CANCEL_PRODUCT_ORDERS = "cancel_product_orders"
     CANCEL_AND_PLACE = "cancel_and_place"
     WITHDRAW_COLLATERAL = "withdraw_collateral"
+    WITHDRAW_COLLATERAL_V2 = "withdraw_collateral_v2"
     LIQUIDATE_SUBACCOUNT = "liquidate_subaccount"
     MINT_NLP = "mint_nlp"
     BURN_NLP = "burn_nlp"
@@ -177,5 +178,7 @@ NadoTxType = StrEnum(
         **{name: member.value for name, member in NadoExecuteType.__members__.items()},
         **{"AUTHENTICATE_STREAM": "authenticate"},
         **{"LIST_TRIGGER_ORDERS": "list_trigger_orders"},
+        **{"LEADERBOARD_AUTHENTICATION": "leaderboard_authentication"},
+        **{"SOCIAL_AUTHENTICATION": "social_authentication"},
     },
 )  # type: ignore

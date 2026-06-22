@@ -1,7 +1,7 @@
 from nado_protocol.utils.enum import StrEnum
 from typing import Dict, List, Optional, Tuple, Type, Union
 
-from pydantic import Field, validator
+from pydantic import ConfigDict, Field
 from nado_protocol.indexer_client.types.models import (
     IndexerCandlestick,
     IndexerCandlesticksGranularity,
@@ -52,6 +52,19 @@ class IndexerQueryType(StrEnum):
     ACCOUNT_SNAPSHOTS = "account_snapshots"
     INTEREST_AND_FUNDING = "interest_and_funding"
     INK_AIRDROP = "ink_airdrop"
+    BACKLOG = "backlog"
+    DIRECT_DEPOSIT_ADDRESS = "direct_deposit_address"
+    NADO_POINTS = "nado_points"
+    PRIVATE_ALPHA_CHOICE = "private_alpha_choice"
+    MULTI_PERP_PRICES = "perp_prices"
+    NLP_SNAPSHOTS = "nlp_snapshots"
+    FAST_WITHDRAWAL_SIGNATURE = "fast_withdrawal_signature"
+    LEADERBOARD = "leaderboard"
+    LEADERBOARD_RANK = "leaderboard_rank"
+    LEADERBOARD_CONTESTS = "leaderboard_contests"
+    LEADERBOARD_REGISTRATIONS = "leaderboard_registrations"
+    LIST_SOCIAL_ACCOUNTS = "list_social_accounts"
+    EDGE_CANDLESTICKS = "edge_candlesticks"
 
 
 class IndexerBaseParams(NadoBaseModel):
@@ -59,12 +72,11 @@ class IndexerBaseParams(NadoBaseModel):
     Base parameters for the indexer queries.
     """
 
-    idx: Optional[int] = Field(alias="submission_idx")
-    max_time: Optional[int]
-    limit: Optional[int]
+    idx: Optional[int] = Field(default=None, alias="submission_idx")
+    max_time: Optional[int] = None
+    limit: Optional[int] = None
 
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class IndexerSubaccountHistoricalOrdersParams(IndexerBaseParams):
@@ -72,14 +84,13 @@ class IndexerSubaccountHistoricalOrdersParams(IndexerBaseParams):
     Parameters for querying historical orders by subaccounts.
     """
 
-    subaccounts: Optional[list[str]]
-    product_ids: Optional[list[int]]
-    trigger_types: Optional[list[str]]
-    isolated: Optional[bool]
+    subaccounts: Optional[list[str]] = None
+    product_ids: Optional[list[int]] = None
+    trigger_types: Optional[list[str]] = None
+    isolated: Optional[bool] = None
 
-    class Config:
-        # Ensure this doesn't get confused with digest params
-        extra = "forbid"
+    # Ensure this doesn't get confused with digest params
+    model_config = ConfigDict(extra="forbid")
 
 
 class IndexerHistoricalOrdersByDigestParams(NadoBaseModel):
@@ -89,9 +100,8 @@ class IndexerHistoricalOrdersByDigestParams(NadoBaseModel):
 
     digests: list[str]
 
-    class Config:
-        # Ensure this doesn't get confused with subaccount params
-        extra = "forbid"
+    # Ensure this doesn't get confused with subaccount params
+    model_config = ConfigDict(extra="forbid")
 
 
 class IndexerMatchesParams(IndexerBaseParams):
@@ -99,9 +109,9 @@ class IndexerMatchesParams(IndexerBaseParams):
     Parameters for querying matches.
     """
 
-    subaccounts: Optional[list[str]]
-    product_ids: Optional[list[int]]
-    isolated: Optional[bool]
+    subaccounts: Optional[list[str]] = None
+    product_ids: Optional[list[int]] = None
+    isolated: Optional[bool] = None
 
 
 class IndexerEventsRawLimit(NadoBaseModel):
@@ -128,11 +138,11 @@ class IndexerEventsParams(IndexerBaseParams):
     Parameters for querying events.
     """
 
-    subaccounts: Optional[list[str]]
-    product_ids: Optional[list[int]]
-    event_types: Optional[list[IndexerEventType]]
-    isolated: Optional[bool]
-    limit: Optional[IndexerEventsLimit]  # type: ignore
+    subaccounts: Optional[list[str]] = None
+    product_ids: Optional[list[int]] = None
+    event_types: Optional[list[IndexerEventType]] = None
+    isolated: Optional[bool] = None
+    limit: Optional[IndexerEventsLimit] = None  # type: ignore
 
 
 class IndexerProductSnapshotsParams(IndexerBaseParams):
@@ -146,7 +156,7 @@ class IndexerProductSnapshotsParams(IndexerBaseParams):
 class IndexerMarketSnapshotInterval(NadoBaseModel):
     count: int
     granularity: int
-    max_time: Optional[int]
+    max_time: Optional[int] = None
 
 
 class IndexerMarketSnapshotsParams(NadoBaseModel):
@@ -155,7 +165,7 @@ class IndexerMarketSnapshotsParams(NadoBaseModel):
     """
 
     interval: IndexerMarketSnapshotInterval
-    product_ids: Optional[list[int]]
+    product_ids: Optional[list[int]] = None
 
 
 class IndexerCandlesticksParams(IndexerBaseParams):
@@ -165,9 +175,7 @@ class IndexerCandlesticksParams(IndexerBaseParams):
 
     product_id: int
     granularity: IndexerCandlesticksGranularity
-
-    class Config:
-        fields = {"idx": {"exclude": True}}
+    idx: Optional[int] = Field(default=None, alias="submission_idx", exclude=True)
 
 
 class IndexerFundingRateParams(NadoBaseModel):
@@ -192,6 +200,80 @@ class IndexerPerpPricesParams(NadoBaseModel):
     """
 
     product_id: int
+
+
+class IndexerMultiPerpPricesParams(NadoBaseModel):
+    """
+    Parameters for querying perpetual prices for multiple products at once.
+    """
+
+    product_ids: list[int]
+
+
+class IndexerNlpSnapshotsParams(NadoBaseModel):
+    """
+    Parameters for querying NLP pool snapshots over an interval.
+    """
+
+    interval: Optional[IndexerMarketSnapshotInterval] = None
+    idx: Optional[int] = None
+    max_time: Optional[int] = None
+    limit: Optional[int] = None
+
+
+class IndexerFastWithdrawalSignatureParams(NadoBaseModel):
+    """
+    Parameters for querying a fast-withdrawal signature by submission index.
+    """
+
+    idx: Union[str, int]
+
+
+class IndexerLeaderboardParams(NadoBaseModel):
+    """Parameters for querying a contest leaderboard."""
+
+    contest_id: int
+    rank_type: Optional[str] = None
+    start: Optional[int] = None
+    limit: Optional[int] = None
+    order: Optional[str] = None
+
+
+class IndexerLeaderboardRankParams(NadoBaseModel):
+    """Parameters for querying a subaccount's leaderboard rank across contests."""
+
+    contest_ids: list[int]
+    subaccount: str
+
+
+class IndexerLeaderboardContestsParams(NadoBaseModel):
+    """Parameters for querying leaderboard contests."""
+
+    contest_ids: Optional[list[int]] = None
+    active: Optional[bool] = None
+
+
+class IndexerLeaderboardRegistrationsParams(NadoBaseModel):
+    """Parameters for querying a subaccount's leaderboard registrations."""
+
+    subaccount: str
+    contest_ids: Optional[list[int]] = None
+    active: Optional[bool] = None
+
+
+class IndexerListSocialAccountsParams(NadoBaseModel):
+    """Parameters for listing connected social accounts for an address."""
+
+    address: str
+
+
+class IndexerEdgeCandlesticksParams(NadoBaseModel):
+    """Parameters for querying edge candlestick data."""
+
+    product_id: int
+    granularity: int
+    max_time: Optional[int] = None
+    limit: Optional[int] = None
 
 
 class IndexerOraclePricesParams(NadoBaseModel):
@@ -223,9 +305,9 @@ class IndexerSubaccountsParams(NadoBaseModel):
     Parameters for querying subaccounts.
     """
 
-    address: Optional[str]
-    limit: Optional[int]
-    start: Optional[int]
+    address: Optional[str] = None
+    limit: Optional[int] = None
+    start: Optional[int] = None
 
 
 class IndexerQuotePriceParams(NadoBaseModel):
@@ -243,7 +325,7 @@ class IndexerInterestAndFundingParams(NadoBaseModel):
 
     subaccount: str
     product_ids: list[int]
-    max_idx: Optional[Union[str, int]]
+    max_idx: Optional[Union[str, int]] = None
     limit: int
 
 
@@ -261,6 +343,38 @@ class IndexerAccountSnapshotsParams(NadoBaseModel):
 class IndexerInkAirdropParams(NadoBaseModel):
     """
     Parameters for querying Ink airdrop allocation.
+    """
+
+    address: str
+
+
+class IndexerBacklogParams(NadoBaseModel):
+    """
+    Parameters for querying the sequencer backlog.
+    """
+
+    pass
+
+
+class IndexerDirectDepositAddressParams(NadoBaseModel):
+    """
+    Parameters for querying a subaccount's V1 direct-deposit address.
+    """
+
+    subaccount: str
+
+
+class IndexerNadoPointsParams(NadoBaseModel):
+    """
+    Parameters for querying Nado points for an address.
+    """
+
+    address: str
+
+
+class IndexerPrivateAlphaChoiceParams(NadoBaseModel):
+    """
+    Parameters for querying private alpha choice info for an address.
     """
 
     address: str
@@ -284,6 +398,19 @@ IndexerParams = Union[
     IndexerInterestAndFundingParams,
     IndexerAccountSnapshotsParams,
     IndexerInkAirdropParams,
+    IndexerBacklogParams,
+    IndexerDirectDepositAddressParams,
+    IndexerNadoPointsParams,
+    IndexerPrivateAlphaChoiceParams,
+    IndexerMultiPerpPricesParams,
+    IndexerNlpSnapshotsParams,
+    IndexerFastWithdrawalSignatureParams,
+    IndexerLeaderboardParams,
+    IndexerLeaderboardRankParams,
+    IndexerLeaderboardContestsParams,
+    IndexerLeaderboardRegistrationsParams,
+    IndexerListSocialAccountsParams,
+    IndexerEdgeCandlesticksParams,
 ]
 
 
@@ -295,9 +422,6 @@ class IndexerHistoricalOrdersRequest(NadoBaseModel):
     orders: Union[
         IndexerSubaccountHistoricalOrdersParams, IndexerHistoricalOrdersByDigestParams
     ]
-
-    class Config:
-        smart_union = True
 
 
 class IndexerMatchesRequest(NadoBaseModel):
@@ -428,6 +552,84 @@ class IndexerInkAirdropRequest(NadoBaseModel):
     ink_airdrop: IndexerInkAirdropParams
 
 
+class IndexerBacklogRequest(NadoBaseModel):
+    """Request object for querying the sequencer backlog."""
+
+    backlog: IndexerBacklogParams
+
+
+class IndexerDirectDepositAddressRequest(NadoBaseModel):
+    """Request object for querying a subaccount's direct-deposit address."""
+
+    direct_deposit_address: IndexerDirectDepositAddressParams
+
+
+class IndexerNadoPointsRequest(NadoBaseModel):
+    """Request object for querying Nado points."""
+
+    nado_points: IndexerNadoPointsParams
+
+
+class IndexerPrivateAlphaChoiceRequest(NadoBaseModel):
+    """Request object for querying private alpha choice info."""
+
+    private_alpha_choice: IndexerPrivateAlphaChoiceParams
+
+
+class IndexerMultiPerpPricesRequest(NadoBaseModel):
+    """Request object for querying multiple perpetual prices."""
+
+    perp_prices: IndexerMultiPerpPricesParams
+
+
+class IndexerNlpSnapshotsRequest(NadoBaseModel):
+    """Request object for querying NLP pool snapshots."""
+
+    nlp_snapshots: IndexerNlpSnapshotsParams
+
+
+class IndexerFastWithdrawalSignatureRequest(NadoBaseModel):
+    """Request object for querying a fast-withdrawal signature."""
+
+    fast_withdrawal_signature: IndexerFastWithdrawalSignatureParams
+
+
+class IndexerLeaderboardRequest(NadoBaseModel):
+    """Request object for querying a contest leaderboard."""
+
+    leaderboard: IndexerLeaderboardParams
+
+
+class IndexerLeaderboardRankRequest(NadoBaseModel):
+    """Request object for querying a subaccount's leaderboard rank."""
+
+    leaderboard_rank: IndexerLeaderboardRankParams
+
+
+class IndexerLeaderboardContestsRequest(NadoBaseModel):
+    """Request object for querying leaderboard contests."""
+
+    leaderboard_contests: IndexerLeaderboardContestsParams
+
+
+class IndexerLeaderboardRegistrationsRequest(NadoBaseModel):
+    """Request object for querying leaderboard registrations."""
+
+    leaderboard_registrations: IndexerLeaderboardRegistrationsParams
+
+
+class IndexerListSocialAccountsRequest(NadoBaseModel):
+    """Request object for listing social accounts."""
+
+    list_social_accounts: IndexerListSocialAccountsParams
+
+
+class IndexerEdgeCandlesticksRequest(NadoBaseModel):
+    """Request object for querying edge candlestick data."""
+
+    edge_candlesticks: IndexerEdgeCandlesticksParams
+
+
 IndexerRequest = Union[
     IndexerHistoricalOrdersRequest,
     IndexerMatchesRequest,
@@ -445,6 +647,19 @@ IndexerRequest = Union[
     IndexerInterestAndFundingRequest,
     IndexerAccountSnapshotsRequest,
     IndexerInkAirdropRequest,
+    IndexerBacklogRequest,
+    IndexerDirectDepositAddressRequest,
+    IndexerNadoPointsRequest,
+    IndexerPrivateAlphaChoiceRequest,
+    IndexerMultiPerpPricesRequest,
+    IndexerNlpSnapshotsRequest,
+    IndexerFastWithdrawalSignatureRequest,
+    IndexerLeaderboardRequest,
+    IndexerLeaderboardRankRequest,
+    IndexerLeaderboardContestsRequest,
+    IndexerLeaderboardRegistrationsRequest,
+    IndexerListSocialAccountsRequest,
+    IndexerEdgeCandlesticksRequest,
 ]
 
 
@@ -523,6 +738,135 @@ class IndexerPerpPricesData(NadoBaseModel):
     update_time: str
 
 
+IndexerMultiPerpPricesData = Dict[str, IndexerPerpPricesData]
+
+
+class IndexerNlpSnapshot(NadoBaseModel):
+    """A single NLP pool snapshot."""
+
+    submission_idx: str
+    timestamp: str
+    cumulative_volume: str
+    cumulative_trades: str
+    cumulative_mint_quote: str
+    cumulative_burn_quote: str
+    cumulative_pnl: str
+    oracle_price_x18: str
+    depositors: str
+    tvl: str
+
+
+class IndexerNlpSnapshotsData(NadoBaseModel):
+    """Data object for NLP pool snapshots."""
+
+    snapshots: list[IndexerNlpSnapshot]
+
+
+class IndexerFastWithdrawalTx(NadoBaseModel):
+    """The withdraw-collateral tx within a fast-withdrawal signature."""
+
+    sender: str
+    productId: int
+    amount: str
+    nonce: str
+
+
+class IndexerFastWithdrawalTxV2(IndexerFastWithdrawalTx):
+    """The withdraw-collateral V2 tx within a fast-withdrawal signature."""
+
+    sendTo: str
+    appendix: str
+
+
+class IndexerFastWithdrawalSignatureData(NadoBaseModel):
+    """Data object for a fast-withdrawal signature."""
+
+    idx: str
+    tx: IndexerFastWithdrawalTx
+    tx_v2: Optional[IndexerFastWithdrawalTxV2] = None
+    tx_bytes: str
+    signatures: list[str]
+
+
+class IndexerSocialAccountInfo(NadoBaseModel):
+    """A connected social account."""
+
+    provider: str
+    username: str
+    display_name: str
+    profile_image_url: str
+
+
+class IndexerSocialAccountsData(NadoBaseModel):
+    """Data object listing connected social accounts."""
+
+    accounts: list[IndexerSocialAccountInfo]
+
+
+class IndexerSocialConnectData(NadoBaseModel):
+    """Data object for a social-connect OAuth URL."""
+
+    url: str
+
+
+class IndexerLeaderboardPosition(NadoBaseModel):
+    """A leaderboard position. `tracks` is kept as raw per-track data."""
+
+    subaccount: str
+    contest_id: int
+    account_value: str
+    update_time: str
+    tracks: dict = {}
+    social_accounts: list[IndexerSocialAccountInfo] = []
+
+
+class IndexerLeaderboardData(NadoBaseModel):
+    """Data object for a contest leaderboard."""
+
+    positions: list[IndexerLeaderboardPosition]
+
+
+class IndexerLeaderboardRankData(NadoBaseModel):
+    """Data object for a subaccount's leaderboard rank, keyed by contest id."""
+
+    positions: Dict[str, IndexerLeaderboardPosition]
+
+
+class IndexerLeaderboardContest(NadoBaseModel):
+    """A leaderboard contest. `tracks` is kept as raw per-track data."""
+
+    contest_id: int
+    start_time: str
+    end_time: str
+    count: str
+    last_updated: str
+    product_ids: list[int]
+    active: bool
+    title: str
+    description: str
+    tracks: list = []
+
+
+class IndexerLeaderboardContestsData(NadoBaseModel):
+    """Data object for leaderboard contests."""
+
+    contests: list[IndexerLeaderboardContest]
+
+
+class IndexerLeaderboardRegistration(NadoBaseModel):
+    """A leaderboard registration entry."""
+
+    subaccount: str
+    contest_id: int
+    update_time: str
+
+
+class IndexerLeaderboardRegistrationsData(NadoBaseModel):
+    """Data object for leaderboard registrations."""
+
+    registrations: list[IndexerLeaderboardRegistration]
+
+
 class IndexerOraclePricesData(NadoBaseModel):
     """
     Data object for oracle prices.
@@ -587,6 +931,67 @@ class IndexerInkAirdropData(NadoBaseModel):
     amount: str
 
 
+class IndexerBacklogData(NadoBaseModel):
+    """
+    Data object for the sequencer backlog.
+    """
+
+    total_txs: str
+    total_submissions: str
+    backlog_size: str
+    updated_at: str
+    backlog_eta_in_seconds: Optional[str] = None
+    txs_per_second: Optional[str] = None
+
+
+class IndexerDirectDepositAddressData(NadoBaseModel):
+    """
+    Data object for a subaccount's V1 direct-deposit address.
+    """
+
+    v1_address: str
+
+
+class IndexerNadoPointsEpochData(NadoBaseModel):
+    """Per-epoch Nado points breakdown."""
+
+    epoch: int
+    description: str
+    start_time: str
+    end_time: str
+    total_points: str
+    points: str
+    rank: int
+    tier: int
+
+
+class IndexerNadoPointsAllTime(NadoBaseModel):
+    """All-time Nado points totals."""
+
+    points: str
+    rank: int
+    tier: int
+
+
+class IndexerNadoPointsData(NadoBaseModel):
+    """
+    Data object for Nado points.
+    """
+
+    points_per_epoch: list[IndexerNadoPointsEpochData]
+    all_time_points: IndexerNadoPointsAllTime
+
+
+class IndexerPrivateAlphaChoiceData(NadoBaseModel):
+    """
+    Data object for private alpha choice info.
+    """
+
+    points: str
+    fee_refund: str
+    nft_eligibility: bool
+
+
 IndexerResponseData = Union[
     IndexerHistoricalOrdersData,
     IndexerMatchesData,
@@ -605,6 +1010,19 @@ IndexerResponseData = Union[
     IndexerFundingRatesData,
     IndexerAccountSnapshotsData,
     IndexerInkAirdropData,
+    IndexerBacklogData,
+    IndexerDirectDepositAddressData,
+    IndexerNadoPointsData,
+    IndexerPrivateAlphaChoiceData,
+    IndexerMultiPerpPricesData,
+    IndexerNlpSnapshotsData,
+    IndexerFastWithdrawalSignatureData,
+    IndexerLeaderboardData,
+    IndexerLeaderboardRankData,
+    IndexerLeaderboardContestsData,
+    IndexerLeaderboardRegistrationsData,
+    IndexerSocialAccountsData,
+    IndexerSocialConnectData,
 ]
 
 
@@ -696,10 +1114,62 @@ def to_indexer_request(params: IndexerParams) -> IndexerRequest:
             IndexerInkAirdropRequest,
             IndexerQueryType.INK_AIRDROP.value,
         ),
+        IndexerBacklogParams: (
+            IndexerBacklogRequest,
+            IndexerQueryType.BACKLOG.value,
+        ),
+        IndexerDirectDepositAddressParams: (
+            IndexerDirectDepositAddressRequest,
+            IndexerQueryType.DIRECT_DEPOSIT_ADDRESS.value,
+        ),
+        IndexerNadoPointsParams: (
+            IndexerNadoPointsRequest,
+            IndexerQueryType.NADO_POINTS.value,
+        ),
+        IndexerPrivateAlphaChoiceParams: (
+            IndexerPrivateAlphaChoiceRequest,
+            IndexerQueryType.PRIVATE_ALPHA_CHOICE.value,
+        ),
+        IndexerMultiPerpPricesParams: (
+            IndexerMultiPerpPricesRequest,
+            IndexerQueryType.MULTI_PERP_PRICES.value,
+        ),
+        IndexerNlpSnapshotsParams: (
+            IndexerNlpSnapshotsRequest,
+            IndexerQueryType.NLP_SNAPSHOTS.value,
+        ),
+        IndexerFastWithdrawalSignatureParams: (
+            IndexerFastWithdrawalSignatureRequest,
+            IndexerQueryType.FAST_WITHDRAWAL_SIGNATURE.value,
+        ),
+        IndexerLeaderboardParams: (
+            IndexerLeaderboardRequest,
+            IndexerQueryType.LEADERBOARD.value,
+        ),
+        IndexerLeaderboardRankParams: (
+            IndexerLeaderboardRankRequest,
+            IndexerQueryType.LEADERBOARD_RANK.value,
+        ),
+        IndexerLeaderboardContestsParams: (
+            IndexerLeaderboardContestsRequest,
+            IndexerQueryType.LEADERBOARD_CONTESTS.value,
+        ),
+        IndexerLeaderboardRegistrationsParams: (
+            IndexerLeaderboardRegistrationsRequest,
+            IndexerQueryType.LEADERBOARD_REGISTRATIONS.value,
+        ),
+        IndexerListSocialAccountsParams: (
+            IndexerListSocialAccountsRequest,
+            IndexerQueryType.LIST_SOCIAL_ACCOUNTS.value,
+        ),
+        IndexerEdgeCandlesticksParams: (
+            IndexerEdgeCandlesticksRequest,
+            IndexerQueryType.EDGE_CANDLESTICKS.value,
+        ),
     }
 
     RequestClass, field_name = indexer_request_mapping[type(params)]
-    return RequestClass.parse_obj({field_name: params.dict(exclude_none=False)})  # type: ignore[attr-defined]
+    return RequestClass.model_validate({field_name: params.dict(exclude_none=False)})  # type: ignore[attr-defined]
 
 
 IndexerTickersData = Dict[str, IndexerTickerInfo]

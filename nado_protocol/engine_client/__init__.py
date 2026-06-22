@@ -1,6 +1,8 @@
 from nado_protocol.engine_client.types import EngineClientOpts
 from nado_protocol.engine_client.execute import EngineExecuteClient
 from nado_protocol.engine_client.query import EngineQueryClient
+from nado_protocol.engine_client.web import EngineWebClient
+from nado_protocol.engine_client.edge import EngineEdgeQueryClient
 
 
 class EngineClient(EngineQueryClient, EngineExecuteClient):  # type: ignore
@@ -32,4 +34,6 @@ __all__ = [
     "EngineClientOpts",
     "EngineExecuteClient",
     "EngineQueryClient",
+    "EngineWebClient",
+    "EngineEdgeQueryClient",
 ]

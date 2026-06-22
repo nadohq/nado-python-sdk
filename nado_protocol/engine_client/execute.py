@@ -20,7 +20,10 @@ from nado_protocol.engine_client.types.execute import (
     OrderParams,
     PlaceMarketOrderParams,
     PlaceOrderParams,
+    PlaceOrdersParams,
+    TransferQuoteParams,
     WithdrawCollateralParams,
+    WithdrawCollateralV2Params,
     to_execute_request,
 )
 from nado_protocol.contracts.types import NadoExecuteType
@@ -57,7 +60,7 @@ class EngineExecuteClient(NadoBaseExecute):
         """
         super().__init__(opts)
         self._querier = querier or EngineQueryClient(opts)
-        self._opts: EngineClientOpts = EngineClientOpts.parse_obj(opts)
+        self._opts: EngineClientOpts = EngineClientOpts.model_validate(opts)
         self.url: str = self._opts.url
         self.session = requests.Session()
         self.session.headers.update({"Accept-Encoding": "gzip"})
@@ -98,7 +101,7 @@ class EngineExecuteClient(NadoBaseExecute):
         Returns:
             ExecuteResponse: The response from the executed operation.
         """
-        parsed_req: ExecuteRequest = NadoBaseModel.parse_obj(req)  # type: ignore
+        parsed_req: ExecuteRequest = NadoBaseModel.model_validate(req)  # type: ignore
         return self._execute(parsed_req)
 
     def _execute(self, req: ExecuteRequest) -> ExecuteResponse:
@@ -144,11 +147,36 @@ class EngineExecuteClient(NadoBaseExecute):
         Returns:
             ExecuteResponse: Response of the execution, including status and potential error message.
         """
-        params = PlaceOrderParams.parse_obj(params)
+        params = PlaceOrderParams.model_validate(params)
         params.order = self.prepare_execute_params(params.order, True)
         params.signature = params.signature or self._sign(
             NadoExecuteType.PLACE_ORDER, params.order.dict(), params.product_id
         )
+        return self.execute(params)
+
+    def place_orders(self, params: PlaceOrdersParams) -> ExecuteResponse:
+        """
+        Execute a batch place order operation, placing multiple orders in a single request.
+
+        Each order in `params.orders` is prepared and signed independently, exactly
+        as `place_order` does for a single order.
+
+        Args:
+            params (PlaceOrdersParams): Orders to place plus an optional `stop_on_failure` flag.
+
+        Returns:
+            ExecuteResponse: Response of the execution, including status and potential error message.
+        """
+        params = PlaceOrdersParams.model_validate(params)
+        signed_orders = []
+        for order in params.orders:
+            order = PlaceOrderParams.model_validate(order)
+            order.order = self.prepare_execute_params(order.order, True)
+            order.signature = order.signature or self._sign(
+                NadoExecuteType.PLACE_ORDER, order.order.dict(), order.product_id
+            )
+            signed_orders.append(order)
+        params.orders = signed_orders
         return self.execute(params)
 
     def place_market_order(self, params: PlaceMarketOrderParams) -> ExecuteResponse:
@@ -203,7 +231,7 @@ class EngineExecuteClient(NadoBaseExecute):
         Returns:
             ExecuteResponse: Response of the execution, including status and potential error message.
         """
-        params = self.prepare_execute_params(CancelOrdersParams.parse_obj(params), True)
+        params = self.prepare_execute_params(CancelOrdersParams.model_validate(params), True)
         params.signature = params.signature or self._sign(
             NadoExecuteType.CANCEL_ORDERS, params.dict()
         )
@@ -223,7 +251,7 @@ class EngineExecuteClient(NadoBaseExecute):
             ExecuteResponse: Response of the execution, including status and potential error message.
         """
         params = self.prepare_execute_params(
-            CancelProductOrdersParams.parse_obj(params), True
+            CancelProductOrdersParams.model_validate(params), True
         )
         params.signature = params.signature or self._sign(
             NadoExecuteType.CANCEL_PRODUCT_ORDERS, params.dict()
@@ -241,12 +269,12 @@ class EngineExecuteClient(NadoBaseExecute):
             ExecuteResponse: Response of the execution, including status and potential error message.
         """
         cancel_orders: CancelOrdersParams = self.prepare_execute_params(
-            CancelOrdersParams.parse_obj(params.cancel_orders), True
+            CancelOrdersParams.model_validate(params.cancel_orders), True
         )
         cancel_orders.signature = cancel_orders.signature or self._sign(
             NadoExecuteType.CANCEL_ORDERS, cancel_orders.dict()
         )
-        place_order: PlaceOrderParams = PlaceOrderParams.parse_obj(params.place_order)
+        place_order: PlaceOrderParams = PlaceOrderParams.model_validate(params.place_order)
         place_order.order = self.prepare_execute_params(place_order.order, True)
         place_order.signature = place_order.signature or self._sign(
             NadoExecuteType.PLACE_ORDER,
@@ -269,10 +297,30 @@ class EngineExecuteClient(NadoBaseExecute):
             ExecuteResponse: Response of the execution, including status and potential error message.
         """
         params = self.prepare_execute_params(
-            WithdrawCollateralParams.parse_obj(params), False
+            WithdrawCollateralParams.model_validate(params), False
         )
         params.signature = params.signature or self._sign(
             NadoExecuteType.WITHDRAW_COLLATERAL, params.dict()
+        )
+        return self.execute(params)
+
+    def withdraw_collateral_v2(
+        self, params: WithdrawCollateralV2Params
+    ) -> ExecuteResponse:
+        """
+        Execute a withdraw collateral V2 operation, sending funds to a designated recipient.
+
+        Args:
+            params (WithdrawCollateralV2Params): Parameters including the recipient (`sendTo`) and amount.
+
+        Returns:
+            ExecuteResponse: Response of the execution, including status and potential error message.
+        """
+        params = self.prepare_execute_params(
+            WithdrawCollateralV2Params.model_validate(params), False
+        )
+        params.signature = params.signature or self._sign(
+            NadoExecuteType.WITHDRAW_COLLATERAL_V2, params.dict()
         )
         return self.execute(params)
 
@@ -290,7 +338,7 @@ class EngineExecuteClient(NadoBaseExecute):
             ExecuteResponse: Response of the execution, including status and potential error message.
         """
         params = self.prepare_execute_params(
-            LiquidateSubaccountParams.parse_obj(params), False
+            LiquidateSubaccountParams.model_validate(params), False
         )
         params.signature = params.signature or self._sign(
             NadoExecuteType.LIQUIDATE_SUBACCOUNT,
@@ -309,7 +357,7 @@ class EngineExecuteClient(NadoBaseExecute):
         Returns:
             ExecuteResponse: Response of the execution, including status and potential error message.
         """
-        params = self.prepare_execute_params(MintNlpParams.parse_obj(params), False)
+        params = self.prepare_execute_params(MintNlpParams.model_validate(params), False)
         params.signature = params.signature or self._sign(
             NadoExecuteType.MINT_NLP,
             params.dict(),
@@ -327,9 +375,28 @@ class EngineExecuteClient(NadoBaseExecute):
         Returns:
             ExecuteResponse: Response of the execution, including status and potential error message.
         """
-        params = self.prepare_execute_params(BurnNlpParams.parse_obj(params), False)
+        params = self.prepare_execute_params(BurnNlpParams.model_validate(params), False)
         params.signature = params.signature or self._sign(
             NadoExecuteType.BURN_NLP,
+            params.dict(),
+        )
+        return self.execute(params)
+
+    def transfer_quote(self, params: TransferQuoteParams) -> ExecuteResponse:
+        """
+        Execute a transfer of quote (USDC) to another subaccount.
+
+        Args:
+            params (TransferQuoteParams): Parameters including the recipient subaccount and amount.
+
+        Returns:
+            ExecuteResponse: Response of the execution, including status and potential error message.
+        """
+        params = self.prepare_execute_params(
+            TransferQuoteParams.model_validate(params), False
+        )
+        params.signature = params.signature or self._sign(
+            NadoExecuteType.TRANSFER_QUOTE,
             params.dict(),
         )
         return self.execute(params)
@@ -345,7 +412,7 @@ class EngineExecuteClient(NadoBaseExecute):
         Returns:
             ExecuteResponse: Response of the execution, including status and potential error message.
         """
-        params = self.prepare_execute_params(LinkSignerParams.parse_obj(params), False)
+        params = self.prepare_execute_params(LinkSignerParams.model_validate(params), False)
         params.signature = params.signature or self._sign(
             NadoExecuteType.LINK_SIGNER,
             params.dict(),
