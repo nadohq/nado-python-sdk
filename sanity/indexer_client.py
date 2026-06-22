@@ -131,3 +131,28 @@ def run():
     print("querying quote price...")
     quote_price = client.get_quote_price()
     print("quote price", quote_price.price_x18)
+
+    # --- v2.0.0 additions (read-only) ---
+    print("querying sequencer backlog...")
+    print("backlog:", client.get_sequencer_backlog().json(indent=2))
+
+    print("querying multi-product perp prices...")
+    print("multi perp prices:", client.get_multi_perp_prices([1, 2]))
+
+    print("querying multi-product snapshots...")
+    print("multi product snapshots:", client.get_multi_product_snapshots([1, 2]))
+
+    print("querying NLP snapshots...")
+    print("nlp snapshots:", client.get_nlp_snapshots(count=2, granularity=3600).json(indent=2))
+
+    print("querying leaderboard contests...")
+    print("leaderboard contests:", client.get_leaderboard_contests().json(indent=2))
+
+    print("querying v2 symbols...")
+    print("v2 symbols:", client.get_v2_symbols())
+
+    print("querying paginated subaccount orders...")
+    print(
+        "paginated orders:",
+        client.get_paginated_subaccount_orders(subaccount, limit=5).json(indent=2),
+    )

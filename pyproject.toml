@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nado-protocol"
-version = "0.3.5"
+version = "2.0.0"
 description = "Nado Protocol SDK"
 authors = ["Jeury Mejia <jeury@inkfnd.com>"]
 homepage = "https://nado.xyz"
@@ -13,9 +13,10 @@ keywords = ["nado protocol", "nado sdk", "nado protocol api"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-pydantic = "^1.10.7"
+pydantic = "^2.7"
 web3 = "^6.4.0"
 eth-account = "^0.8.0"
+websockets = "^13.0"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "*"
@@ -41,6 +42,7 @@ rewards-sanity = "sanity.rewards:run"
 signing-sanity = "sanity.signing:run"
 margin-sanity = "sanity.margin_manager:run"
 builder-sanity = "sanity.builder:run"
+ws-sanity = "sanity.ws:run"
 
 [[tool.poetry.source]]
 name = "private"

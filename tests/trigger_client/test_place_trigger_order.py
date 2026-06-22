@@ -37,7 +37,6 @@ from nado_protocol.utils.subaccount import SubaccountParams
 from nado_protocol.utils.math import to_x18
 from nado_protocol.utils.expiration import OrderType
 from nado_protocol.trigger_client.types.models import (
-    PriceTriggerData,
     TimeTrigger,
     OraclePriceAbove,
     OraclePriceBelow,

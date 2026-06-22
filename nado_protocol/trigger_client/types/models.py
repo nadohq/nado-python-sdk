@@ -80,6 +80,6 @@ class TriggerOrderData(NadoBaseModel):
     product_id: int
     order: OrderData
     signature: str
-    spot_leverage: Optional[bool]
-    digest: Optional[str]
+    spot_leverage: Optional[bool] = None
+    digest: Optional[str] = None
     trigger: TriggerCriteria

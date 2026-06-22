@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Optional
 from eth_account import Account
 
-from pydantic import AnyUrl, BaseModel
+from pydantic import BaseModel
 from nado_protocol.contracts import NadoContracts, NadoContractsContext
 from eth_account.signers.local import LocalAccount
 from nado_protocol.engine_client import EngineClient
@@ -29,11 +29,11 @@ class NadoClientContext:
 
 
 class NadoClientContextOpts(BaseModel):
-    contracts_context: Optional[NadoContractsContext]
-    rpc_node_url: Optional[AnyUrl]
-    engine_endpoint_url: Optional[AnyUrl]
-    indexer_endpoint_url: Optional[AnyUrl]
-    trigger_endpoint_url: Optional[AnyUrl]
+    contracts_context: Optional[NadoContractsContext] = None
+    rpc_node_url: Optional[str] = None
+    engine_endpoint_url: Optional[str] = None
+    indexer_endpoint_url: Optional[str] = None
+    trigger_endpoint_url: Optional[str] = None
 
 
 def create_nado_client_context(

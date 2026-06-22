@@ -17,9 +17,15 @@ from nado_protocol.engine_client.types.query import (
     LinkedSignerData,
     MarketLiquidityData,
     MarketPriceData,
+    MarketPricesData,
     MaxLpMintableData,
+    MaxNlpBurnableData,
     MaxOrderSizeData,
     MaxWithdrawableData,
+    InsuranceData,
+    NlpPoolInfoData,
+    NlpLockedBalancesData,
+    EdgeAllProductsData,
     NoncesData,
     ProductSymbolsData,
     SubaccountOpenOrdersData,
@@ -32,9 +38,15 @@ from nado_protocol.engine_client.types.query import (
     QueryLinkedSignerParams,
     QueryMarketLiquidityParams,
     QueryMarketPriceParams,
+    QueryMarketPricesParams,
     QueryMaxLpMintableParams,
+    QueryMaxNlpBurnableParams,
     QueryMaxOrderSizeParams,
     QueryMaxWithdrawableParams,
+    QueryInsuranceParams,
+    QueryNlpPoolInfoParams,
+    QueryNlpLockedBalancesParams,
+    QueryEdgeAllProductsParams,
     QueryNoncesParams,
     QuerySubaccountOpenOrdersParams,
     QuerySubaccountMultiProductOpenOrdersParams,
@@ -73,7 +85,7 @@ class EngineQueryClient:
         Args:
             opts (EngineClientOpts): Options for the client.
         """
-        self._opts: EngineClientOpts = EngineClientOpts.parse_obj(opts)
+        self._opts: EngineClientOpts = EngineClientOpts.model_validate(opts)
         self.url: str = self._opts.url
         self.url_v2: str = self.url.replace("/v1", "") + "/v2"
         self.session = requests.Session()  # type: ignore
@@ -335,6 +347,84 @@ class EngineQueryClient:
             MarketPriceData,
         )
 
+    def get_market_prices(self, product_ids: list[int]) -> MarketPricesData:
+        """
+        Retrieves the best bid/ask price levels for multiple products at once.
+
+        Args:
+            product_ids (list[int]): The ids of the products to query.
+
+        Returns:
+            MarketPricesData: Market price data for each requested product.
+        """
+        return ensure_data_type(
+            self.query(QueryMarketPricesParams(product_ids=product_ids)).data,
+            MarketPricesData,
+        )
+
+    def get_insurance(self) -> InsuranceData:
+        """
+        Retrieves the current insurance fund balance.
+
+        Returns:
+            InsuranceData: The insurance fund balance.
+        """
+        return ensure_data_type(
+            self.query(QueryInsuranceParams()).data, InsuranceData
+        )
+
+    def get_edge_all_products(self) -> EdgeAllProductsData:
+        """
+        Retrieves all products across chains (edge), keyed by chain id.
+
+        Returns:
+            EdgeAllProductsData: Products keyed by chain id (kept raw).
+        """
+        return ensure_data_type(
+            self.query(QueryEdgeAllProductsParams()).data, EdgeAllProductsData
+        )
+
+    def get_nlp_pool_info(self) -> NlpPoolInfoData:
+        """
+        Retrieves info for all NLP sub-pools.
+
+        Returns:
+            NlpPoolInfoData: The NLP pools (subaccount info / open orders kept raw).
+        """
+        return ensure_data_type(
+            self.query(QueryNlpPoolInfoParams()).data, NlpPoolInfoData
+        )
+
+    def get_nlp_locked_balances(self, subaccount: str) -> NlpLockedBalancesData:
+        """
+        Retrieves a subaccount's locked and unlocked NLP balances.
+
+        Args:
+            subaccount (str): The subaccount (bytes32 hex).
+
+        Returns:
+            NlpLockedBalancesData: Locked/unlocked balances and lock schedule.
+        """
+        return ensure_data_type(
+            self.query(QueryNlpLockedBalancesParams(subaccount=subaccount)).data,
+            NlpLockedBalancesData,
+        )
+
+    def get_max_nlp_burnable(self, sender: str) -> MaxNlpBurnableData:
+        """
+        Retrieves the maximum NLP amount burnable by a subaccount.
+
+        Args:
+            sender (str): Identifier of the subaccount (owner's address + subaccount name) as a hex string.
+
+        Returns:
+            MaxNlpBurnableData: The maximum burnable NLP amount.
+        """
+        return ensure_data_type(
+            self.query(QueryMaxNlpBurnableParams(sender=sender)).data,
+            MaxNlpBurnableData,
+        )
+
     def get_max_order_size(self, params: QueryMaxOrderSizeParams) -> MaxOrderSizeData:
         """
         Retrieves the maximum order size of a given product for a specified subaccount.
@@ -348,7 +438,7 @@ class EngineQueryClient:
             for the given subaccount and product.
         """
         return ensure_data_type(
-            self.query(QueryMaxOrderSizeParams.parse_obj(params)).data, MaxOrderSizeData
+            self.query(QueryMaxOrderSizeParams.model_validate(params)).data, MaxOrderSizeData
         )
 
     def get_max_withdrawable(
@@ -492,7 +582,7 @@ class EngineQueryClient:
 
     def get_orderbook(self, ticker_id: str, depth: int) -> Orderbook:
         return ensure_data_type(
-            Orderbook.parse_obj(
+            Orderbook.model_validate(
                 self._query_v2(
                     f"{self.url_v2}/orderbook?ticker_id={ticker_id}&depth={depth}"
                 )

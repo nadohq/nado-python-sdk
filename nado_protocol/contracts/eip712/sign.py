@@ -58,7 +58,7 @@ def get_eip712_typed_data_digest(typed_data: EIP712TypedData) -> str:
     Returns:
         str: The hexadecimal representation of the hash.
     """
-    encoded_data = encode_structured_data(typed_data.dict())
+    encoded_data = encode_structured_data(typed_data.model_dump())
     return f"0x{_hash_eip191_message(encoded_data).hex()}"
 
 
@@ -74,6 +74,6 @@ def sign_eip712_typed_data(typed_data: EIP712TypedData, signer: LocalAccount) ->
     Returns:
         str: The hexadecimal representation of the signature.
     """
-    encoded_data = encode_structured_data(typed_data.dict())
+    encoded_data = encode_structured_data(typed_data.model_dump())
     typed_data_hash = signer.sign_message(encoded_data)
     return typed_data_hash.signature.hex()

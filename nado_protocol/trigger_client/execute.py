@@ -41,7 +41,7 @@ from nado_protocol.trigger_client.types.models import (
 class TriggerExecuteClient(NadoBaseExecute):
     def __init__(self, opts: TriggerClientOpts):
         super().__init__(opts)
-        self._opts: TriggerClientOpts = TriggerClientOpts.parse_obj(opts)
+        self._opts: TriggerClientOpts = TriggerClientOpts.model_validate(opts)
         self.url: str = self._opts.url
         self.session = requests.Session()
         self.session.headers.update({"Accept-Encoding": "gzip"})
@@ -78,7 +78,7 @@ class TriggerExecuteClient(NadoBaseExecute):
         Returns:
             ExecuteResponse: The response from the executed operation.
         """
-        parsed_req: TriggerExecuteRequest = NadoBaseModel.parse_obj(req)  # type: ignore
+        parsed_req: TriggerExecuteRequest = NadoBaseModel.model_validate(req)  # type: ignore
         return self._execute(parsed_req)
 
     def _execute(self, req: TriggerExecuteRequest) -> ExecuteResponse:
@@ -107,7 +107,7 @@ class TriggerExecuteClient(NadoBaseExecute):
         return execute_res
 
     def place_trigger_order(self, params: PlaceTriggerOrderParams) -> ExecuteResponse:
-        params = PlaceTriggerOrderParams.parse_obj(params)
+        params = PlaceTriggerOrderParams.model_validate(params)
         params.order = self.prepare_execute_params(params.order, True)
         params.signature = params.signature or self._sign(
             NadoExecuteType.PLACE_ORDER, params.order.dict(), params.product_id
@@ -325,7 +325,7 @@ class TriggerExecuteClient(NadoBaseExecute):
         self, params: CancelTriggerOrdersParams
     ) -> ExecuteResponse:
         params = self.prepare_execute_params(
-            CancelTriggerOrdersParams.parse_obj(params), True
+            CancelTriggerOrdersParams.model_validate(params), True
         )
         params.signature = params.signature or self._sign(
             NadoExecuteType.CANCEL_ORDERS, params.dict()
@@ -336,7 +336,7 @@ class TriggerExecuteClient(NadoBaseExecute):
         self, params: CancelProductTriggerOrdersParams
     ) -> ExecuteResponse:
         params = self.prepare_execute_params(
-            CancelProductTriggerOrdersParams.parse_obj(params), True
+            CancelProductTriggerOrdersParams.model_validate(params), True
         )
         params.signature = params.signature or self._sign(
             NadoExecuteType.CANCEL_PRODUCT_ORDERS, params.dict()

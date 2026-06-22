@@ -42,7 +42,7 @@ class IndexerCandlesticksGranularity(IntEnum):
 
 class IndexerBaseModel(NadoBaseModel):
     submission_idx: str
-    timestamp: Optional[str]
+    timestamp: Optional[str] = None
 
 
 class IndexerBaseOrder(NadoBaseModel):
@@ -196,7 +196,7 @@ class IndexerEvent(IndexerBaseModel, IndexerEventTrackedData):
     pre_balance: IndexerProductBalanceData
     post_balance: IndexerProductBalanceData
     isolated: bool
-    isolated_product_id: Optional[int]
+    isolated_product_id: Optional[int] = None
 
 
 class IndexerProduct(IndexerBaseModel):

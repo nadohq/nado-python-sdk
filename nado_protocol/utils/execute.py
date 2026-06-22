@@ -2,7 +2,7 @@ from abc import abstractmethod
 from copy import deepcopy
 from typing import Optional, Type, Union
 from eth_account.signers.local import LocalAccount
-from pydantic import validator
+from pydantic import ConfigDict, field_validator
 from nado_protocol.contracts.eip712.sign import (
     build_eip712_typed_data,
     get_eip712_typed_data_digest,
@@ -15,6 +15,14 @@ from nado_protocol.utils.model import NadoBaseModel
 from nado_protocol.utils.nonce import gen_order_nonce
 from nado_protocol.utils.order import gen_order_verifying_contract
 from nado_protocol.utils.subaccount import Subaccount, SubaccountParams
+
+
+def _serialize_sender(v: Subaccount) -> Union[bytes, Subaccount]:
+    """Serialize a sender to bytes32, leaving it unchanged if not yet resolvable."""
+    try:
+        return subaccount_to_bytes32(v)
+    except ValueError:
+        return v
 
 
 class BaseParams(NadoBaseModel):
@@ -30,12 +38,12 @@ class BaseParams(NadoBaseModel):
     """
 
     sender: Subaccount
-    nonce: Optional[int]
+    nonce: Optional[int] = None
 
-    class Config:
-        validate_assignment = True
+    model_config = ConfigDict(validate_assignment=True)
 
-    @validator("sender")
+    @field_validator("sender")
+    @classmethod
     def serialize_sender(cls, v: Subaccount) -> Union[bytes, Subaccount]:
         """
         Validates and serializes the sender to bytes32 format.
@@ -46,10 +54,7 @@ class BaseParams(NadoBaseModel):
         Returns:
             (bytes|Subaccount): The serialized sender in bytes32 format or the original Subaccount if it cannot be converted to bytes32.
         """
-        try:
-            return subaccount_to_bytes32(v)
-        except ValueError:
-            return v
+        return _serialize_sender(v)
 
 
 class SignatureParams(NadoBaseModel):
@@ -60,7 +65,7 @@ class SignatureParams(NadoBaseModel):
         signature (Optional[str]): An optional string representing the signature for the request.
     """
 
-    signature: Optional[str]
+    signature: Optional[str] = None
 
 
 class BaseParamsSigned(BaseParams, SignatureParams):
@@ -206,7 +211,7 @@ class NadoBaseExecute:
             params.sender.subaccount_owner = (
                 params.sender.subaccount_owner or self.signer.address
             )
-            params.sender = params.serialize_sender(params.sender)
+            params.sender = _serialize_sender(params.sender)
         return params
 
     def _inject_nonce_if_needed(

@@ -368,3 +368,24 @@ def run():
 
     res = client.withdraw_collateral(withdraw_collateral_params)
     print("withdraw collateral result:", res.json(indent=2))
+
+    # --- v2.0.0 additions (read-only) ---
+    print("querying insurance fund...")
+    print("insurance:", client.get_insurance().json(indent=2))
+
+    print("querying batch market prices...")
+    print("market prices:", client.get_market_prices([1, 2]).json(indent=2))
+
+    print("querying edge all products...")
+    print("edge all products keys:", list(client.get_edge_all_products().edge_all_products.keys()))
+
+    print("setting up edge + web clients...")
+    from nado_protocol.engine_client import EngineEdgeQueryClient, EngineWebClient
+
+    edge = EngineEdgeQueryClient(opts={"url": ENGINE_BACKEND_URL})
+    print("cached market prices:", edge.get_cached_market_prices([1, 2]).json(indent=2))
+    print("edge ping:", edge.ping(client_time="0"))
+
+    web = EngineWebClient(ENGINE_BACKEND_URL)
+    print("server time:", web.get_time())
+    print("ip block status:", web.get_ip_block_status())

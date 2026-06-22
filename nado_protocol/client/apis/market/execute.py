@@ -301,7 +301,7 @@ class MarketExecuteAPI(NadoBaseAPI):
         if dependency is not None:
             from nado_protocol.trigger_client.types.models import Dependency
 
-            dependency_obj = Dependency.parse_obj(dependency)
+            dependency_obj = Dependency.model_validate(dependency)
 
         return self.context.trigger_client.place_price_trigger_order(
             product_id=product_id,

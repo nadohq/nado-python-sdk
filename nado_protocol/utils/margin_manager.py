@@ -14,7 +14,7 @@ Key Concepts:
 from decimal import Decimal
 from time import time
 from typing import Optional, Union, TYPE_CHECKING
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from nado_protocol.engine_client.types.models import (
     SpotProduct,
     PerpProduct,
@@ -67,8 +67,7 @@ class BalanceWithProduct(BaseModel):
     balance_type: str  # "spot" or "perp"
     v_quote_balance: Optional[Decimal] = None
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class CrossPositionMetrics(BaseModel):
@@ -78,9 +77,9 @@ class CrossPositionMetrics(BaseModel):
     symbol: str
     position_size: Decimal
     notional_value: Decimal
-    avg_entry_price: Optional[Decimal]  # Average entry price (requires indexer data)
-    est_liq_price: Optional[Decimal]  # Estimated liquidation price
-    est_pnl: Optional[Decimal]  # Estimated PnL (requires indexer data)
+    avg_entry_price: Optional[Decimal] = None  # Average entry price (requires indexer data)
+    est_liq_price: Optional[Decimal] = None  # Estimated liquidation price
+    est_pnl: Optional[Decimal] = None  # Estimated PnL (requires indexer data)
     unsettled: Decimal  # Unsettled quote (v_quote_balance)
     margin_used: Decimal
     initial_health: Decimal
@@ -90,8 +89,7 @@ class CrossPositionMetrics(BaseModel):
     short_weight_initial: Decimal
     short_weight_maintenance: Decimal
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class IsolatedPositionMetrics(BaseModel):
@@ -106,8 +104,7 @@ class IsolatedPositionMetrics(BaseModel):
     initial_health: Decimal
     maintenance_health: Decimal
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class AccountSummary(BaseModel):
@@ -139,8 +136,7 @@ class AccountSummary(BaseModel):
     total_spot_deposits: Decimal
     total_spot_borrows: Decimal
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class MarginManager:
@@ -872,18 +868,18 @@ def print_account_summary(summary: AccountSummary) -> None:
             if cross_pos.avg_entry_price is not None:
                 print(f"│    Avg Entry Price:      ${cross_pos.avg_entry_price:,.2f}")
             else:
-                print(f"│    Avg Entry Price:      N/A")
+                print("│    Avg Entry Price:      N/A")
 
             if cross_pos.est_liq_price is not None:
                 print(f"│    Est. Liq Price:       ${cross_pos.est_liq_price:,.2f}")
             else:
-                print(f"│    Est. Liq Price:       N/A")
+                print("│    Est. Liq Price:       N/A")
 
             if cross_pos.est_pnl is not None:
                 pnl_sign = "+" if cross_pos.est_pnl >= 0 else ""
                 print(f"│    Est. PnL:             {pnl_sign}${cross_pos.est_pnl:,.2f}")
             else:
-                print(f"│    Est. PnL:             N/A")
+                print("│    Est. PnL:             N/A")
 
             print(f"│    Unsettled:            {cross_pos.unsettled:,.2f} USDT0")
 

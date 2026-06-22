@@ -23,7 +23,7 @@ class TriggerQueryClient(NadoBaseExecute):
     """
 
     def __init__(self, opts: TriggerClientOpts):
-        self._opts: TriggerClientOpts = TriggerClientOpts.parse_obj(opts)
+        self._opts: TriggerClientOpts = TriggerClientOpts.model_validate(opts)
         self.url: str = self._opts.url
         self.session = requests.Session()  # type: ignore
         self.session.headers.update({"Accept-Encoding": "gzip"})
@@ -59,11 +59,11 @@ class TriggerQueryClient(NadoBaseExecute):
     def list_trigger_orders(
         self, params: ListTriggerOrdersParams
     ) -> TriggerQueryResponse:
-        params = ListTriggerOrdersParams.parse_obj(params)
+        params = ListTriggerOrdersParams.model_validate(params)
         params.signature = params.signature or self._sign(
             NadoTxType.LIST_TRIGGER_ORDERS, params.tx.dict()
         )
-        return self.query(ListTriggerOrdersRequest.parse_obj(params).dict())
+        return self.query(ListTriggerOrdersRequest.model_validate(params).dict())
 
     def list_twap_executions(
         self, params: ListTwapExecutionsParams
@@ -77,5 +77,5 @@ class TriggerQueryClient(NadoBaseExecute):
         Returns:
             TriggerQueryResponse: Response containing TWAP execution details.
         """
-        params = ListTwapExecutionsParams.parse_obj(params)
-        return self.query(ListTwapExecutionsRequest.parse_obj(params).dict())
+        params = ListTwapExecutionsParams.model_validate(params)
+        return self.query(ListTwapExecutionsRequest.model_validate(params).dict())
