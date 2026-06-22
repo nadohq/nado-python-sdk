@@ -165,7 +165,7 @@ class FakeWebSocket:
     def send(self, payload):
         self.sent.append(payload)
 
-    def recv(self):
+    def recv(self, timeout=None):
         return self._inbound.pop(0)
 
     def close(self):

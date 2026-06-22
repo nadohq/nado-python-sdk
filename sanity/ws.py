@@ -1,5 +1,3 @@
-from websocket import WebSocketTimeoutException
-
 from sanity import ENGINE_BACKEND_URL
 from nado_protocol.engine_client.types.query import QueryAllProductsParams
 from nado_protocol.ws import (
@@ -16,7 +14,7 @@ PRODUCT_ID = 2
 def run():
     print("=== /subscribe streaming client ===")
     sub = NadoSubscriptionClient(ENGINE_BACKEND_URL)
-    sub.connect(timeout=10)
+    sub.connect(open_timeout=15)
     print("connected to:", sub.url)
     try:
         print("time:", sub.time())
@@ -36,8 +34,8 @@ def run():
         print("reading up to 5 pushed events...")
         for _ in range(5):
             try:
-                print("  event:", sub.recv())
-            except WebSocketTimeoutException:
+                print("  event:", sub.recv(timeout=10))
+            except TimeoutError:
                 print("  (no event within timeout)")
                 break
 
@@ -48,7 +46,7 @@ def run():
 
     print("\n=== /ws query client ===")
     ws = NadoWebSocketClient(ENGINE_BACKEND_URL)
-    ws.connect(timeout=10)
+    ws.connect(open_timeout=15)
     print("connected to:", ws.url)
     try:
         resp = ws.query(QueryAllProductsParams())

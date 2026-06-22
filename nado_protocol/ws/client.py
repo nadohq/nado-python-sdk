@@ -1,13 +1,15 @@
 """Synchronous WebSocket clients for the gateway `/ws` and `/subscribe` endpoints.
 
-These are thin transports over `websocket-client`. Message construction lives in
-`nado_protocol.ws.messages`; these clients serialize, send, and receive JSON.
+These are thin transports over the `websockets` library's synchronous client.
+The gateway requires `permessage-deflate` compression on the handshake (which
+`websockets` negotiates by default); message construction lives in
+`nado_protocol.ws.messages`.
 """
 
 import json
 from typing import Iterator, List, Optional, Union
 
-from websocket import WebSocket, create_connection
+from websockets.sync.client import ClientConnection, connect
 
 from nado_protocol.engine_client.types.execute import ExecuteParams, ExecuteRequest
 from nado_protocol.engine_client.types.query import QueryRequest
@@ -33,15 +35,15 @@ def http_url_to_ws(url: str, path: str = "") -> str:
 class _BaseWebSocketClient:
     def __init__(self, url: str, path: str):
         self.url = http_url_to_ws(url, path)
-        self.ws: Optional[WebSocket] = None
+        self.ws: Optional[ClientConnection] = None
         self._id = 0
 
     def connect(self, **kwargs) -> "_BaseWebSocketClient":
-        """Open the WebSocket connection. Extra kwargs go to `create_connection`."""
-        self.ws = create_connection(self.url, **kwargs)
+        """Open the WebSocket connection. Extra kwargs go to `websockets` connect."""
+        self.ws = connect(self.url, **kwargs)
         return self
 
-    def _require_conn(self) -> WebSocket:
+    def _require_conn(self) -> ClientConnection:
         if self.ws is None:
             raise RuntimeError("WebSocket is not connected; call connect() first")
         return self.ws
@@ -53,8 +55,8 @@ class _BaseWebSocketClient:
     def send(self, message: dict) -> None:
         self._require_conn().send(json.dumps(message))
 
-    def recv(self) -> dict:
-        return json.loads(self._require_conn().recv())
+    def recv(self, timeout: Optional[float] = None) -> dict:
+        return json.loads(self._require_conn().recv(timeout=timeout))
 
     def close(self) -> None:
         if self.ws is not None:
@@ -129,7 +131,7 @@ class NadoSubscriptionClient(_BaseWebSocketClient):
         self.send(messages.authenticate_message(auth, id or self.next_id()))
         return self.recv()
 
-    def listen(self) -> Iterator[dict]:
+    def listen(self, timeout: Optional[float] = None) -> Iterator[dict]:
         """Yield pushed event messages until the connection closes."""
         while self.ws is not None:
-            yield self.recv()
+            yield self.recv(timeout=timeout)
