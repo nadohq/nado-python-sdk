@@ -57,6 +57,33 @@ nado-protocol.indexer_client.types
     :show-inheritance:
 
 
+nado-protocol.ws
+------------------
+.. automodule:: nado_protocol.ws
+    :members:
+    :undoc-members:
+    :special-members: __init__
+    :show-inheritance:
+
+
+nado-protocol.engine_client.web
+---------------------------------
+.. automodule:: nado_protocol.engine_client.web
+    :members:
+    :undoc-members:
+    :special-members: __init__
+    :show-inheritance:
+
+
+nado-protocol.engine_client.edge
+----------------------------------
+.. automodule:: nado_protocol.engine_client.edge
+    :members:
+    :undoc-members:
+    :special-members: __init__
+    :show-inheritance:
+
+
 nado-protocol.contracts
 -------------------------
 .. automodule:: nado_protocol.contracts

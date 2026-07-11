@@ -2,7 +2,31 @@ from nado_protocol.utils.enum import StrEnum
 from eth_account import Account
 from eth_account.signers.local import LocalAccount
 from typing import Optional, Union
-from pydantic import BaseModel, AnyUrl, field_validator, model_validator, ConfigDict
+from pydantic import (
+    AnyUrl,
+    BaseModel,
+    ConfigDict,
+    TypeAdapter,
+    ValidationError,
+    field_validator,
+    model_validator,
+)
+
+_URL_ADAPTER = TypeAdapter(AnyUrl)
+
+
+def clean_url(v: str) -> str:
+    """Strip trailing slashes and validate that the value is a well-formed URL.
+
+    Returns the original (de-slashed) string rather than a normalized `AnyUrl`,
+    so schemes like `ws://` and the absence of a trailing slash are preserved.
+    """
+    cleaned = v.rstrip("/")
+    try:
+        _URL_ADAPTER.validate_python(cleaned)
+    except ValidationError as e:
+        raise ValueError(f"Invalid URL: {v!r}") from e
+    return cleaned
 
 
 class NadoBackendURL(StrEnum):
@@ -34,7 +58,7 @@ class NadoClientOpts(BaseModel):
     the signer, the linked signer, the chain ID, and others.
 
     Attributes:
-        url (AnyUrl): The URL of the server.
+        url (str): The URL of the server.
         signer (Optional[Signer]): The signer for the client, if any. It can either be a `LocalAccount` or a private key.
         linked_signer (Optional[Signer]): An optional signer linked the main subaccount to perform executes on it's behalf.
         chain_id (Optional[int]): An optional network chain ID.
@@ -45,7 +69,7 @@ class NadoClientOpts(BaseModel):
         - "linked_signer" cannot be set if "signer" is not set.
     """
 
-    url: AnyUrl
+    url: str
     signer: Optional[Union[LocalAccount, PrivateKey]] = None
     linked_signer: Optional[Signer] = None
     chain_id: Optional[int] = None
@@ -54,35 +78,30 @@ class NadoClientOpts(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @model_validator(mode="after")
-    def check_linked_signer(self):
+    def check_linked_signer(self) -> "NadoClientOpts":
         """
         Validates that if a linked_signer is set, a signer must also be set.
 
         Raises:
             ValueError: If linked_signer is set but signer is not.
-
-        Returns:
-            self: The validated model.
         """
         if self.linked_signer and not self.signer:
             raise ValueError("linked_signer cannot be set if signer is not set")
         return self
 
-    @field_validator("url", mode="before")
+    @field_validator("url")
     @classmethod
-    def clean_url(cls, v: AnyUrl | str) -> str:
+    def clean_url(cls, v: str) -> str:
         """
-        Cleans the URL input by removing trailing slashes.
+        Cleans and validates the URL input, removing trailing slashes.
 
         Args:
-            v (AnyUrl | str): The input URL.
+            v (str): The input URL.
 
         Returns:
             str: The cleaned URL.
         """
-        if v is None:
-            return v
-        return str(v).rstrip("/")
+        return clean_url(v)
 
     @field_validator("signer")
     @classmethod

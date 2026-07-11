@@ -1,8 +1,7 @@
-from typing import Optional, Union
-from typing import Annotated
+from typing import Annotated, List, Optional, Union
+from annotated_types import Len
 from nado_protocol.utils.enum import StrEnum
 from nado_protocol.utils.model import NadoBaseModel
-from pydantic import Field
 
 
 class ResponseStatus(StrEnum):
@@ -137,7 +136,7 @@ class SubaccountPosition(NadoBaseModel):
 
 
 # (price, amount)
-MarketLiquidity = Annotated[list[str], Field(min_length=2, max_length=2)]
+MarketLiquidity = Annotated[List[str], Len(2, 2)]
 
 
 class Asset(NadoBaseModel):

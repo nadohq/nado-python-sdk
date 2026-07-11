@@ -1,5 +1,5 @@
 from typing import Optional, Type, Union, Sequence
-from pydantic import field_serializer, field_validator
+from pydantic import field_validator
 from nado_protocol.contracts.types import NadoExecuteType
 from nado_protocol.engine_client.types.models import ResponseStatus
 from nado_protocol.utils.execute import (
@@ -14,7 +14,7 @@ from nado_protocol.utils.bytes32 import (
     hex_to_bytes32,
     subaccount_to_bytes32,
 )
-from nado_protocol.utils.subaccount import Subaccount, SubaccountParams
+from nado_protocol.utils.subaccount import Subaccount
 from nado_protocol.engine_client.types.query import OrderData
 
 
@@ -101,13 +101,9 @@ class CancelOrdersParams(BaseParamsSigned):
     digests: list[Digest]
     nonce: Optional[int] = None
 
-    @field_validator("digests", mode="before")
+    @field_validator("digests")
     @classmethod
-    def digests_validator(cls, v: list[Digest]) -> list[bytes]:
-        return [hex_to_bytes32(digest) for digest in v]
-
-    @field_serializer("digests")
-    def digests_serializer(self, v: list[Digest]) -> list[bytes]:
+    def serialize_digests(cls, v: list[Digest]) -> list[bytes]:
         return [hex_to_bytes32(digest) for digest in v]
 
 
@@ -159,6 +155,31 @@ class WithdrawCollateralParams(BaseParamsSigned):
     spot_leverage: Optional[bool] = None
 
 
+class WithdrawCollateralV2Params(BaseParamsSigned):
+    """
+    Parameters required to withdraw collateral with a designated recipient (V2).
+
+    Attributes:
+        productId (int): The ID of the product to withdraw collateral from.
+
+        amount (int): The amount of collateral to be withdrawn.
+
+        sendTo (str): The 20-byte recipient address. The zero address sends to the
+        subaccount owner.
+
+        appendix (int): Additional encoded withdrawal data.
+
+        spot_leverage (Optional[bool]): Indicates whether leverage is to be used. Defaults to True.
+        If set to False, the transaction fails if it causes a borrow on the subaccount.
+    """
+
+    productId: int
+    amount: int
+    sendTo: str
+    appendix: int = 0
+    spot_leverage: Optional[bool] = None
+
+
 class LiquidateSubaccountParams(BaseParamsSigned):
     """
     Parameters required to liquidate a subaccount.
@@ -181,15 +202,9 @@ class LiquidateSubaccountParams(BaseParamsSigned):
     isEncodedSpread: bool
     amount: int
 
-    @field_validator("liquidatee", mode="before")
+    @field_validator("liquidatee")
     @classmethod
-    def liquidatee_validator(cls, v: Subaccount) -> bytes:
-        if isinstance(v, dict):
-            v = SubaccountParams.model_validate(v)
-        return subaccount_to_bytes32(v)
-
-    @field_serializer("liquidatee")
-    def liquidatee_serializer(self, v: Subaccount) -> bytes:
+    def serialize_liquidatee(cls, v: Subaccount) -> bytes:
         return subaccount_to_bytes32(v)
 
 
@@ -235,15 +250,31 @@ class LinkSignerParams(BaseParamsSigned):
 
     signer: Subaccount
 
-    @field_validator("signer", mode="before")
+    @field_validator("signer")
     @classmethod
-    def signer_validator(cls, v: Subaccount) -> bytes:
-        if isinstance(v, dict):
-            v = SubaccountParams.model_validate(v)
+    def serialize_signer(cls, v: Subaccount) -> bytes:
         return subaccount_to_bytes32(v)
 
-    @field_serializer("signer")
-    def signer_serializer(self, v: Subaccount) -> bytes:
+
+class TransferQuoteParams(BaseParamsSigned):
+    """
+    Parameters required to transfer quote (USDC) between subaccounts.
+
+    Attributes:
+        recipient (Subaccount): The destination subaccount.
+
+        amount (int): The quote amount to transfer, multiplied by 1e18.
+
+    Methods:
+        serialize_recipient(cls, v: Subaccount) -> bytes: Validates and converts the recipient subaccount to bytes32 format.
+    """
+
+    recipient: Subaccount
+    amount: int
+
+    @field_validator("recipient")
+    @classmethod
+    def serialize_recipient(cls, v: Subaccount) -> bytes:
         return subaccount_to_bytes32(v)
 
 
@@ -253,11 +284,13 @@ ExecuteParams = Union[
     CancelOrdersParams,
     CancelProductOrdersParams,
     WithdrawCollateralParams,
+    WithdrawCollateralV2Params,
     LiquidateSubaccountParams,
     MintNlpParams,
     BurnNlpParams,
     LinkSignerParams,
     CancelAndPlaceParams,
+    TransferQuoteParams,
 ]
 
 
@@ -276,7 +309,7 @@ class PlaceOrderRequest(NadoBaseModel):
 
     @field_validator("place_order")
     @classmethod
-    def validate_place_order(cls, v: PlaceOrderParams) -> PlaceOrderParams:
+    def serialize(cls, v: PlaceOrderParams) -> PlaceOrderParams:
         if v.order.nonce is None:
             raise ValueError("Missing order `nonce`")
         if v.signature is None:
@@ -287,20 +320,6 @@ class PlaceOrderRequest(NadoBaseModel):
             ["nonce", "priceX18", "amount", "expiration", "appendix"], str
         )
         return v
-
-    # @field_serializer("place_order")
-    # def serialize_place_order(self, v: PlaceOrderParams) -> dict:
-    #     dumped = v.model_dump()
-    #     order_out = dict(dumped["order"])
-    #     sender = v.order.sender
-    #     if isinstance(sender, bytes):
-    #         order_out["sender"] = bytes32_to_hex(sender)
-    #     elif isinstance(sender, str):
-    #         order_out["sender"] = sender.lower()
-    #     for key in ("nonce", "priceX18", "amount", "expiration", "appendix"):
-    #         order_out[key] = str(order_out[key])
-    #     dumped["order"] = order_out
-    #     return dumped
 
 
 class PlaceOrdersRequest(NadoBaseModel):
@@ -316,8 +335,9 @@ class PlaceOrdersRequest(NadoBaseModel):
 
     place_orders: PlaceOrdersParams
 
-    @field_serializer("place_orders")
-    def place_orders_serializer(self, v: PlaceOrdersParams) -> PlaceOrdersParams:
+    @field_validator("place_orders")
+    @classmethod
+    def serialize(cls, v: PlaceOrdersParams) -> PlaceOrdersParams:
         for order_params in v.orders:
             if order_params.order.nonce is None:
                 raise ValueError("Missing order `nonce`")
@@ -354,8 +374,9 @@ class TxRequest(NadoBaseModel):
     spot_leverage: Optional[bool] = None
     digest: Optional[str] = None
 
-    @field_serializer("tx")
-    def tx_serializer(self, v: dict) -> dict:
+    @field_validator("tx")
+    @classmethod
+    def serialize(cls, v: dict) -> dict:
         """
         Validates and serializes the transaction parameters.
 
@@ -375,11 +396,13 @@ class TxRequest(NadoBaseModel):
         return v
 
 
-def to_tx_request(v: BaseParamsSigned) -> TxRequest:
+def to_tx_request(cls: Type[NadoBaseModel], v: BaseParamsSigned) -> TxRequest:
     """
     Converts a BaseParamsSigned object to a TxRequest object.
 
     Args:
+        cls (Type[NadoBaseModel]): The type of the model to convert.
+
         v (BaseParamsSigned): The signed parameters to be converted.
 
     Raises:
@@ -391,10 +414,10 @@ def to_tx_request(v: BaseParamsSigned) -> TxRequest:
     if v.signature is None:
         raise ValueError("Missing `signature`")
     return TxRequest(
-        tx=v.model_dump(exclude={"signature", "digest", "spot_leverage"}),
+        tx=v.dict(exclude={"signature", "digest", "spot_leverage"}),
         signature=v.signature,
-        spot_leverage=v.model_dump().get("spot_leverage"),
-        digest=v.model_dump().get("digest"),
+        spot_leverage=v.dict().get("spot_leverage"),
+        digest=v.dict().get("digest"),
     )
 
 
@@ -411,25 +434,26 @@ class CancelOrdersRequest(NadoBaseModel):
         to_tx_request: Validates and converts 'cancel_orders' into a transaction request.
     """
 
-    cancel_orders: TxRequest
+    cancel_orders: CancelOrdersParams
 
-    @field_validator("cancel_orders", mode="before")
+    @field_validator("cancel_orders")
     @classmethod
-    def cancel_orders_to_tx_request(cls, v):  # noqa: ANN206
-        params = CancelOrdersParams.model_validate(v)
-        tx_request = to_tx_request(params)
-        sender = tx_request.tx.get("sender")
-        if isinstance(sender, bytes):
-            tx_request.tx["sender"] = bytes32_to_hex(sender)
-        nonce = tx_request.tx.get("nonce")
-        if nonce is not None and not isinstance(nonce, str):
-            tx_request.tx["nonce"] = str(nonce)
-        digests = tx_request.tx.get("digests")
-        if isinstance(digests, list):
-            tx_request.tx["digests"] = [
-                bytes32_to_hex(x) if isinstance(x, bytes) else x for x in digests
-            ]
-        return tx_request
+    def serialize(cls, v: CancelOrdersParams) -> CancelOrdersParams:
+        """
+        Serializes 'digests' in 'cancel_orders' into their hexadecimal representation.
+
+        Args:
+            v (CancelOrdersParams): The parameters of the orders to be cancelled.
+
+        Returns:
+            CancelOrdersParams: The 'cancel_orders' with serialized 'digests'.
+        """
+        v.serialize_dict(
+            ["digests"], lambda digests: [bytes32_to_hex(x) for x in digests]
+        )
+        return v
+
+    _validator = field_validator("cancel_orders")(classmethod(to_tx_request))
 
 
 class CancelAndPlaceRequest(NadoBaseModel):
@@ -442,8 +466,9 @@ class CancelAndPlaceRequest(NadoBaseModel):
 
     cancel_and_place: CancelAndPlaceParams
 
-    @field_serializer("cancel_and_place")
-    def cancel_and_place_serializer(self, v: CancelAndPlaceParams) -> dict:
+    @field_validator("cancel_and_place")
+    @classmethod
+    def serialize(cls, v: CancelAndPlaceParams) -> dict:
         cancel_tx = TxRequest.model_validate(
             CancelOrdersRequest(cancel_orders=v.cancel_orders).cancel_orders
         )
@@ -465,12 +490,9 @@ class CancelProductOrdersRequest(NadoBaseModel):
         to_tx_request: Validates and converts 'cancel_product_orders' into a transaction request.
     """
 
-    cancel_product_orders: TxRequest
+    cancel_product_orders: CancelProductOrdersParams
 
-    @field_validator("cancel_product_orders", mode="before")
-    @classmethod
-    def cancel_product_orders_to_tx_request(cls, v):  # noqa: ANN206
-        return to_tx_request(v)
+    _validator = field_validator("cancel_product_orders")(classmethod(to_tx_request))
 
 
 class WithdrawCollateralRequest(NadoBaseModel):
@@ -486,17 +508,42 @@ class WithdrawCollateralRequest(NadoBaseModel):
         to_tx_request: Validates and converts 'withdraw_collateral' into a transaction request.
     """
 
-    withdraw_collateral: TxRequest
+    withdraw_collateral: WithdrawCollateralParams
 
-    @field_validator("withdraw_collateral", mode="before")
+    @field_validator("withdraw_collateral")
     @classmethod
-    def withdraw_collateral_to_tx_request(cls, v):  # noqa: ANN206
-        params = WithdrawCollateralParams.model_validate(v)
-        tx_request = to_tx_request(params)
-        amount = tx_request.tx.get("amount")
-        if amount is not None and not isinstance(amount, str):
-            tx_request.tx["amount"] = str(amount)
-        return tx_request
+    def serialize(cls, v: WithdrawCollateralParams) -> WithdrawCollateralParams:
+        v.serialize_dict(["amount"], str)
+        return v
+
+    _validator = field_validator("withdraw_collateral")(classmethod(to_tx_request))
+
+
+class WithdrawCollateralV2Request(NadoBaseModel):
+    """
+    Parameters for a withdraw collateral V2 request.
+
+    Attributes:
+        withdraw_collateral_v2 (WithdrawCollateralV2Params): The parameters of the collateral to be withdrawn.
+
+    Methods:
+        serialize: Validates and converts the 'amount'/'appendix' attributes to strings and lowercases 'sendTo'.
+
+        to_tx_request: Validates and converts 'withdraw_collateral_v2' into a transaction request.
+    """
+
+    withdraw_collateral_v2: WithdrawCollateralV2Params
+
+    @field_validator("withdraw_collateral_v2")
+    @classmethod
+    def serialize(cls, v: WithdrawCollateralV2Params) -> WithdrawCollateralV2Params:
+        v.serialize_dict(["amount", "appendix"], str)
+        v.serialize_dict(["sendTo"], lambda addr: addr.lower())
+        return v
+
+    _validator = field_validator("withdraw_collateral_v2")(
+        classmethod(to_tx_request)
+    )
 
 
 class LiquidateSubaccountRequest(NadoBaseModel):
@@ -513,21 +560,16 @@ class LiquidateSubaccountRequest(NadoBaseModel):
         to_tx_request: Validates and converts 'liquidate_subaccount' into a transaction request.
     """
 
-    liquidate_subaccount: TxRequest
+    liquidate_subaccount: LiquidateSubaccountParams
 
-    @field_validator("liquidate_subaccount", mode="before")
+    @field_validator("liquidate_subaccount")
     @classmethod
-    def liquidate_subaccount_to_tx_request(cls, v):  # noqa: ANN206
-        params = LiquidateSubaccountParams.model_validate(v)
-        tx_request = to_tx_request(params)
-        amount = tx_request.tx.get("amount")
-        if amount is not None and not isinstance(amount, str):
-            tx_request.tx["amount"] = str(amount)
+    def serialize(cls, v: LiquidateSubaccountParams) -> LiquidateSubaccountParams:
+        v.serialize_dict(["amount"], str)
+        v.serialize_dict(["liquidatee"], bytes32_to_hex)
+        return v
 
-        liquidatee = tx_request.tx.get("liquidatee")
-        if isinstance(liquidatee, bytes):
-            tx_request.tx["liquidatee"] = bytes32_to_hex(liquidatee)
-        return tx_request
+    _validator = field_validator("liquidate_subaccount")(classmethod(to_tx_request))
 
 
 class MintNlpRequest(NadoBaseModel):
@@ -543,17 +585,15 @@ class MintNlpRequest(NadoBaseModel):
         to_tx_request: Validates and converts 'mint_nlp' into a transaction request.
     """
 
-    mint_nlp: TxRequest
+    mint_nlp: MintNlpParams
 
-    @field_validator("mint_nlp", mode="before")
+    @field_validator("mint_nlp")
     @classmethod
-    def mint_nlp_to_tx_request(cls, v):  # noqa: ANN206
-        params = MintNlpParams.model_validate(v)
-        tx_request = to_tx_request(params)
-        quote_amount = tx_request.tx.get("quoteAmount")
-        if quote_amount is not None and not isinstance(quote_amount, str):
-            tx_request.tx["quoteAmount"] = str(quote_amount)
-        return tx_request
+    def serialize(cls, v: MintNlpParams) -> MintNlpParams:
+        v.serialize_dict(["quoteAmount"], str)
+        return v
+
+    _validator = field_validator("mint_nlp")(classmethod(to_tx_request))
 
 
 class BurnNlpRequest(NadoBaseModel):
@@ -569,17 +609,15 @@ class BurnNlpRequest(NadoBaseModel):
         to_tx_request: Validates and converts 'burn_nlp' into a transaction request.
     """
 
-    burn_nlp: TxRequest
+    burn_nlp: BurnNlpParams
 
-    @field_validator("burn_nlp", mode="before")
+    @field_validator("burn_nlp")
     @classmethod
-    def burn_nlp_to_tx_request(cls, v):  # noqa: ANN206
-        params = BurnNlpParams.model_validate(v)
-        tx_request = to_tx_request(params)
-        nlp_amount = tx_request.tx.get("nlpAmount")
-        if nlp_amount is not None and not isinstance(nlp_amount, str):
-            tx_request.tx["nlpAmount"] = str(nlp_amount)
-        return tx_request
+    def serialize(cls, v: BurnNlpParams) -> BurnNlpParams:
+        v.serialize_dict(["nlpAmount"], str)
+        return v
+
+    _validator = field_validator("burn_nlp")(classmethod(to_tx_request))
 
 
 class LinkSignerRequest(NadoBaseModel):
@@ -595,19 +633,40 @@ class LinkSignerRequest(NadoBaseModel):
         to_tx_request: Validates and converts 'link_signer' into a transaction request.
     """
 
-    link_signer: TxRequest
+    link_signer: LinkSignerParams
 
-    @field_validator("link_signer", mode="before")
+    @field_validator("link_signer")
     @classmethod
-    def link_signer_to_tx_request(cls, v):  # noqa: ANN206
-        params = LinkSignerParams.model_validate(v)
-        tx_request = to_tx_request(params)
+    def serialize(cls, v: LinkSignerParams) -> LinkSignerParams:
+        v.serialize_dict(["signer"], bytes32_to_hex)
+        return v
 
-        # TxRequest normalizes `sender` and `nonce` only; convert bytes32 signer to 0x... string.
-        signer_val = tx_request.tx.get("signer")
-        if isinstance(signer_val, bytes):
-            tx_request.tx["signer"] = bytes32_to_hex(signer_val)
-        return tx_request
+    _validator = field_validator("link_signer")(classmethod(to_tx_request))
+
+
+class TransferQuoteRequest(NadoBaseModel):
+    """
+    Parameters for a transfer quote request.
+
+    Attributes:
+        transfer_quote (TransferQuoteParams): The parameters for the quote transfer.
+
+    Methods:
+        serialize: Validates and serializes the 'amount' and 'recipient' attributes.
+
+        to_tx_request: Validates and converts 'transfer_quote' into a transaction request.
+    """
+
+    transfer_quote: TransferQuoteParams
+
+    @field_validator("transfer_quote")
+    @classmethod
+    def serialize(cls, v: TransferQuoteParams) -> TransferQuoteParams:
+        v.serialize_dict(["amount"], str)
+        v.serialize_dict(["recipient"], bytes32_to_hex)
+        return v
+
+    _validator = field_validator("transfer_quote")(classmethod(to_tx_request))
 
 
 ExecuteRequest = Union[
@@ -617,10 +676,12 @@ ExecuteRequest = Union[
     CancelProductOrdersRequest,
     CancelAndPlaceRequest,
     WithdrawCollateralRequest,
+    WithdrawCollateralV2Request,
     LiquidateSubaccountRequest,
     MintNlpRequest,
     BurnNlpRequest,
     LinkSignerRequest,
+    TransferQuoteRequest,
 ]
 
 
@@ -641,6 +702,14 @@ class PlaceOrdersItemResponse(NadoBaseModel):
     error: Optional[str] = None
 
 
+class PlaceOrdersResponse(NadoBaseModel):
+    """
+    Data model for place orders response.
+    """
+
+    place_orders: list[PlaceOrdersItemResponse]
+
+
 class CancelOrdersResponse(NadoBaseModel):
     """
     Data model for cancelled orders response.
@@ -650,7 +719,7 @@ class CancelOrdersResponse(NadoBaseModel):
 
 
 ExecuteResponseData = Union[
-    PlaceOrderResponse, list[PlaceOrdersItemResponse], CancelOrdersResponse
+    PlaceOrderResponse, PlaceOrdersResponse, CancelOrdersResponse
 ]
 
 
@@ -711,6 +780,10 @@ def to_execute_request(params: ExecuteParams) -> ExecuteRequest:
             WithdrawCollateralRequest,
             NadoExecuteType.WITHDRAW_COLLATERAL.value,
         ),
+        WithdrawCollateralV2Params: (
+            WithdrawCollateralV2Request,
+            NadoExecuteType.WITHDRAW_COLLATERAL_V2.value,
+        ),
         LiquidateSubaccountParams: (
             LiquidateSubaccountRequest,
             NadoExecuteType.LIQUIDATE_SUBACCOUNT.value,
@@ -721,6 +794,10 @@ def to_execute_request(params: ExecuteParams) -> ExecuteRequest:
         CancelAndPlaceParams: (
             CancelAndPlaceRequest,
             NadoExecuteType.CANCEL_AND_PLACE.value,
+        ),
+        TransferQuoteParams: (
+            TransferQuoteRequest,
+            NadoExecuteType.TRANSFER_QUOTE.value,
         ),
     }
 

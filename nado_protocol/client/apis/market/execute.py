@@ -8,7 +8,6 @@ from nado_protocol.engine_client.types.execute import (
     MintNlpParams,
     PlaceMarketOrderParams,
     PlaceOrderParams,
-    PlaceOrdersParams,
 )
 from nado_protocol.client.apis.base import NadoBaseAPI
 from nado_protocol.trigger_client.types.execute import (
@@ -78,15 +77,6 @@ class MarketExecuteAPI(NadoBaseAPI):
             Exception: If there is an error during the execution or the response status is not "success".
         """
         return self.context.engine_client.place_order(params)
-    
-    def place_orders(self, params: PlaceOrdersParams) -> ExecuteResponse:
-        """
-        Places multiple orders through the engine.
-
-        Args:
-            params (PlaceOrdersParams): Parameters required to place multiple orders.
-        """
-        return self.context.engine_client.place_orders(params)
 
     def place_market_order(self, params: PlaceMarketOrderParams) -> ExecuteResponse:
         """

@@ -1,7 +1,6 @@
 from nado_protocol.utils.enum import StrEnum
 from typing import Optional, Union
 from pydantic import field_validator
-from pydantic import ConfigDict
 from nado_protocol.utils.model import NadoBaseModel
 from nado_protocol.engine_client.types.models import (
     ApplyDeltaTx,
@@ -39,9 +38,15 @@ class EngineQueryType(StrEnum):
     LINKED_SIGNER = "linked_signer"
     MARKET_LIQUIDITY = "market_liquidity"
     MARKET_PRICE = "market_price"
+    MARKET_PRICES = "market_prices"
     MAX_ORDER_SIZE = "max_order_size"
     MAX_WITHDRAWABLE = "max_withdrawable"
     MAX_NLP_MINTABLE = "max_nlp_mintable"
+    MAX_NLP_BURNABLE = "max_nlp_burnable"
+    INSURANCE = "insurance"
+    NLP_POOL_INFO = "nlp_pool_info"
+    NLP_LOCKED_BALANCES = "nlp_locked_balances"
+    EDGE_ALL_PRODUCTS = "edge_all_products"
     SUBACCOUNT_INFO = "subaccount_info"
     SUBACCOUNT_ORDERS = "subaccount_orders"
     ORDERS = "orders"
@@ -144,6 +149,57 @@ class QuerySymbolsParams(NadoBaseModel):
     type: str = EngineQueryType.SYMBOLS.value
     product_type: Optional[str] = None
     product_ids: Optional[list[int]] = None
+
+
+class QueryMarketPricesParams(NadoBaseModel):
+    """
+    Parameters for querying market prices for multiple products at once.
+    """
+
+    type: str = EngineQueryType.MARKET_PRICES.value
+    product_ids: list[int]
+
+
+class QueryInsuranceParams(NadoBaseModel):
+    """
+    Parameters for querying the insurance fund balance.
+    """
+
+    type: str = EngineQueryType.INSURANCE.value
+
+
+class QueryMaxNlpBurnableParams(NadoBaseModel):
+    """
+    Parameters for querying the maximum NLP amount burnable by a subaccount.
+    """
+
+    type: str = EngineQueryType.MAX_NLP_BURNABLE.value
+    sender: str
+
+
+class QueryNlpPoolInfoParams(NadoBaseModel):
+    """
+    Parameters for querying NLP pool info.
+    """
+
+    type: str = EngineQueryType.NLP_POOL_INFO.value
+
+
+class QueryNlpLockedBalancesParams(NadoBaseModel):
+    """
+    Parameters for querying a subaccount's locked NLP balances.
+    """
+
+    type: str = EngineQueryType.NLP_LOCKED_BALANCES.value
+    subaccount: str
+
+
+class QueryEdgeAllProductsParams(NadoBaseModel):
+    """
+    Parameters for querying all products across chains (edge).
+    """
+
+    type: str = EngineQueryType.EDGE_ALL_PRODUCTS.value
 
 
 class QueryAllProductsParams(NadoBaseModel):
@@ -259,9 +315,15 @@ QueryRequest = Union[
     QuerySymbolsParams,
     QueryAllProductsParams,
     QueryMarketPriceParams,
+    QueryMarketPricesParams,
     QueryMaxOrderSizeParams,
     QueryMaxWithdrawableParams,
     QueryMaxLpMintableParams,
+    QueryMaxNlpBurnableParams,
+    QueryInsuranceParams,
+    QueryNlpPoolInfoParams,
+    QueryNlpLockedBalancesParams,
+    QueryEdgeAllProductsParams,
     QueryFeeRatesParams,
     QueryHealthGroupsParams,
     QueryLinkedSignerParams,
@@ -410,8 +472,6 @@ class AllProductsData(NadoBaseModel):
     Data model for all the products available.
     """
 
-    model_config = ConfigDict(extra="forbid")
-
     spot_products: list[SpotProduct]
     perp_products: list[PerpProduct]
 
@@ -424,6 +484,78 @@ class MarketPriceData(NadoBaseModel):
     product_id: int
     bid_x18: str
     ask_x18: str
+
+
+class MarketPricesData(NadoBaseModel):
+    """
+    Data model for the market prices of multiple products.
+    """
+
+    market_prices: list[MarketPriceData]
+
+
+class InsuranceData(NadoBaseModel):
+    """
+    Data model for the insurance fund balance.
+    """
+
+    insurance: str
+
+
+class MaxNlpBurnableData(NadoBaseModel):
+    """
+    Data model for the maximum NLP amount burnable.
+    """
+
+    max_nlp_amount: str
+
+
+class NlpPoolData(NadoBaseModel):
+    """
+    Data model for a single NLP pool.
+    """
+
+    pool_id: int
+    subaccount: str
+    owner: str
+    balance_weight_x18: str
+    subaccount_info: SubaccountInfoData
+    open_orders: list[OrderData]
+
+
+class NlpPoolInfoData(NadoBaseModel):
+    """
+    Data model for NLP pool info.
+    """
+
+    nlp_pools: list[NlpPoolData]
+
+
+class NlpLockedBalanceData(NadoBaseModel):
+    """
+    Data model for a single locked NLP balance entry.
+    """
+
+    balance: SpotProductBalance
+    unlocked_at: str
+
+
+class NlpLockedBalancesData(NadoBaseModel):
+    """
+    Data model for a subaccount's locked NLP balances.
+    """
+
+    balance_locked: SpotProductBalance
+    balance_unlocked: SpotProductBalance
+    locked_balances: list[NlpLockedBalanceData]
+
+
+class EdgeAllProductsData(NadoBaseModel):
+    """
+    Data model for all products across chains, keyed by chain id.
+    """
+
+    edge_all_products: dict
 
 
 class MaxOrderSizeData(NadoBaseModel):
@@ -502,9 +634,15 @@ QueryResponseData = Union[
     SymbolsData,
     AllProductsData,
     MarketPriceData,
+    MarketPricesData,
     MaxOrderSizeData,
     MaxWithdrawableData,
     MaxLpMintableData,
+    MaxNlpBurnableData,
+    InsuranceData,
+    NlpPoolInfoData,
+    NlpLockedBalancesData,
+    EdgeAllProductsData,
     FeeRatesData,
     HealthGroupsData,
     LinkedSignerData,

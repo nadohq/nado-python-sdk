@@ -1,6 +1,7 @@
-from pydantic import BaseModel, AnyUrl, field_validator
+from pydantic import BaseModel, field_validator
 from nado_protocol.indexer_client.types.models import *
 from nado_protocol.indexer_client.types.query import *
+from nado_protocol.utils.backend import clean_url
 
 
 class IndexerClientOpts(BaseModel):
@@ -8,14 +9,12 @@ class IndexerClientOpts(BaseModel):
     Model representing the options for the Indexer Client
     """
 
-    url: AnyUrl
+    url: str
 
-    @field_validator("url", mode="before")
+    @field_validator("url")
     @classmethod
-    def clean_url(cls, v: AnyUrl | str) -> str:
-        if v is None:
-            return v
-        return str(v).rstrip("/")
+    def clean_url(cls, v: str) -> str:
+        return clean_url(v)
 
 
 __all__ = [

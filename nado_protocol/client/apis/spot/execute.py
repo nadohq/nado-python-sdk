@@ -4,7 +4,9 @@ from eth_account.signers.local import LocalAccount
 from nado_protocol.client.apis.spot.base import BaseSpotAPI
 from nado_protocol.engine_client.types.execute import (
     ExecuteResponse,
+    TransferQuoteParams,
     WithdrawCollateralParams,
+    WithdrawCollateralV2Params,
 )
 from nado_protocol.utils.exceptions import MissingSignerException
 
@@ -58,6 +60,30 @@ class SpotExecuteAPI(BaseSpotAPI):
             Exception: If there is an error during the execution or the response status is not "success".
         """
         return self.context.engine_client.withdraw_collateral(params)
+
+    def withdraw_v2(self, params: WithdrawCollateralV2Params) -> ExecuteResponse:
+        """
+        Executes a V2 withdrawal that can send funds to a designated recipient.
+
+        Args:
+            params (WithdrawCollateralV2Params): Parameters including the recipient (`sendTo`) and amount.
+
+        Returns:
+            ExecuteResponse: The response from the engine execution.
+        """
+        return self.context.engine_client.withdraw_collateral_v2(params)
+
+    def transfer_quote(self, params: TransferQuoteParams) -> ExecuteResponse:
+        """
+        Transfers quote (USDC) to another subaccount via the off-chain engine.
+
+        Args:
+            params (TransferQuoteParams): Parameters including the recipient subaccount and amount.
+
+        Returns:
+            ExecuteResponse: The response from the engine execution.
+        """
+        return self.context.engine_client.transfer_quote(params)
 
     def approve_allowance(
         self, product_id: int, amount: int, signer: Optional[LocalAccount] = None

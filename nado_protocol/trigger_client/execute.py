@@ -42,7 +42,7 @@ class TriggerExecuteClient(NadoBaseExecute):
     def __init__(self, opts: TriggerClientOpts):
         super().__init__(opts)
         self._opts: TriggerClientOpts = TriggerClientOpts.model_validate(opts)
-        self.url: str = str(self._opts.url).rstrip("/")
+        self.url: str = self._opts.url
         self.session = requests.Session()
         self.session.headers.update({"Accept-Encoding": "gzip"})
 
@@ -95,11 +95,11 @@ class TriggerExecuteClient(NadoBaseExecute):
             BadStatusCodeException: If the server response status code is not 200.
             ExecuteFailedException: If there's an error in the execution or the response status is not "success".
         """
-        res = self.session.post(f"{self.url}/execute", json=req.model_dump())
+        res = self.session.post(f"{self.url}/execute", json=req.dict())
         if res.status_code != 200:
             raise BadStatusCodeException(res.text)
         try:
-            execute_res = ExecuteResponse(**res.json(), req=req.model_dump())
+            execute_res = ExecuteResponse(**res.json(), req=req.dict())
         except Exception:
             raise ExecuteFailedException(res.text)
         if execute_res.status != "success":
@@ -107,15 +107,12 @@ class TriggerExecuteClient(NadoBaseExecute):
         return execute_res
 
     def place_trigger_order(self, params: PlaceTriggerOrderParams) -> ExecuteResponse:
-        # Work on a deep copy to avoid mutating caller-owned params across retries.
-        parsed_params = PlaceTriggerOrderParams.model_validate(params).model_copy(deep=True)
-        parsed_params.order = self.prepare_execute_params(parsed_params.order, True)
-        parsed_params.signature = parsed_params.signature or self._sign(
-            NadoExecuteType.PLACE_ORDER,
-            parsed_params.order.model_dump(),
-            parsed_params.product_id,
+        params = PlaceTriggerOrderParams.model_validate(params)
+        params.order = self.prepare_execute_params(params.order, True)
+        params.signature = params.signature or self._sign(
+            NadoExecuteType.PLACE_ORDER, params.order.dict(), params.product_id
         )
-        return self.execute(parsed_params)
+        return self.execute(params)
 
     def place_twap_order(
         self,

@@ -88,8 +88,8 @@ def subaccount_to_bytes32(
             name = name.hex() if isinstance(name, bytes) else name
             return hex_to_bytes32(subaccount + str_to_hex(name))
     elif isinstance(subaccount, SubaccountParams):
-        subaccount_owner = subaccount.model_dump().get("subaccount_owner")
-        subaccount_name = subaccount.model_dump().get("subaccount_name")
+        subaccount_owner = subaccount.dict().get("subaccount_owner")
+        subaccount_name = subaccount.dict().get("subaccount_name")
         if subaccount_owner is None or subaccount_name is None:
             raise ValueError("Missing `subaccount_owner` or `subaccount_name`")
         else:

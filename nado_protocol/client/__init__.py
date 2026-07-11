@@ -16,8 +16,6 @@ from nado_protocol.utils.backend import NadoBackendURL, Signer
 from nado_protocol.utils.enum import StrEnum
 from nado_protocol.client.context import *
 
-from pydantic import AnyUrl, TypeAdapter
-
 
 class NadoClientMode(StrEnum):
     """
@@ -167,9 +165,9 @@ def create_nado_client(
     context = create_nado_client_context(
         NadoClientContextOpts(
             rpc_node_url=rpc_node_url,
-            engine_endpoint_url=TypeAdapter(AnyUrl).validate_python( engine_endpoint_url),
-            indexer_endpoint_url=TypeAdapter(AnyUrl).validate_python( indexer_endpoint_url),
-            trigger_endpoint_url=TypeAdapter(AnyUrl).validate_python( trigger_endpoint_url),
+            engine_endpoint_url=engine_endpoint_url,
+            indexer_endpoint_url=indexer_endpoint_url,
+            trigger_endpoint_url=trigger_endpoint_url,
             contracts_context=contracts_context,
         ),
         signer,

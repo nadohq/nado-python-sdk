@@ -17,9 +17,15 @@ from nado_protocol.engine_client.types.query import (
     LinkedSignerData,
     MarketLiquidityData,
     MarketPriceData,
+    MarketPricesData,
     MaxLpMintableData,
+    MaxNlpBurnableData,
     MaxOrderSizeData,
     MaxWithdrawableData,
+    InsuranceData,
+    NlpPoolInfoData,
+    NlpLockedBalancesData,
+    EdgeAllProductsData,
     NoncesData,
     ProductSymbolsData,
     SubaccountOpenOrdersData,
@@ -32,9 +38,15 @@ from nado_protocol.engine_client.types.query import (
     QueryLinkedSignerParams,
     QueryMarketLiquidityParams,
     QueryMarketPriceParams,
+    QueryMarketPricesParams,
     QueryMaxLpMintableParams,
+    QueryMaxNlpBurnableParams,
     QueryMaxOrderSizeParams,
     QueryMaxWithdrawableParams,
+    QueryInsuranceParams,
+    QueryNlpPoolInfoParams,
+    QueryNlpLockedBalancesParams,
+    QueryEdgeAllProductsParams,
     QueryNoncesParams,
     QuerySubaccountOpenOrdersParams,
     QuerySubaccountMultiProductOpenOrdersParams,
@@ -74,8 +86,7 @@ class EngineQueryClient:
             opts (EngineClientOpts): Options for the client.
         """
         self._opts: EngineClientOpts = EngineClientOpts.model_validate(opts)
-        # Keep URL as plain string without trailing slash for stable comparisons
-        self.url: str = str(self._opts.url).rstrip("/")
+        self.url: str = self._opts.url
         self.url_v2: str = self.url.replace("/v1", "") + "/v2"
         self.session = requests.Session()  # type: ignore
         self.session.headers.update({"Accept-Encoding": "gzip"})
@@ -94,7 +105,7 @@ class EngineQueryClient:
             BadStatusCodeException: If the response status code is not 200.
             QueryFailedException: If the query status is not "success".
         """
-        res = self.session.post(f"{self.url}/query", json=req.model_dump())
+        res = self.session.post(f"{self.url}/query", json=req.dict())
         if res.status_code != 200:
             raise BadStatusCodeException(res.text)
         try:
@@ -207,7 +218,7 @@ class EngineQueryClient:
         """
         txns_str = None
         if txs is not None:
-            txns_str = json.dumps([tx.model_dump() for tx in txs])
+            txns_str = json.dumps([tx.dict() for tx in txs])
 
         pre_state_str = None
         if pre_state is not None:
@@ -334,6 +345,84 @@ class EngineQueryClient:
         return ensure_data_type(
             self.query(QueryMarketPriceParams(product_id=product_id)).data,
             MarketPriceData,
+        )
+
+    def get_market_prices(self, product_ids: list[int]) -> MarketPricesData:
+        """
+        Retrieves the best bid/ask price levels for multiple products at once.
+
+        Args:
+            product_ids (list[int]): The ids of the products to query.
+
+        Returns:
+            MarketPricesData: Market price data for each requested product.
+        """
+        return ensure_data_type(
+            self.query(QueryMarketPricesParams(product_ids=product_ids)).data,
+            MarketPricesData,
+        )
+
+    def get_insurance(self) -> InsuranceData:
+        """
+        Retrieves the current insurance fund balance.
+
+        Returns:
+            InsuranceData: The insurance fund balance.
+        """
+        return ensure_data_type(
+            self.query(QueryInsuranceParams()).data, InsuranceData
+        )
+
+    def get_edge_all_products(self) -> EdgeAllProductsData:
+        """
+        Retrieves all products across chains (edge), keyed by chain id.
+
+        Returns:
+            EdgeAllProductsData: Products keyed by chain id (kept raw).
+        """
+        return ensure_data_type(
+            self.query(QueryEdgeAllProductsParams()).data, EdgeAllProductsData
+        )
+
+    def get_nlp_pool_info(self) -> NlpPoolInfoData:
+        """
+        Retrieves info for all NLP sub-pools.
+
+        Returns:
+            NlpPoolInfoData: The NLP pools (subaccount info / open orders kept raw).
+        """
+        return ensure_data_type(
+            self.query(QueryNlpPoolInfoParams()).data, NlpPoolInfoData
+        )
+
+    def get_nlp_locked_balances(self, subaccount: str) -> NlpLockedBalancesData:
+        """
+        Retrieves a subaccount's locked and unlocked NLP balances.
+
+        Args:
+            subaccount (str): The subaccount (bytes32 hex).
+
+        Returns:
+            NlpLockedBalancesData: Locked/unlocked balances and lock schedule.
+        """
+        return ensure_data_type(
+            self.query(QueryNlpLockedBalancesParams(subaccount=subaccount)).data,
+            NlpLockedBalancesData,
+        )
+
+    def get_max_nlp_burnable(self, sender: str) -> MaxNlpBurnableData:
+        """
+        Retrieves the maximum NLP amount burnable by a subaccount.
+
+        Args:
+            sender (str): Identifier of the subaccount (owner's address + subaccount name) as a hex string.
+
+        Returns:
+            MaxNlpBurnableData: The maximum burnable NLP amount.
+        """
+        return ensure_data_type(
+            self.query(QueryMaxNlpBurnableParams(sender=sender)).data,
+            MaxNlpBurnableData,
         )
 
     def get_max_order_size(self, params: QueryMaxOrderSizeParams) -> MaxOrderSizeData:

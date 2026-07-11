@@ -51,21 +51,6 @@ def querier_addr() -> str:
 
 
 @pytest.fixture
-def order_verifying_contracts() -> list[str]:
-    return [
-        "0x0000000000000000000000000000000000000000",
-        "0x0000000000000000000000000000000000000001",
-        "0x0000000000000000000000000000000000000002",
-        "0x0000000000000000000000000000000000000003",
-    ]
-
-
-@pytest.fixture
-def querier_addr() -> str:
-    return "0x4ed7c70F96B99c776995fB64377f0d4aB3B0e1C1"
-
-
-@pytest.fixture
 def owners() -> list[str]:
     return [
         "0xBE3faCAE76A38c3b61492E57BF65ae0628c4A808",
@@ -145,7 +130,6 @@ def nado_client_with_trigger(
     private_keys: list[str],
 ) -> NadoClient:
     from nado_protocol.client.context import NadoClientContextOpts
-    from pydantic import AnyUrl, TypeAdapter
 
     mock_response = MagicMock()
     mock_response.status_code = 200
@@ -159,7 +143,7 @@ def nado_client_with_trigger(
     mock_post.return_value = mock_response
 
     context_opts = NadoClientContextOpts(
-        trigger_endpoint_url=TypeAdapter(AnyUrl).validate_python("http://trigger.example.com")
+        trigger_endpoint_url="http://trigger.example.com"
     )
     return create_nado_client("testing", private_keys[0], context_opts=context_opts)
 

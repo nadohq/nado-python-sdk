@@ -17,6 +17,14 @@ from nado_protocol.utils.order import gen_order_verifying_contract
 from nado_protocol.utils.subaccount import Subaccount, SubaccountParams
 
 
+def _serialize_sender(v: Subaccount) -> Union[bytes, Subaccount]:
+    """Serialize a sender to bytes32, leaving it unchanged if not yet resolvable."""
+    try:
+        return subaccount_to_bytes32(v)
+    except ValueError:
+        return v
+
+
 class BaseParams(NadoBaseModel):
     """
     Base class for defining request parameters to be sent to the Nado API.
@@ -46,10 +54,7 @@ class BaseParams(NadoBaseModel):
         Returns:
             (bytes|Subaccount): The serialized sender in bytes32 format or the original Subaccount if it cannot be converted to bytes32.
         """
-        try:
-            return subaccount_to_bytes32(v)
-        except ValueError:
-            return v
+        return _serialize_sender(v)
 
 
 class SignatureParams(NadoBaseModel):
@@ -206,7 +211,7 @@ class NadoBaseExecute:
             params.sender.subaccount_owner = (
                 params.sender.subaccount_owner or self.signer.address
             )
-            params.sender = params.serialize_sender(params.sender)
+            params.sender = _serialize_sender(params.sender)
         return params
 
     def _inject_nonce_if_needed(
@@ -356,7 +361,7 @@ class NadoBaseExecute:
         """
         return self.build_digest(
             NadoExecuteType.PLACE_ORDER,
-            order.model_dump(),
+            order.dict(),
             self.order_verifying_contract(product_id),
             self.chain_id,
         )

@@ -67,17 +67,17 @@ class NadoContracts:
     """
 
     w3: Web3
-    network: Optional[NadoNetwork]
+    network: Optional[NadoNetwork] = None
     contracts_context: NadoContractsContext
     querier: Contract
     endpoint: Contract
-    clearinghouse: Optional[Contract]
-    offchain_exchange: Optional[Contract]
-    spot_engine: Optional[Contract]
-    perp_engine: Optional[Contract]
-    airdrop: Optional[Contract]
-    staking: Optional[Contract]
-    foundation_rewards_airdrop: Optional[Contract]
+    clearinghouse: Optional[Contract] = None
+    offchain_exchange: Optional[Contract] = None
+    spot_engine: Optional[Contract] = None
+    perp_engine: Optional[Contract] = None
+    airdrop: Optional[Contract] = None
+    staking: Optional[Contract] = None
+    foundation_rewards_airdrop: Optional[Contract] = None
 
     def __init__(self, node_url: str, contracts_context: NadoContractsContext):
         """
@@ -307,7 +307,7 @@ class NadoContracts:
         signer: LocalAccount,
     ) -> str:
         assert self.foundation_rewards_airdrop is not None
-        proofs = [proof.model_dump() for proof in claim_proofs]
+        proofs = [proof.dict() for proof in claim_proofs]
         return self.execute(
             self.foundation_rewards_airdrop.functions.claim(proofs), signer
         )
@@ -447,7 +447,7 @@ class NadoContracts:
         """
         tx = func.build_transaction(self._build_tx_params(signer))
         signed_tx = self.w3.eth.account.sign_transaction(tx, private_key=signer.key)
-        signed_tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+        signed_tx_hash = self.w3.eth.send_raw_transaction(signed_tx.raw_transaction)
         self.w3.eth.wait_for_transaction_receipt(signed_tx_hash)
         return signed_tx_hash.to_0x_hex()
 
