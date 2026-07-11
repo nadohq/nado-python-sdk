@@ -16,6 +16,7 @@ class IndexerEventType(StrEnum):
     LIQUIDATE_SUBACCOUNT = "liquidate_subaccount"
     DEPOSIT_COLLATERAL = "deposit_collateral"
     WITHDRAW_COLLATERAL = "withdraw_collateral"
+    WITHDRAW_COLLATERAL_V2 = "withdraw_collateral_v2"
     SETTLE_PNL = "settle_pnl"
     MATCH_ORDERS = "match_orders"
     MINT_NLP = "mint_nlp"
