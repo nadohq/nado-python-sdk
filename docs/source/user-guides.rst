@@ -45,6 +45,22 @@ You can build the expected EIP-712 typed data for each execute via :mod:`nado_pr
     >>> order = OrderParams(amount=to_x18(20000), priceX18=to_pow_10(1, 17), expiration=order_expiration, nonce=order_nonce, sender=sender, appendix=appendix)
     >>> order_typed_data = build_eip712_typed_data(NadoExecuteType.PLACE_ORDER, order.dict(), verifying_contract, chain_id)
 
+**Market Order Example:**
+
+
+``place_market_order`` is synchronous and returns an ``ExecuteResponse`` directly. Do not await the call. The ``sender`` field must be a ``SubaccountParams`` instance, not a plain wallet address string.
+
+.. code-block:: python
+
+    >>> from nado_protocol.engine_client.types import PlaceMarketOrderParams
+    >>> from nado_protocol.utils.execute import MarketOrderParams
+    >>> from nado_protocol.utils.subaccount import SubaccountParams
+    >>> # ``client`` is an initialized NadoClient instance.
+    >>> sender = SubaccountParams(subaccount_owner="0xYourWalletAddress", subaccount_name="default")
+    >>> market_order = MarketOrderParams(sender=sender, amount=1)
+    >>> params = PlaceMarketOrderParams(product_id=1, market_order=market_order)
+    >>> response = client.market.place_market_order(params)
+
 **Other Execute Types Example:**
 
 .. code-block:: python

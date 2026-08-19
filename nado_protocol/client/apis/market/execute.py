@@ -82,6 +82,8 @@ class MarketExecuteAPI(NadoBaseAPI):
         """
         Places a market order through the engine.
 
+        This method is synchronous. Do not use ``await`` with the return value.
+
         Args:
             params (PlaceMarketOrderParams): Parameters required to place a market order.
 
