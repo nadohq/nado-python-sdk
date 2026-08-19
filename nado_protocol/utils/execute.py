@@ -81,6 +81,10 @@ class MarketOrderParams(BaseParams):
     """
     Class for defining the parameters of a market order.
 
+    The ``sender`` field inherited from ``BaseParams`` must be a
+    ``SubaccountParams`` instance. A plain wallet address string is not valid
+    for this parameter.
+
     Attributes:
         amount (int): The amount of the asset to be bought or sold in the order. Positive for a `long` position and negative for a `short`.
 
