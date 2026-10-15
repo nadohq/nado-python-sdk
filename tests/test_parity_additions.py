@@ -2,6 +2,8 @@
 
 from unittest.mock import MagicMock
 
+import pytest
+
 from nado_protocol.client import NadoClient
 from nado_protocol.engine_client import EngineClient
 from nado_protocol.engine_client.types.execute import (
@@ -14,6 +16,7 @@ from nado_protocol.engine_client.types.execute import (
 )
 from nado_protocol.indexer_client import IndexerClient
 from nado_protocol.indexer_client.types import IndexerClientOpts
+from nado_protocol.indexer_client.types.query import IndexerNlpSnapshotsParams
 
 
 def _query_response(data: dict) -> MagicMock:
@@ -375,6 +378,59 @@ def test_get_nlp_snapshots(mock_post: MagicMock):
     sent = mock_post.call_args.kwargs["json"]["nlp_snapshots"]
     assert sent["interval"] == {"count": 10, "granularity": 3600, "max_time": 1700}
     assert sent["max_time"] == 1700
+
+
+def test_get_nlp_snapshots_cursor_mode(mock_post: MagicMock):
+    snap = {
+        "submission_idx": "5",
+        "timestamp": "1800",
+        "cumulative_volume": "200",
+        "cumulative_trades": "20",
+        "cumulative_mint_quote": "100",
+        "cumulative_burn_quote": "10",
+        "cumulative_pnl": "40",
+        "oracle_price_x18": "1000000000000000000",
+        "depositors": "5",
+        "tvl": "19999",
+    }
+    client = _indexer_client(mock_post, {"snapshots": [snap]})
+    data = client.get_nlp_snapshots(idx=5, limit=20)
+    assert data.snapshots[0].tvl == "19999"
+    sent = mock_post.call_args.kwargs["json"]["nlp_snapshots"]
+    assert "interval" not in sent
+    assert sent["idx"] == 5
+    assert sent["limit"] == 20
+
+
+def test_get_nlp_snapshots_with_params_object(mock_post: MagicMock):
+    client = _indexer_client(mock_post, {"snapshots": []})
+    params = IndexerNlpSnapshotsParams(idx=10, limit=15)
+    data = client.get_nlp_snapshots(params)
+    assert data.snapshots == []
+    sent = mock_post.call_args.kwargs["json"]["nlp_snapshots"]
+    assert "interval" not in sent
+    assert sent["idx"] == 10
+    assert sent["limit"] == 15
+
+
+def test_get_nlp_snapshots_partial_interval_raises(mock_post: MagicMock):
+    client = _indexer_client(mock_post, {"snapshots": []})
+    with pytest.raises(ValueError, match="Both 'count' and 'granularity' must be provided"):
+        client.get_nlp_snapshots(count=10)
+
+    with pytest.raises(ValueError, match="Both 'count' and 'granularity' must be provided"):
+        client.get_nlp_snapshots(granularity=3600)
+
+
+def test_market_api_get_nlp_snapshots(mock_post: MagicMock, nado_client: NadoClient):
+    resp = MagicMock()
+    resp.status_code = 200
+    resp.json.return_value = {"snapshots": []}
+    mock_post.return_value = resp
+    data = nado_client.market.get_nlp_snapshots(count=5, granularity=60)
+    assert data.snapshots == []
+    sent = mock_post.call_args.kwargs["json"]["nlp_snapshots"]
+    assert sent["interval"] == {"count": 5, "granularity": 60}
 
 
 def test_get_fast_withdrawal_signature(mock_post: MagicMock):

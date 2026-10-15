@@ -684,18 +684,19 @@ class IndexerQueryClient:
 
     def get_nlp_snapshots(
         self,
-        count: int,
-        granularity: int,
+        count: Optional[Union[int, IndexerNlpSnapshotsParams]] = None,
+        granularity: Optional[int] = None,
         max_time: Optional[int] = None,
         idx: Optional[int] = None,
         limit: Optional[int] = None,
     ) -> IndexerNlpSnapshotsData:
         """
-        Retrieves NLP pool snapshots sampled over an interval.
+        Retrieves NLP pool snapshots sampled over an interval or by submission index/cursor.
 
         Args:
-            count (int): Number of samples in the interval.
-            granularity (int): Seconds between samples.
+            count (int | IndexerNlpSnapshotsParams, optional): Number of samples in the interval,
+                or an IndexerNlpSnapshotsParams instance.
+            granularity (int, optional): Seconds between samples.
             max_time (int, optional): Upper bound timestamp.
             idx (int, optional): Submission index cursor.
             limit (int, optional): Maximum snapshots to return.
@@ -703,17 +704,32 @@ class IndexerQueryClient:
         Returns:
             IndexerNlpSnapshotsData: The NLP pool snapshots.
         """
-        return ensure_data_type(
-            self.query(
-                IndexerNlpSnapshotsParams(
-                    interval=IndexerMarketSnapshotInterval(
-                        count=count, granularity=granularity, max_time=max_time
-                    ),
-                    idx=idx,
-                    max_time=max_time,
-                    limit=limit,
+        if isinstance(count, IndexerNlpSnapshotsParams):
+            params = count
+        else:
+            if (count is None) ^ (granularity is None):
+                raise ValueError(
+                    "Both 'count' and 'granularity' must be provided together for interval-based NLP snapshot queries."
                 )
-            ).data,
+            interval = (
+                IndexerMarketSnapshotInterval(
+                    count=count, granularity=granularity, max_time=max_time
+                )
+                if count is not None and granularity is not None
+                else None
+            )
+            params = IndexerNlpSnapshotsParams(
+                interval=interval,
+                idx=idx,
+                max_time=max_time,
+                limit=limit,
+            )
+
+        data = self.query(params).data
+        if isinstance(data, IndexerMarketSnapshotsData) and not data.snapshots:
+            data = IndexerNlpSnapshotsData(snapshots=[])
+        return ensure_data_type(
+            data,
             IndexerNlpSnapshotsData,
         )
 
