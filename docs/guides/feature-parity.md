@@ -21,6 +21,7 @@ Legend: ✅ done in v2 · ⏳ remaining
 | Edge all markets | query `edge_all_products` | ✅ `get_edge_all_products` |
 | Edge/cached queries | `/edge/query` (`cached_*`, `ping`, `time`) | ✅ `EngineEdgeQueryClient` (cached prices/symbols/contracts/status/all-products/edge-all-products/health-groups/nlp-pool-info/bbo-history + ping/time) |
 | Web/gateway helpers | `GET /ip`, `/time`, `/cf-check` | ✅ `EngineWebClient` |
+| Order signers | execute `add_order_signer` / `delete_order_signer`, query `order_signers` | ✅ `add_order_signer` / `delete_order_signer` / `get_order_signers` |
 
 ## Indexer client
 
@@ -37,6 +38,7 @@ Legend: ✅ done in v2 · ⏳ remaining
 | Social connect/revoke (signed) | `social_connect`, `revoke_social_account` | ✅ `connect_social_account` / `revoke_social_account` (EIP-712) |
 | Points / private alpha | `nado_points`, `private_alpha_choice` | ✅ `get_points` / `get_private_alpha_choice` |
 | Edge candlesticks / market snapshots | `edge_candlesticks`, `edge_market_snapshots` | ✅ `get_edge_candlesticks` / `get_edge_market_snapshots` |
+| Order signer rate limit / history | `order_signer_rate_limit`, `order_signer_events` | ✅ `get_order_signer_rate_limits` / `get_order_signer_events` |
 | Fast withdrawal signature | `fast_withdrawal_signature` | ✅ `get_fast_withdrawal_signature` |
 | NLP snapshots | `nlp_snapshots` | ✅ `get_nlp_snapshots` |
 | Direct deposit address | `direct_deposit_address` | ✅ `get_subaccount_dda` |

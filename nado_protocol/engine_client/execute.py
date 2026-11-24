@@ -7,10 +7,12 @@ from nado_protocol.engine_client.types import (
     EngineClientOpts,
 )
 from nado_protocol.engine_client.types.execute import (
+    AddOrderSignerParams,
     BurnNlpParams,
     CancelAndPlaceParams,
     CancelOrdersParams,
     CancelProductOrdersParams,
+    DeleteOrderSignerParams,
     ExecuteParams,
     ExecuteRequest,
     ExecuteResponse,
@@ -415,6 +417,45 @@ class EngineExecuteClient(NadoBaseExecute):
         params = self.prepare_execute_params(LinkSignerParams.model_validate(params), False)
         params.signature = params.signature or self._sign(
             NadoExecuteType.LINK_SIGNER,
+            params.dict(),
+        )
+        return self.execute(params)
+
+    def add_order_signer(self, params: AddOrderSignerParams) -> ExecuteResponse:
+        """
+        Execute an add order signer operation. Must be signed by the subaccount owner or its linked signer.
+
+        Args:
+            params (AddOrderSignerParams): Parameters including the order signer to add.
+
+        Returns:
+            ExecuteResponse: Response of the execution, including status and potential error message.
+        """
+        params = self.prepare_execute_params(
+            AddOrderSignerParams.model_validate(params), False
+        )
+        params.signature = params.signature or self._sign(
+            NadoExecuteType.ADD_ORDER_SIGNER,
+            params.dict(),
+        )
+        return self.execute(params)
+
+    def delete_order_signer(self, params: DeleteOrderSignerParams) -> ExecuteResponse:
+        """
+        Execute a delete order signer operation. Must be signed by the subaccount owner or its linked signer.
+        Cancels the open orders that signer placed.
+
+        Args:
+            params (DeleteOrderSignerParams): Parameters including the order signer to remove.
+
+        Returns:
+            ExecuteResponse: Response of the execution, including status and potential error message.
+        """
+        params = self.prepare_execute_params(
+            DeleteOrderSignerParams.model_validate(params), False
+        )
+        params.signature = params.signature or self._sign(
+            NadoExecuteType.DELETE_ORDER_SIGNER,
             params.dict(),
         )
         return self.execute(params)

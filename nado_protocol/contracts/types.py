@@ -169,6 +169,8 @@ class NadoExecuteType(StrEnum):
     MINT_NLP = "mint_nlp"
     BURN_NLP = "burn_nlp"
     LINK_SIGNER = "link_signer"
+    ADD_ORDER_SIGNER = "add_order_signer"
+    DELETE_ORDER_SIGNER = "delete_order_signer"
     TRANSFER_QUOTE = "transfer_quote"
 
 

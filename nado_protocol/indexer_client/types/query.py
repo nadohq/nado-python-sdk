@@ -46,6 +46,8 @@ class IndexerQueryType(StrEnum):
     MAKER_STATISTICS = "maker_statistics"
     LIQUIDATION_FEED = "liquidation_feed"
     LINKED_SIGNER_RATE_LIMIT = "linked_signer_rate_limit"
+    ORDER_SIGNER_RATE_LIMIT = "order_signer_rate_limit"
+    ORDER_SIGNER_EVENTS = "order_signer_events"
     REFERRAL_CODE = "referral_code"
     SUBACCOUNTS = "subaccounts"
     QUOTE_PRICE = "quote_price"
@@ -300,6 +302,31 @@ class IndexerLinkedSignerRateLimitParams(NadoBaseModel):
     subaccount: str
 
 
+class IndexerOrderSignerRateLimitParams(NadoBaseModel):
+    """
+    Parameters for querying a subaccount's weekly add_order_signer quota and current order signers.
+    """
+
+    subaccount: str
+
+
+class IndexerOrderSignerEventsParams(NadoBaseModel):
+    """
+    Parameters for querying order signer add / delete history, newest first.
+
+    Attributes:
+        subaccount (Optional[str]): Subaccount to filter by; all subaccounts when omitted.
+
+        start_idx (Optional[int]): Only return events with submission_idx <= start_idx.
+
+        limit (Optional[int]): Max events to return (default 100, max 500).
+    """
+
+    subaccount: Optional[str] = None
+    start_idx: Optional[int] = None
+    limit: Optional[int] = None
+
+
 class IndexerSubaccountsParams(NadoBaseModel):
     """
     Parameters for querying subaccounts.
@@ -392,6 +419,8 @@ IndexerParams = Union[
     IndexerOraclePricesParams,
     IndexerLiquidationFeedParams,
     IndexerLinkedSignerRateLimitParams,
+    IndexerOrderSignerRateLimitParams,
+    IndexerOrderSignerEventsParams,
     IndexerSubaccountsParams,
     IndexerQuotePriceParams,
     IndexerMarketSnapshotsParams,
@@ -510,6 +539,22 @@ class IndexerLinkedSignerRateLimitRequest(NadoBaseModel):
     """
 
     linked_signer_rate_limit: IndexerLinkedSignerRateLimitParams
+
+
+class IndexerOrderSignerRateLimitRequest(NadoBaseModel):
+    """
+    Request object for querying order signer rate limits.
+    """
+
+    order_signer_rate_limit: IndexerOrderSignerRateLimitParams
+
+
+class IndexerOrderSignerEventsRequest(NadoBaseModel):
+    """
+    Request object for querying order signer events.
+    """
+
+    order_signer_events: IndexerOrderSignerEventsParams
 
 
 class IndexerSubaccountsRequest(NadoBaseModel):
@@ -641,6 +686,8 @@ IndexerRequest = Union[
     IndexerOraclePricesRequest,
     IndexerLiquidationFeedRequest,
     IndexerLinkedSignerRateLimitRequest,
+    IndexerOrderSignerRateLimitRequest,
+    IndexerOrderSignerEventsRequest,
     IndexerSubaccountsRequest,
     IndexerQuotePriceRequest,
     IndexerMarketSnapshotsRequest,
@@ -886,6 +933,46 @@ class IndexerLinkedSignerRateLimitData(NadoBaseModel):
     signer: str
 
 
+class IndexerOrderSignerRateLimitData(NadoBaseModel):
+    """
+    Data object for order signer rate limits.
+
+    Attributes:
+        remaining_tx (str): add_order_signer executes left in the current 7-day window.
+
+        wait_time (int): Seconds until another add_order_signer is allowed; 0 means ready.
+
+        total_tx_limit (str): Max adds per 7-day window.
+
+        order_signers (list[str]): Addresses currently authorised as order signers.
+    """
+
+    remaining_tx: str
+    wait_time: int
+    total_tx_limit: str
+    order_signers: list[str]
+
+
+class IndexerOrderSignerEvent(NadoBaseModel):
+    """
+    An order signer being added (added=True) or deleted (added=False).
+    """
+
+    subaccount: str
+    signer: str
+    submission_idx: int
+    added: bool
+    update_time: int
+
+
+class IndexerOrderSignerEventsData(NadoBaseModel):
+    """
+    Data object for order signer events.
+    """
+
+    events: list[IndexerOrderSignerEvent]
+
+
 class IndexerSubaccountsData(NadoBaseModel):
     """
     Data object for subaccounts response from the indexer.
@@ -1002,6 +1089,8 @@ IndexerResponseData = Union[
     IndexerPerpPricesData,
     IndexerOraclePricesData,
     IndexerLinkedSignerRateLimitData,
+    IndexerOrderSignerRateLimitData,
+    IndexerOrderSignerEventsData,
     IndexerSubaccountsData,
     IndexerQuotePriceData,
     IndexerMarketSnapshotsData,
@@ -1093,6 +1182,14 @@ def to_indexer_request(params: IndexerParams) -> IndexerRequest:
         IndexerLinkedSignerRateLimitParams: (
             IndexerLinkedSignerRateLimitRequest,
             IndexerQueryType.LINKED_SIGNER_RATE_LIMIT.value,
+        ),
+        IndexerOrderSignerRateLimitParams: (
+            IndexerOrderSignerRateLimitRequest,
+            IndexerQueryType.ORDER_SIGNER_RATE_LIMIT.value,
+        ),
+        IndexerOrderSignerEventsParams: (
+            IndexerOrderSignerEventsRequest,
+            IndexerQueryType.ORDER_SIGNER_EVENTS.value,
         ),
         IndexerSubaccountsParams: (
             IndexerSubaccountsRequest,

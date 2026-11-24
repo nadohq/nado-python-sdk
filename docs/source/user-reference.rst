@@ -202,8 +202,32 @@ The Subaccount API allows you to manage your subaccounts. Here, you can explore:
 .. code-block:: python
 
     >>> from nado_protocol.engine_client.types import LinkSignerParams
-    >>> params = LinkSignerParams(signer="0xeae27ae6412147ed6d5692fd91709dad6dbfc34264656661756c740000000000")
+    >>> sender = "0xe526299d13c956ed6b9b3e03086a152c6396947364656661756c740000000000"
+    >>> params = LinkSignerParams(sender=sender, signer="0xeae27ae6412147ed6d5692fd91709dad6dbfc34264656661756c740000000000")
     >>> client.subaccount.link_signer(params)
+
+- Add, list and delete order signers (up to 15 trade-only keys per subaccount; they can place and cancel orders but cannot withdraw, transfer or manage signers):
+
+.. code-block:: python
+
+    >>> from nado_protocol.engine_client.types import AddOrderSignerParams, DeleteOrderSignerParams
+    >>> sender = "0xe526299d13c956ed6b9b3e03086a152c6396947364656661756c740000000000"
+    >>> client.subaccount.add_order_signer(AddOrderSignerParams(sender=sender, signer="0xeae27ae6412147ed6d5692fd91709dad6dbfc342"))
+    >>> client.subaccount.get_subaccount_order_signers(sender)
+    >>> client.subaccount.get_subaccount_order_signer_rate_limits(sender)
+    >>> client.subaccount.get_subaccount_order_signer_events(sender)
+    >>> # Also cancels the open orders this signer placed.
+    >>> client.subaccount.delete_order_signer(DeleteOrderSignerParams(sender=sender, signer="0xeae27ae6412147ed6d5692fd91709dad6dbfc342"))
+
+  To trade with an order signer, build the client with the order signer's key and pass the owner's subaccount as ``sender`` on every call, so the owner's key (which can withdraw) never sits in the trading process:
+
+.. code-block:: python
+
+    >>> from nado_protocol.client import create_nado_client, NadoClientMode
+    >>> from nado_protocol.utils.subaccount import SubaccountParams
+    >>> trading_client = create_nado_client(NadoClientMode.TESTNET, order_signer_private_key)
+    >>> sender = SubaccountParams(subaccount_owner=owner_address, subaccount_name="default")
+    >>> # pass sender=sender (or subaccount_owner=owner_address) on each order, cancel and trigger call
 
 - `Retrieves the sate of a subaccount in the off-chain engine <TODO>`_:
 
@@ -260,6 +284,9 @@ The Indexer Client provides functionalities for interacting with the Nado Protoc
     >>> client.context.indexer_client.get_matches(...)
     >>> # Retrieves linked signer rate limits
     >>> client.context.indexer_client.get_linked_signer_rate_limits(...)
+    >>> # Retrieves order signer rate limits and add / delete history
+    >>> client.context.indexer_client.get_order_signer_rate_limits(...)
+    >>> client.context.indexer_client.get_order_signer_events(...)
 
 .. note::
 
