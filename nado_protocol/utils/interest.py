@@ -51,16 +51,49 @@ def calc_borrow_rate_per_second(product: SpotProduct) -> float:
     return annual_rate / TimeInSeconds.YEAR
 
 
+def calc_min_deposit_rate_multiplier(
+    product: SpotProduct, period_in_seconds: int
+) -> float:
+    """
+    Compounds the annual min deposit rate over the period, giving the multiplier
+    `SpotEngine._updateState` applies to both the borrow and the deposit
+    multiplier: `(1 + min_deposit_rate / seconds_per_year) ** period`.
+    """
+    min_deposit_rate = from_x18(int(product.config.min_deposit_rate_x18))
+    return (1 + min_deposit_rate / TimeInSeconds.YEAR) ** period_in_seconds
+
+
+def _calc_borrow_multiplier(product: SpotProduct, period_in_seconds) -> float:
+    """
+    The engine's `borrowRateMultiplier`, which excludes the min deposit rate.
+    The deposit rate is derived from this figure before the min deposit
+    multiplier is applied.
+    """
+    return (calc_borrow_rate_per_second(product) + 1) ** period_in_seconds
+
+
 def calc_borrow_rate_in_period(product: SpotProduct, period_in_seconds) -> float:
-    borrow_rate_per_second = calc_borrow_rate_per_second(product)
-    return (borrow_rate_per_second + 1) ** period_in_seconds - 1
+    borrow_multiplier = _calc_borrow_multiplier(product, period_in_seconds)
+    min_deposit_multiplier = calc_min_deposit_rate_multiplier(
+        product, period_in_seconds
+    )
+    return borrow_multiplier * min_deposit_multiplier - 1
 
 
 def calc_deposit_rate_in_period(
     product: SpotProduct, period_in_seconds: int, interest_fee_fraction: float
 ) -> float:
+    min_deposit_multiplier = calc_min_deposit_rate_multiplier(
+        product, period_in_seconds
+    )
     utilization = calc_utilization_ratio(product)
+    # Nothing is borrowed, so no interest is paid — but the engine still applies
+    # the min deposit multiplier, which is the whole point of a rate floor.
     if utilization == 0:
-        return 0
-    borrow_rate_in_period = calc_borrow_rate_in_period(product, period_in_seconds)
-    return utilization * borrow_rate_in_period * (1 - interest_fee_fraction)
+        return min_deposit_multiplier - 1
+    realized_deposit_rate = (
+        utilization
+        * (_calc_borrow_multiplier(product, period_in_seconds) - 1)
+        * (1 - interest_fee_fraction)
+    )
+    return (1 + realized_deposit_rate) * min_deposit_multiplier - 1

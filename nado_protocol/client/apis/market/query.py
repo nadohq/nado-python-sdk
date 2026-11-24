@@ -24,6 +24,7 @@ from nado_protocol.indexer_client.types.query import (
     IndexerProductSnapshotsParams,
     IndexerMarketSnapshotsParams,
     IndexerMarketSnapshotsData,
+    IndexerNlpSnapshotsData,
 )
 from nado_protocol.trigger_client.types.query import (
     ListTriggerOrdersParams,
@@ -302,6 +303,35 @@ class MarketQueryAPI(NadoBaseAPI):
             IndexerMarketSnapshotsData: The market snapshot data corresponding to the provided parameters.
         """
         return self.context.indexer_client.get_market_snapshots(params)
+
+    def get_nlp_snapshots(
+        self,
+        count: Optional[int] = None,
+        granularity: Optional[int] = None,
+        max_time: Optional[int] = None,
+        idx: Optional[int] = None,
+        limit: Optional[int] = None,
+    ) -> IndexerNlpSnapshotsData:
+        """
+        Fetches NLP pool snapshots from the indexer sampled over an interval or queried by index/time cursor.
+
+        Args:
+            count (int, optional): Number of samples in the interval.
+            granularity (int, optional): Seconds between samples.
+            max_time (int, optional): Upper bound timestamp.
+            idx (int, optional): Submission index cursor.
+            limit (int, optional): Maximum snapshots to return.
+
+        Returns:
+            IndexerNlpSnapshotsData: The NLP pool snapshots.
+        """
+        return self.context.indexer_client.get_nlp_snapshots(
+            count=count,
+            granularity=granularity,
+            max_time=max_time,
+            idx=idx,
+            limit=limit,
+        )
 
     def get_trigger_orders(
         self, params: ListTriggerOrdersParams
