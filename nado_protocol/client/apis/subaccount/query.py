@@ -2,11 +2,15 @@ from typing import Optional
 from nado_protocol.client.apis.base import NadoBaseAPI
 from nado_protocol.engine_client.types.query import (
     FeeRatesData,
+    OrderSignersData,
     QuerySubaccountInfoTx,
     SubaccountInfoData,
 )
 from nado_protocol.indexer_client.types.query import (
     IndexerLinkedSignerRateLimitData,
+    IndexerOrderSignerEventsData,
+    IndexerOrderSignerEventsParams,
+    IndexerOrderSignerRateLimitData,
     IndexerSubaccountsData,
     IndexerSubaccountsParams,
     IndexerInterestAndFundingParams,
@@ -68,6 +72,57 @@ class SubaccountQueryAPI(NadoBaseAPI):
             IndexerLinkedSignerRateLimitData: A data class object containing information about the current linked signer and their rate limits for the queried subaccount.
         """
         return self.context.indexer_client.get_linked_signer_rate_limits(subaccount)
+
+    def get_subaccount_order_signers(self, subaccount: str) -> OrderSignersData:
+        """
+        Retrieve the current order signers of a subaccount from the off-chain engine.
+
+        Args:
+            subaccount (str): Unique identifier for the subaccount.
+
+        Returns:
+            OrderSignersData: Addresses currently authorised as order signers.
+        """
+        return self.context.engine_client.get_order_signers(subaccount)
+
+    def get_subaccount_order_signer_rate_limits(
+        self, subaccount: str
+    ) -> IndexerOrderSignerRateLimitData:
+        """
+        Retrieve a subaccount's remaining weekly add_order_signer quota and current order signers from the indexer.
+
+        Args:
+            subaccount (str): Unique identifier for the subaccount.
+
+        Returns:
+            IndexerOrderSignerRateLimitData: Remaining adds, wait time and current order signers.
+        """
+        return self.context.indexer_client.get_order_signer_rate_limits(subaccount)
+
+    def get_subaccount_order_signer_events(
+        self,
+        subaccount: Optional[str] = None,
+        start_idx: Optional[int] = None,
+        limit: Optional[int] = None,
+    ) -> IndexerOrderSignerEventsData:
+        """
+        Retrieve order signer add / delete history from the indexer, newest first.
+
+        Args:
+            subaccount (str, optional): Subaccount to filter by; all subaccounts when omitted.
+
+            start_idx (int, optional): Only return events with submission_idx <= start_idx.
+
+            limit (int, optional): Max events to return (default 100, max 500).
+
+        Returns:
+            IndexerOrderSignerEventsData: The matching order signer events.
+        """
+        return self.context.indexer_client.get_order_signer_events(
+            IndexerOrderSignerEventsParams(
+                subaccount=subaccount, start_idx=start_idx, limit=limit
+            )
+        )
 
     def get_subaccounts(
         self,

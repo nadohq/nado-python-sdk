@@ -134,6 +134,20 @@ def get_nado_eip712_type(tx: NadoTxType) -> dict:
                 {"name": "nonce", "type": "uint64"},
             ]
         },
+        NadoTxType.ADD_ORDER_SIGNER: {
+            "AddOrderSigner": [
+                {"name": "sender", "type": "bytes32"},
+                {"name": "signer", "type": "bytes32"},
+                {"name": "nonce", "type": "uint64"},
+            ]
+        },
+        NadoTxType.DELETE_ORDER_SIGNER: {
+            "DeleteOrderSigner": [
+                {"name": "sender", "type": "bytes32"},
+                {"name": "signer", "type": "bytes32"},
+                {"name": "nonce", "type": "uint64"},
+            ]
+        },
         NadoTxType.TRANSFER_QUOTE: {
             "TransferQuote": [
                 {"name": "sender", "type": "bytes32"},

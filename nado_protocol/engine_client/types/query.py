@@ -36,6 +36,7 @@ class EngineQueryType(StrEnum):
     FEE_RATES = "fee_rates"
     HEALTH_GROUPS = "health_groups"
     LINKED_SIGNER = "linked_signer"
+    ORDER_SIGNERS = "order_signers"
     MARKET_LIQUIDITY = "market_liquidity"
     MARKET_PRICE = "market_price"
     MARKET_PRICES = "market_prices"
@@ -303,6 +304,15 @@ class QueryLinkedSignerParams(NadoBaseModel):
     subaccount: str
 
 
+class QueryOrderSignersParams(NadoBaseModel):
+    """
+    Parameters for querying the order signers of a specified subaccount.
+    """
+
+    type: str = EngineQueryType.ORDER_SIGNERS.value
+    subaccount: str
+
+
 QueryRequest = Union[
     QueryStatusParams,
     QueryContractsParams,
@@ -327,6 +337,7 @@ QueryRequest = Union[
     QueryFeeRatesParams,
     QueryHealthGroupsParams,
     QueryLinkedSignerParams,
+    QueryOrderSignersParams,
     QueryIsolatedPositionsParams,
 ]
 
@@ -612,6 +623,14 @@ class LinkedSignerData(NadoBaseModel):
     linked_signer: str
 
 
+class OrderSignersData(NadoBaseModel):
+    """
+    Data model for the order signers of a subaccount (20-byte hex addresses).
+    """
+
+    order_signers: list[str]
+
+
 class SymbolsData(NadoBaseModel):
     """
     Data model for the symbols product info
@@ -646,6 +665,7 @@ QueryResponseData = Union[
     FeeRatesData,
     HealthGroupsData,
     LinkedSignerData,
+    OrderSignersData,
     ProductSymbolsData,
     IsolatedPositionsData,
 ]

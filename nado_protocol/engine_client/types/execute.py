@@ -256,6 +256,26 @@ class LinkSignerParams(BaseParamsSigned):
         return subaccount_to_bytes32(v)
 
 
+class AddOrderSignerParams(LinkSignerParams):
+    """
+    Parameters to authorise an order signer on a subaccount: a wallet that can place and
+    cancel orders (including trigger and TWAP orders) but cannot withdraw, transfer or manage signers.
+
+    Attributes:
+        signer (Subaccount): The order signer's wallet address, or a bytes32 whose first 20 bytes are that address.
+    """
+
+
+class DeleteOrderSignerParams(LinkSignerParams):
+    """
+    Parameters to remove an order signer from a subaccount. Cancels the open orders
+    (including trigger and TWAP orders) that signer placed.
+
+    Attributes:
+        signer (Subaccount): The order signer's wallet address, or a bytes32 whose first 20 bytes are that address.
+    """
+
+
 class TransferQuoteParams(BaseParamsSigned):
     """
     Parameters required to transfer quote (USDC) between subaccounts.
@@ -289,6 +309,8 @@ ExecuteParams = Union[
     MintNlpParams,
     BurnNlpParams,
     LinkSignerParams,
+    AddOrderSignerParams,
+    DeleteOrderSignerParams,
     CancelAndPlaceParams,
     TransferQuoteParams,
 ]
@@ -644,6 +666,44 @@ class LinkSignerRequest(NadoBaseModel):
     _validator = field_validator("link_signer")(classmethod(to_tx_request))
 
 
+class AddOrderSignerRequest(NadoBaseModel):
+    """
+    Parameters for a request to add an order signer to a subaccount.
+
+    Attributes:
+        add_order_signer (AddOrderSignerParams): Parameters including the order signer to add.
+    """
+
+    add_order_signer: AddOrderSignerParams
+
+    @field_validator("add_order_signer")
+    @classmethod
+    def serialize(cls, v: AddOrderSignerParams) -> AddOrderSignerParams:
+        v.serialize_dict(["signer"], bytes32_to_hex)
+        return v
+
+    _validator = field_validator("add_order_signer")(classmethod(to_tx_request))
+
+
+class DeleteOrderSignerRequest(NadoBaseModel):
+    """
+    Parameters for a request to delete an order signer from a subaccount.
+
+    Attributes:
+        delete_order_signer (DeleteOrderSignerParams): Parameters including the order signer to remove.
+    """
+
+    delete_order_signer: DeleteOrderSignerParams
+
+    @field_validator("delete_order_signer")
+    @classmethod
+    def serialize(cls, v: DeleteOrderSignerParams) -> DeleteOrderSignerParams:
+        v.serialize_dict(["signer"], bytes32_to_hex)
+        return v
+
+    _validator = field_validator("delete_order_signer")(classmethod(to_tx_request))
+
+
 class TransferQuoteRequest(NadoBaseModel):
     """
     Parameters for a transfer quote request.
@@ -681,6 +741,8 @@ ExecuteRequest = Union[
     MintNlpRequest,
     BurnNlpRequest,
     LinkSignerRequest,
+    AddOrderSignerRequest,
+    DeleteOrderSignerRequest,
     TransferQuoteRequest,
 ]
 
@@ -791,6 +853,14 @@ def to_execute_request(params: ExecuteParams) -> ExecuteRequest:
         MintNlpParams: (MintNlpRequest, NadoExecuteType.MINT_NLP.value),
         BurnNlpParams: (BurnNlpRequest, NadoExecuteType.BURN_NLP.value),
         LinkSignerParams: (LinkSignerRequest, NadoExecuteType.LINK_SIGNER.value),
+        AddOrderSignerParams: (
+            AddOrderSignerRequest,
+            NadoExecuteType.ADD_ORDER_SIGNER.value,
+        ),
+        DeleteOrderSignerParams: (
+            DeleteOrderSignerRequest,
+            NadoExecuteType.DELETE_ORDER_SIGNER.value,
+        ),
         CancelAndPlaceParams: (
             CancelAndPlaceRequest,
             NadoExecuteType.CANCEL_AND_PLACE.value,

@@ -15,6 +15,7 @@ from nado_protocol.engine_client.types.query import (
     FeeRatesData,
     HealthGroupsData,
     LinkedSignerData,
+    OrderSignersData,
     MarketLiquidityData,
     MarketPriceData,
     MarketPricesData,
@@ -36,6 +37,7 @@ from nado_protocol.engine_client.types.query import (
     QueryFeeRatesParams,
     QueryHealthGroupsParams,
     QueryLinkedSignerParams,
+    QueryOrderSignersParams,
     QueryMarketLiquidityParams,
     QueryMarketPriceParams,
     QueryMarketPricesParams,
@@ -532,6 +534,21 @@ class EngineQueryClient:
         return ensure_data_type(
             self.query(QueryLinkedSignerParams(subaccount=subaccount)).data,
             LinkedSignerData,
+        )
+
+    def get_order_signers(self, subaccount: str) -> OrderSignersData:
+        """
+        Retrieves the current order signers of the specified subaccount.
+
+        Args:
+            subaccount (str): Identifier of the subaccount (owner's address + subaccount name) sent as a hex string.
+
+        Returns:
+            OrderSignersData: Addresses currently authorised as order signers of the subaccount.
+        """
+        return ensure_data_type(
+            self.query(QueryOrderSignersParams(subaccount=subaccount)).data,
+            OrderSignersData,
         )
 
     def get_isolated_positions(self, subaccount: str) -> IsolatedPositionsData:

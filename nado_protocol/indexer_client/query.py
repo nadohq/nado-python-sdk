@@ -34,6 +34,10 @@ from nado_protocol.indexer_client.types.query import (
     IndexerSubaccountHistoricalOrdersParams,
     IndexerLinkedSignerRateLimitData,
     IndexerLinkedSignerRateLimitParams,
+    IndexerOrderSignerEventsData,
+    IndexerOrderSignerEventsParams,
+    IndexerOrderSignerRateLimitData,
+    IndexerOrderSignerRateLimitParams,
     IndexerLiquidationFeedData,
     IndexerLiquidationFeedParams,
     IndexerMarketSnapshotsData,
@@ -1131,6 +1135,40 @@ class IndexerQueryClient:
         return ensure_data_type(
             self.query(IndexerLinkedSignerRateLimitParams(subaccount=subaccount)).data,
             IndexerLinkedSignerRateLimitData,
+        )
+
+    def get_order_signer_rate_limits(
+        self, subaccount: str
+    ) -> IndexerOrderSignerRateLimitData:
+        """
+        Retrieves a subaccount's remaining weekly add_order_signer quota and its current order signers.
+
+        Args:
+            subaccount (str): The identifier of the subaccount.
+
+        Returns:
+            IndexerOrderSignerRateLimitData: Remaining adds, wait time and current order signers.
+        """
+        return ensure_data_type(
+            self.query(IndexerOrderSignerRateLimitParams(subaccount=subaccount)).data,
+            IndexerOrderSignerRateLimitData,
+        )
+
+    def get_order_signer_events(
+        self, params: IndexerOrderSignerEventsParams
+    ) -> IndexerOrderSignerEventsData:
+        """
+        Retrieves order signer add / delete history, newest first.
+
+        Args:
+            params (IndexerOrderSignerEventsParams): Optional subaccount filter and pagination.
+
+        Returns:
+            IndexerOrderSignerEventsData: The matching order signer events.
+        """
+        return ensure_data_type(
+            self.query(IndexerOrderSignerEventsParams.model_validate(params)).data,
+            IndexerOrderSignerEventsData,
         )
 
     def get_subaccounts(
