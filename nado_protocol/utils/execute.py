@@ -30,7 +30,8 @@ class BaseParams(NadoBaseModel):
     Base class for defining request parameters to be sent to the Nado API.
 
     Attributes:
-        sender (Subaccount): The sender's subaccount identifier.
+        sender (Subaccount): The sender's subaccount: `SubaccountParams`, or the bytes32 subaccount (bytes or 0x hex).
+            A bare 20-byte wallet address is not a subaccount.
         nonce (Optional[int]): An optional nonce for the request.
 
     Note:
